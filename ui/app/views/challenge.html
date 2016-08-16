@@ -1,0 +1,13 @@
+
+<p ng-show="auth.challengeType == 'RADIUS_NEW_PIN'" translate='RADIUS_NEW_PIN'></p>
+<p ng-show="auth.challengeType == 'RADIUS_NEXT_TOKEN'" translate='RADIUS_NEXT_TOKEN'></p>
+<p ng-show="auth.challengeType == 'RADIUS_NEXT_PASSCODE'" translate='RADIUS_NEXT_PASSCODE'></p>
+
+<div class="input-group">
+	<span class="input-group-addon"> <span
+		class="glyphicon glyphicon-lock"></span>
+	</span> 
+	<input type="password" class="form-control" name="challenge"
+		placeholder="Challenge response" ng-model="auth.password"
+		aria-describedby="basic-addon1">
+</div>

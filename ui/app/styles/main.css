@@ -1,0 +1,81 @@
+body {
+	background: #F8F8F8;
+	font: 13px/1.4 Helvetica, arial, nimbussansl, liberationsans, freesans,
+		clean, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
+		"Segoe UI Symbol"
+}
+
+p {
+	margin: 0px;
+}
+
+.row.header {
+	display: flex;
+	height: 200px;
+	justify-content: center;
+	align-items: flex-end;
+}
+
+.browsehappy {
+	margin: 0.2em 0;
+	background: #ccc;
+	color: #000;
+	padding: 0.2em 0;
+}
+
+.form-label {
+	margin-top: 10px;
+	margin-bottom: 5px;
+}
+
+.full-length {
+	width: 100%;
+}
+
+.box {
+	box-sizing: border-box;
+	width: 350px;
+	margin: auto;
+	border: 1px solid #D9DFE4;
+	background-color: white;
+	margin-top: 5px;
+	padding: 20px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+}
+
+.alert.auth-error {
+	width: 350px;
+	margin: auto;
+	margin-top: 5px;
+	-webkit-transition: 1s linear all; /* Chrome */
+	-moz-transition: 1s linear all; /* Firefox */	
+	transition: 1s linear all;
+	opacity: 1;
+}
+
+.alert.auth-error.ng-hide {
+	opacity: 0;
+}
+
+.input-group {
+	margin: 5px 0 5px 0;
+}
+
+.btn {
+	margin-top: 10px;
+	width: 100%;
+}
+
+.main-title {
+	margin-top: 30px;
+	text-align: center;
+	font-size: 20px;
+}
+
+.centered {
+	text-align: center;
+	margin-left: auto;
+	margin-right: auto;
+}

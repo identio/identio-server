@@ -1,0 +1,69 @@
+/*
+ This file is part of Ident.io
+
+ Ident.io - A flexible authentication server
+ Copyright (C) Loeiz TANGUY
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation, either version 3 of the
+ License, or (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package net.identio.server.model;
+
+public class IdentioConfiguration {
+
+	private GlobalConfiguration globalConfiguration;
+	private SamlIdpConfiguration samlIdpConfiguration;
+	private SessionConfiguration sessionConfiguration;
+	private AuthPolicyConfiguration authPolicyConfiguration;
+	private AuthMethodConfiguration authMethodConfiguration;
+
+	public GlobalConfiguration getGlobalConfiguration() {
+		return globalConfiguration;
+	}
+
+	public void setGlobalConfiguration(GlobalConfiguration globalConfiguration) {
+		this.globalConfiguration = globalConfiguration;
+	}
+
+	public SamlIdpConfiguration getSamlIdpConfiguration() {
+		return samlIdpConfiguration;
+	}
+
+	public void setSamlIdpConfiguration(SamlIdpConfiguration samlIdpConfiguration) {
+		this.samlIdpConfiguration = samlIdpConfiguration;
+	}
+
+	public SessionConfiguration getSessionConfiguration() {
+		return sessionConfiguration;
+	}
+
+	public void setSessionConfiguration(SessionConfiguration sessionConfiguration) {
+		this.sessionConfiguration = sessionConfiguration;
+	}
+
+	public AuthPolicyConfiguration getAuthPolicyConfiguration() {
+		return authPolicyConfiguration;
+	}
+
+	public void setAuthPolicyConfiguration(AuthPolicyConfiguration authPolicyConfiguration) {
+		this.authPolicyConfiguration = authPolicyConfiguration;
+	}
+
+	public AuthMethodConfiguration getAuthMethodConfiguration() {
+		return authMethodConfiguration;
+	}
+
+	public void setAuthMethodConfiguration(AuthMethodConfiguration authMethodConfiguration) {
+		this.authMethodConfiguration = authMethodConfiguration;
+	}
+}

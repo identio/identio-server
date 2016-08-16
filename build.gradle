@@ -1,0 +1,193 @@
+/// *** Server *** ///
+
+buildscript {
+    ext {
+        springBootVersion = '1.4.0.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+        maven { url "http://repo.spring.io/snapshot" }
+        maven { url "http://repo.spring.io/milestone" }
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+plugins {
+  id "com.moowork.node" version "0.12"
+  id "com.moowork.grunt" version "0.12"
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'idea'
+apply plugin: 'spring-boot' 
+apply plugin: 'war'
+apply plugin: 'application'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+/*
+ * Gets the version name from the latest Git tag
+ */
+def getVersionName = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine 'git', 'describe', '--tags'
+        standardOutput = stdout
+    }
+    return 'v' + stdout.toString().trim()
+}
+
+version = getVersionName()
+
+repositories {
+    mavenCentral()
+    maven { url "http://repo.spring.io/snapshot" }
+    maven { url "http://repo.spring.io/milestone" }
+    maven { url "https://jitpack.io" }
+}
+
+configurations {
+    providedRuntime
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
+    	exclude group: 'org.hibernate', module: 'hibernate-validator'
+    }
+    compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
+    compile("org.springframework.security:spring-security-web:4.1.1.RELEASE")
+    compile('org.apache.commons:commons-pool2:2.4.2')
+	compile('com.github.identio:identio-saml:1.0.2')
+	compile('com.google.guava:guava:19.0')
+    compile('com.github.detiber:jradius-client:-SNAPSHOT')
+	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:${springBootVersion}")
+	providedRuntime('ch.qos.logback:logback-core:1.1.7')
+	providedRuntime('ch.qos.logback:logback-classic:1.1.7')
+    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") 
+}
+
+eclipse {
+    wtp {
+      facet {
+            facet name: 'java', version: '1.8'
+            facet name: 'jst.web', version: '3.1'
+      }
+    }
+    project
+    {
+   		 natures "org.springsource.ide.eclipse.gradle.core.nature"
+    }
+}
+
+springBoot {
+  mainClass = "net.identio.server.boot.IdentioServerApplication"
+}
+
+bootRun {
+    systemProperties = ['logging.config':'file:./config/logback.xml']
+}
+
+/// *** UI *** ///
+
+node {
+  // Version of node to use.
+  version = '5.1.0'
+
+  // Version of npm to use.
+  npmVersion = '3.9.6'
+
+  // Base URL for fetching node distributions (change if you have a mirror).
+  distBaseUrl = 'https://nodejs.org/dist'
+
+  // If true, it will download node using above parameters.
+  // If false, it will try to use globally installed node.
+  download = true
+
+  // Set the work directory for unpacking node
+  workDir = file("${project.buildDir}/ui")
+
+  // Set the work directory where node_modules should be located
+  nodeModulesDir = file("${project.projectDir}/ui")
+}
+
+grunt {
+    // Set the directory where Gruntfile.js should be found
+    workDir = file("${project.projectDir}/ui")
+
+    // Whether colors should output on the terminal
+    colors = true
+
+    // Whether output from Grunt should be buffered - useful when running tasks in parallel
+    bufferOutput = false
+}
+
+task bowerInstall(type: NodeTask) {
+  script = file('ui/node_modules/bower/lib/bin/bower.js')
+  args = ['install']
+  execOverrides {
+    it.ignoreExitValue = true
+    it.workingDir = file("${project.projectDir}/ui")
+  }
+}
+
+/// *** Packaging *** ///
+
+def distributionsCopySpec = copySpec {
+    into("identio-server-$version") {
+    
+    	from 'README.md'
+        from 'LICENSE'
+        
+        into('bin') {
+           	from 'scripts/password-generator'
+           	from 'scripts/start'
+        }
+        into('lib') {
+           	from(jar)
+       		from(project.configurations.runtime)
+        }
+        into('config') {
+        	from 'sample-config'
+        }
+        into('ui') {
+        	from 'ui/dist'
+        }
+    }
+}
+
+distributions {
+    main {
+        contents {
+    		from 'README.md'
+        	from 'LICENSE'
+        
+
+        	into('config') {
+        		from 'sample-config'
+        	}
+        	into('ui') {
+        		from 'ui/dist'
+        	}
+        }
+    }
+}
+
+task releaseZip(type: Zip, dependsOn: ['jar', 'grunt_build']) {
+   description 'Build a release in zip format'
+   with distributionsCopySpec 
+}
+
+task releaseTarGz(type: Tar, dependsOn: ['jar', 'grunt_build']) { 
+   description 'Build a release in tar.gz format'
+   compression = Compression.GZIP
+   extension = "tar.gz"
+   with distributionsCopySpec 
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.14'
+}
