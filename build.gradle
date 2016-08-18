@@ -15,8 +15,9 @@ buildscript {
 }
 
 plugins {
-  id "com.moowork.node" version "0.12"
-  id "com.moowork.grunt" version "0.12"
+  id 'com.moowork.node' version '0.13'
+  id 'com.moowork.grunt' version '0.13'    
+  id 'com.github.ben-manes.versions' version '0.13.0'
 }
 
 apply plugin: 'java'
@@ -59,7 +60,7 @@ dependencies {
     	exclude group: 'org.hibernate', module: 'hibernate-validator'
     }
     compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
-    compile("org.springframework.security:spring-security-web:4.1.1.RELEASE")
+    compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
 	compile('com.github.identio:identio-saml:1.0.2')
 	compile('com.google.guava:guava:19.0')
@@ -150,6 +151,7 @@ def distributionsCopySpec = copySpec {
         into('lib') {
            	from(jar)
        		from(project.configurations.runtime)
+       		exclude 'spring-boot-devtools-*'
         }
         into('config') {
         	from 'sample-config'
