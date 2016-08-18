@@ -36,13 +36,13 @@ public class GlobalControllerExceptionHandler {
 
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(ServerException.class)
-	private String handleServerException() {
+	public String handleServerException() {
 		return errorController.displayErrorPage("error.server");
 	}
 
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(ValidationException.class)
-	private String handleValidationException() {
+	public String handleValidationException() {
 		return errorController.displayErrorPage("error.validation");
 	}
 }

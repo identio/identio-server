@@ -221,7 +221,7 @@ public class MetadataService {
 	}
 
 	@Scheduled(fixedDelayString = "60000")
-	private void refreshSpMetadatas() {
+	public void refreshSpMetadatas() {
 
 		LOG.debug("Refreshing SAML SP metadata...");
 

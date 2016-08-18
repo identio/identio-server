@@ -260,15 +260,17 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
 	private X509Certificate parseUserCertificate(String userCert, boolean apacheFix) throws CertificateException {
 
+		String fixedUserCert = userCert;
+		
 		// Fix for Apache that replaces newlines by spaces in headers
 		if (apacheFix) {
 
-			userCert = userCert.replaceAll("-----BEGIN CERTIFICATE----- ", "")
+			fixedUserCert = fixedUserCert.replaceAll("-----BEGIN CERTIFICATE----- ", "")
 					.replaceAll(" -----END CERTIFICATE-----", "").replaceAll(" ", "\r\n");
-			userCert = "-----BEGIN CERTIFICATE-----\r\n" + userCert + "\r\n-----END CERTIFICATE-----";
+			fixedUserCert = "-----BEGIN CERTIFICATE-----\r\n" + fixedUserCert + "\r\n-----END CERTIFICATE-----";
 		}
 
 		return (X509Certificate) CertificateFactory.getInstance("X.509")
-				.generateCertificate(new ByteArrayInputStream(userCert.getBytes()));
+				.generateCertificate(new ByteArrayInputStream(fixedUserCert.getBytes()));
 	}
 }

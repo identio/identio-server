@@ -19,8 +19,6 @@
  */
 package net.identio.server.mvc.common;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,13 +35,13 @@ public class GlobalRestControllerExceptionHandler {
 
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(ServerException.class)
-	private ApiErrorResponse handleServerException(HttpServletRequest req, SamlException e) {
+	public ApiErrorResponse handleServerException(SamlException e) {
 		return new ApiErrorResponse("error.server", e.getMessage());
 	}
 
 	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(ValidationException.class)
-	private ApiErrorResponse handleValidationException(HttpServletRequest req, ValidationException e) {
+	public ApiErrorResponse handleValidationException(ValidationException e) {
 		return new ApiErrorResponse("error.validation", e.getMessage());
 	}
 

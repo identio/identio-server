@@ -86,13 +86,10 @@ public class DecodeUtils {
 
 		String encodedString = null;
 
-		if (deflate) {
-			// DEFLATE (rfc 1951) -- according to SAML spec
-			data = deflate(data, true);
-		}
+		byte[] deflatedData = deflate ? deflate(data,true) : data;
 
 		// First, we decode the B64 string
-		encodedString = Base64.encode(data).replaceAll("\r", "").replaceAll("\n", "");
+		encodedString = Base64.encode(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
 
 		LOG.debug("Encoded string: {}", encodedString);
 
