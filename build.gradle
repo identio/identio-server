@@ -160,13 +160,15 @@ def distributionsCopySpec = copySpec {
 }
 
 grunt_build.mustRunAfter npmInstall
+grunt_build.mustRunAfter bowerInstall
+bowerInstall.mustRunAfter npmInstall
 
-task releaseZip(type: Zip, dependsOn: ['jar', 'npmInstall', 'grunt_build']) {
+task releaseZip(type: Zip, dependsOn: ['jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
    description 'Build a release in zip format'
    with distributionsCopySpec 
 }
 
-task releaseTarGz(type: Tar, dependsOn: ['jar', 'npmInstall', 'grunt_build']) { 
+task releaseTarGz(type: Tar, dependsOn: ['jar', 'bowerInstall', 'npmInstall', 'grunt_build']) { 
    description 'Build a release in tar.gz format'
    compression = Compression.GZIP
    extension = "tar.gz"
