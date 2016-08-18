@@ -159,23 +159,6 @@ def distributionsCopySpec = copySpec {
     }
 }
 
-distributions {
-    main {
-        contents {
-    		from 'README.md'
-        	from 'LICENSE'
-        
-
-        	into('config') {
-        		from 'sample-config'
-        	}
-        	into('ui') {
-        		from 'ui/dist'
-        	}
-        }
-    }
-}
-
 task releaseZip(type: Zip, dependsOn: ['jar', 'grunt_build']) {
    description 'Build a release in zip format'
    with distributionsCopySpec 
