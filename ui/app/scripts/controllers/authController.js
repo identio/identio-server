@@ -35,7 +35,7 @@
 		// Request the list of authentication methods
 		function init() {
 			
-			if ($stateParams.transactionId === undefined) {
+			if ($stateParams.transactionId) {
 				$state.go('error', {
 					errorCode : 'AUTH_NO_TRANSACTION'
 				});
