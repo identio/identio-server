@@ -28,19 +28,26 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import net.identio.server.exceptions.SamlException;
+import net.identio.server.exceptions.ServerException;
 import net.identio.server.exceptions.ValidationException;
 import net.identio.server.model.AuthMethod;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
 import net.identio.server.model.State;
 import net.identio.server.model.UserPasswordAuthentication;
 import net.identio.server.model.ValidationResult;
+import net.identio.server.model.api.ApiErrorResponse;
 import net.identio.server.model.api.AuthMethodResponse;
 import net.identio.server.model.api.AuthSubmitRequest;
 import net.identio.server.model.api.AuthSubmitResponse;
@@ -119,4 +126,22 @@ public class AuthentController {
 		return list;
 	}
 
+	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+	@ExceptionHandler(ServerException.class)
+	public ApiErrorResponse handleServerException(SamlException e) {
+		return new ApiErrorResponse("error.server", e.getMessage());
+	}
+
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(ValidationException.class)
+	public ApiErrorResponse handleValidationException(ValidationException e) {
+		return new ApiErrorResponse("error.validation", e.getMessage());
+	}
+
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(ServletRequestBindingException.class)
+	public ApiErrorResponse handleServletRequestBindingException(ServletRequestBindingException e) {
+		return new ApiErrorResponse("error.mssing.parameter", e.getMessage());
+	}
+	
 }

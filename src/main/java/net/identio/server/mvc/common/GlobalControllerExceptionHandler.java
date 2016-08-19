@@ -21,6 +21,7 @@ package net.identio.server.mvc.common;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -44,5 +45,11 @@ public class GlobalControllerExceptionHandler {
 	@ExceptionHandler(ValidationException.class)
 	public String handleValidationException() {
 		return errorController.displayErrorPage("error.validation");
+	}
+	
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ExceptionHandler(ServletRequestBindingException.class)
+	public String handleServletRequestBindingException() {
+		return errorController.displayErrorPage("error.missing.parameter");
 	}
 }
