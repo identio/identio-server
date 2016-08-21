@@ -100,7 +100,7 @@ public class SamlService {
 			initSigner(configurationService.getConfiguration());
 		} catch (TechnicalException ex) {
 			String message = "Could not initialize SamlService";
-			LOG.error(message + ": {}", ex.getMessage());
+			LOG.error("{}: {}", message, ex.getMessage());
 			throw new InitializationException(message, ex);
 		}
 	}
@@ -365,7 +365,7 @@ public class SamlService {
 
 		} catch (TechnicalException | IOException ex) {
 			String message = "Technical error when building SAML response";
-			LOG.error(message + ": {}" + ex.getMessage());
+			LOG.error("{}: {}", message, ex.getMessage());
 			throw new SamlException(message, ex);
 		}
 	}
@@ -396,7 +396,7 @@ public class SamlService {
 
 		} catch (TechnicalException | IOException ex) {
 			String message = "Technical error when building SAML response";
-			LOG.error(message + ": {}" + ex.getMessage());
+			LOG.error("{}: {}", message, ex.getMessage());
 			throw new SamlException(message, ex);
 		}
 	}
@@ -498,7 +498,7 @@ public class SamlService {
 
 		} catch (TechnicalException | IOException ex) {
 			String message = "Technical error when building SAML request";
-			LOG.error(message + ": {}", ex.getMessage());
+			LOG.error("{}: {}", message, ex.getMessage());
 			throw new SamlException(message, ex);
 		}
 

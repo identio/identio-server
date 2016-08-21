@@ -21,6 +21,7 @@ package net.identio.server.service.authentication.saml;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -267,7 +268,8 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			try {
 				validation = remoteValidator.validate(response);
 
-			} catch (Exception ex) {
+			} catch (UnsignedSAMLObjectException | NoSuchAlgorithmException | UntrustedSignerException
+					| InvalidSignatureException ex) {
 
 				LOG.error("* Response is invalid: {}", ex.getMessage());
 				LOG.debug("* Detailed stacktrace:", ex);

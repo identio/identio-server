@@ -99,7 +99,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 	private void cacheSpelExpressions(X509AuthMethod authMethod) {
 
 		SpelParserConfiguration config = new SpelParserConfiguration(SpelCompilerMode.IMMEDIATE,
-				this.getClass().getClassLoader());
+				Thread.currentThread().getContextClassLoader());
 
 		ExpressionParser parser = new SpelExpressionParser(config);
 

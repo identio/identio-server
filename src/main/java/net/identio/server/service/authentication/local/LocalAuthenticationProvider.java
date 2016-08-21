@@ -80,7 +80,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 			try (FileInputStream is = new FileInputStream(userFilePath)) {
 
 				Yaml yaml = new Yaml(new CustomClassLoaderConstructor(FileUserRepository.class,
-						FileUserRepository.class.getClassLoader()));
+						Thread.currentThread().getContextClassLoader()));
 
 				FileUserRepository repository = (FileUserRepository) yaml.load(is);
 
