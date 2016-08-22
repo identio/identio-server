@@ -62,7 +62,7 @@ public class PreAuthController {
 
 		X509Authentication authentication = null;
 
-		if (clientAuthCerts != null || (userCert != null && sharedSecret != null)) {
+		if (clientAuthCerts != null || userCert != null && sharedSecret != null) {
 			authentication = new X509Authentication((X509Certificate[]) clientAuthCerts, userCert, sharedSecret);
 		}
 

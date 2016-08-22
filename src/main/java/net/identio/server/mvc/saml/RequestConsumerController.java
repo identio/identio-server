@@ -77,7 +77,7 @@ public class RequestConsumerController {
 		// The SAML request is Base-64 encoded
 		try {
 			decodedSamlRequest = new String(DecodeUtils.decode(usSamlRequest, false));
-		} catch (Exception e) {
+		} catch (Base64DecodingException | IOException | DataFormatException e) {
 			throw new ServerException("Error when decoding SAML Request", e);
 		}
 

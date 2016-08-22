@@ -68,7 +68,7 @@ public class SecurityUtils {
 			}
 		}
 
-		if ((name.length() > 1) && (name.charAt(name.length() - 1) == ' ')) {
+		if (name.length() > 1 && name.charAt(name.length() - 1) == ' ') {
 			sb.insert(sb.length() - 1, '\\'); // add the trailing backslash if
 												// needed
 		}
