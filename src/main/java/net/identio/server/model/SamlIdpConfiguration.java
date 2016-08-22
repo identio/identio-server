@@ -28,7 +28,7 @@ public class SamlIdpConfiguration {
 	private String contactPersonEmail;
 	private String keystore;
 	private String keystorePassword;
-	private boolean allowUnsecureRequests = false;
+	private boolean allowUnsecureRequests;
 	private boolean certificateCheckEnabled;
 	private int tokenValidityLength;
 	private int allowedTimeOffset;

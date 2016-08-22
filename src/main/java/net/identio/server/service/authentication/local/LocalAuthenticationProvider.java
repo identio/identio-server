@@ -133,8 +133,8 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
 		// If the password doesn't start with $, it is not hashed
 		// $2a indicates a Bcrypt hash
-		if ((!hashedPassword.startsWith("$") && hashedPassword.equals(password))
-				|| (hashedPassword.startsWith("$2a") && BCrypt.checkpw(password, hashedPassword))) {
+		if (!(hashedPassword.charAt(0) == '$') && hashedPassword.equals(password)
+				|| hashedPassword.startsWith("$2a") && BCrypt.checkpw(password, hashedPassword)) {
 
 			LOG.info("User {} successfully authenticated with {} method", user.getUserId(), fileAuthMethod.getName());
 

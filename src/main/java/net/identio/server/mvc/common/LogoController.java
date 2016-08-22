@@ -76,7 +76,7 @@ public class LogoController {
 			byte[] buf = new byte[2048];
 			ServletOutputStream os = response.getOutputStream();
 
-			while ((is.read(buf)) != -1) {
+			while (is.read(buf) != -1) {
 				os.write(buf);
 			}
 

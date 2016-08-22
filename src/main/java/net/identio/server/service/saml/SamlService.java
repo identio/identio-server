@@ -225,8 +225,8 @@ public class SamlService {
 		}
 
 		// Check the signature and the conditions
-		if ((SamlConstants.BINDING_HTTP_REDIRECT.equals(request.getBinding())
-				&& !validateRedirectRequest(validator, request, result))
+		if (SamlConstants.BINDING_HTTP_REDIRECT.equals(request.getBinding())
+				&& !validateRedirectRequest(validator, request, result)
 				|| !validatePostRequest(validator, ar, result)) {
 			return result;
 		}

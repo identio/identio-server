@@ -23,8 +23,8 @@ public class LdapPoolConfig {
 
 	private int minIdleConnections = 4;
 	private int maxIdleConnections = 8;
-	private boolean testWhileIdle = false;
-	private boolean testOnBorrow = false;
+	private boolean testWhileIdle;
+	private boolean testOnBorrow;
 	private String testRequestFilter = "(objectclass=*)";
 	private int timeBetweenEvictionRuns = 30;
 	private int numTestsPerEvictionRun = 4;
