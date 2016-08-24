@@ -1,12 +1,6 @@
 language: java
 jdk:
 - oraclejdk8
-services:
-  - docker
-env:
-  global:
-    - secure: "tlin2n6Vc48e5iqyLsh0qMDnoDzopub780d7jglEmZHnfndolVXheHEVE6xAcGFL8Dp/OrKT/JMEhLFKBW9+YF8QBznSEnlVQ9t6va+5LK5zeeVMChmIHFo5mHXZBZ4nCebVbMleZIlzbjR47+bZNMUU2982gYeIJAmLC3hSFRvVRfh0FlK7mgpSIogSpbq37uzWLMgrEfFOHX7qHuMZdMXbFubQ8pR+1Wd39jf+tauC8wOn3jYDnsomn64rbidKaKIiFApIQO0jh5BNpImB9s50G/lw7Gcqcs0/nmV8w44/9mU0oCy0WDK9vvjbzYA+UN34S3SDRqjdWe4hxIht5Gl153QucpJSVtbHLtK4T10fn6ZfEee61kchhtq1VvbdKtq/S4YQx/egChJoprFerzrF8lO859zZxbbuUwVFunzQ8lpfnejLWbAyrgmkmA2B/Sc6sM5bJZdIrc4NYqMyx91mmUfrctm3njz2UMLHK4aNxvoIurb2j48UoJHf/vg16ryh9QHOW7dbzcnEcxqglzoOlAFcS3tBCpmFS6rZAr5KWZs6T7+O//9yCGfNoUK8zNff1OxINXw5YUckz0z/t6mqtlnUV1PrcEROYH65nKgP/OwtHSZ1PDGKCfRhMob4LfF6fz95AfZjegcmIxiT0LMzsvD/dcO4cPbLKEmBONU="
-
 script:
 - gradle releaseZip
 after_success:
@@ -20,6 +14,4 @@ deploy:
   - build/distributions/identio-server-v$TRAVIS_TAG.zip  
   on:
     repo: identio/identio-server
-after_deploy:
-  - ./dockerhub_trigger.sh
  

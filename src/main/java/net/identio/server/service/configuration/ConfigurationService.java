@@ -96,7 +96,7 @@ public class ConfigurationService {
 		}
 
 		if (configuration.getGlobalConfiguration().getWorkDirectory() == null) {
-			configuration.getGlobalConfiguration().setWorkDirectory(configDirectoryPath);
+			configuration.getGlobalConfiguration().setWorkDirectory(Paths.get(configDirectoryPath, "work").toString());
 		}
 
 		if (configuration.getGlobalConfiguration().getStaticResourcesPath() == null) {

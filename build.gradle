@@ -128,7 +128,7 @@ grunt {
 
 task bowerInstall(type: NodeTask) {
   script = file('ui/node_modules/bower/lib/bin/bower.js')
-  args = ['install']
+  args = ['install', '--allow-root']
   execOverrides {
     it.ignoreExitValue = true
     it.workingDir = file("${project.projectDir}/ui")
@@ -162,7 +162,6 @@ def distributionsCopySpec = copySpec {
     }
 }
 
-grunt_build.mustRunAfter npmInstall
 grunt_build.mustRunAfter bowerInstall
 bowerInstall.mustRunAfter npmInstall
 npmInstall.mustRunAfter clean
@@ -170,7 +169,7 @@ jar.mustRunAfter clean
 
 task releaseZip(type: Zip, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
    description 'Build a release in zip format'
-   with distributionsCopySpec 
+   with distributionsCopySpec
 }
 
 task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) { 
