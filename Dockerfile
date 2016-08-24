@@ -10,7 +10,7 @@ RUN groupadd -r identio && useradd -r -g identio identio \
   && rm -rf /var/lib/apt/lists/*
 
 # Add the sources to the application
-ADD .. /tmp/identio-server-build
+ADD . /tmp/identio-server-build
 
 # Build and install ident.io server
 RUN cd /tmp/identio-server-build \
