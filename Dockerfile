@@ -14,7 +14,7 @@ ADD .. /tmp/identio-server-build
 
 # Build and install ident.io server
 RUN cd /tmp/identio-server-build \
-	&& 	./gradlew releaseTarGz \
+	&& ./gradlew releaseTarGz \
 	&& cd /opt \
 	&& tar -xzvf /tmp/identio-server-build/build/distributions/identio-server-*.tar.gz \
 	&& cp /tmp/identio-server-build/docker/entrypoint.sh / \
