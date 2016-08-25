@@ -19,7 +19,7 @@ RUN groupadd -r identio && useradd -r -g identio identio \
 	&& rm -rf /tmp/identio-server-build \
 	&& apt-get remove -y --auto-remove bzip2 git \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& chown -R identio:identio /opt/identio/config/work
+	&& chown -R identio:identio /opt/identio-server/config/work
 
 USER identio
  
