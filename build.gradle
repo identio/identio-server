@@ -166,6 +166,10 @@ task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmIns
    archiveName = "identio-server.tar.gz"
 }
 
+task release(dependsOn: ['releaseTarGz', 'releaseZip']) {
+   description 'Build release in zip and tar.gz format'
+}
+
 task wrapper(type: Wrapper) {
     gradleVersion = '2.14'
 }
