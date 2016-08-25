@@ -30,20 +30,6 @@ apply plugin: 'application'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
-/*
- * Gets the version name from the latest Git tag
- */
-def getVersionName = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'describe', '--tags'
-        standardOutput = stdout
-    }
-    return 'v' + stdout.toString().trim()
-}
-
-version = getVersionName()
-
 repositories {
     mavenCentral()
     maven { url "http://repo.spring.io/snapshot" }
@@ -170,13 +156,14 @@ jar.mustRunAfter clean
 task releaseZip(type: Zip, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
    description 'Build a release in zip format'
    with distributionsCopySpec
+   archiveName = "identio-server.zip"
 }
 
 task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) { 
    description 'Build a release in tar.gz format'
    compression = Compression.GZIP
-   extension = "tar.gz"
-   with distributionsCopySpec 
+   with distributionsCopySpec
+   archiveName = "identio-server.tar.gz"
 }
 
 task wrapper(type: Wrapper) {

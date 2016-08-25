@@ -14,12 +14,12 @@ RUN groupadd -r identio && useradd -r -g identio identio \
 	&& cd /tmp/identio-server-build \
 	&& ./gradlew releaseTarGz \
 	&& cd /opt \
-	&& tar -xzvf /tmp/identio-server-build/build/distributions/identio-server-*.tar.gz \
+	&& tar -xzvf /tmp/identio-server-build/build/distributions/identio-server.tar.gz \
 	&& cp /tmp/identio-server-build/docker/entrypoint.sh / \
 	&& rm -rf /tmp/identio-server-build \
 	&& apt-get remove -y --auto-remove git \
 	&& rm -rf /var/lib/apt/lists/* \
-	&& chown identio:identio /opt/identio/work
+	&& chown -R identio:identio /opt/identio/work
 
 USER identio
  
