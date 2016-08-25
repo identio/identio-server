@@ -15,8 +15,9 @@ buildscript {
 }
 
 plugins {
-  id "com.moowork.node" version "0.12"
-  id "com.moowork.grunt" version "0.12"
+  id 'com.moowork.node' version '0.13'
+  id 'com.moowork.grunt' version '0.13'    
+  id 'com.github.ben-manes.versions' version '0.13.0'
 }
 
 apply plugin: 'java'
@@ -28,20 +29,6 @@ apply plugin: 'application'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
-
-/*
- * Gets the version name from the latest Git tag
- */
-def getVersionName = { ->
-    def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'describe', '--tags'
-        standardOutput = stdout
-    }
-    return 'v' + stdout.toString().trim()
-}
-
-version = getVersionName()
 
 repositories {
     mavenCentral()
@@ -59,7 +46,7 @@ dependencies {
     	exclude group: 'org.hibernate', module: 'hibernate-validator'
     }
     compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
-    compile("org.springframework.security:spring-security-web:4.1.1.RELEASE")
+    compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
 	compile('com.github.identio:identio-saml:1.0.2')
 	compile('com.google.guava:guava:19.0')
@@ -127,7 +114,7 @@ grunt {
 
 task bowerInstall(type: NodeTask) {
   script = file('ui/node_modules/bower/lib/bin/bower.js')
-  args = ['install']
+  args = ['install', '--allow-root']
   execOverrides {
     it.ignoreExitValue = true
     it.workingDir = file("${project.projectDir}/ui")
@@ -137,7 +124,7 @@ task bowerInstall(type: NodeTask) {
 /// *** Packaging *** ///
 
 def distributionsCopySpec = copySpec {
-    into("identio-server-$version") {
+    into("identio-server") {
     
     	from 'README.md'
         from 'LICENSE'
@@ -145,10 +132,12 @@ def distributionsCopySpec = copySpec {
         into('bin') {
            	from 'scripts/password-generator'
            	from 'scripts/start'
+           	fileMode 0755
         }
         into('lib') {
            	from(jar)
        		from(project.configurations.runtime)
+       		exclude 'spring-boot-devtools-*'
         }
         into('config') {
         	from 'sample-config'
@@ -159,33 +148,22 @@ def distributionsCopySpec = copySpec {
     }
 }
 
-distributions {
-    main {
-        contents {
-    		from 'README.md'
-        	from 'LICENSE'
-        
+grunt_build.mustRunAfter bowerInstall
+bowerInstall.mustRunAfter npmInstall
+npmInstall.mustRunAfter clean
+jar.mustRunAfter clean
 
-        	into('config') {
-        		from 'sample-config'
-        	}
-        	into('ui') {
-        		from 'ui/dist'
-        	}
-        }
-    }
-}
-
-task releaseZip(type: Zip, dependsOn: ['jar', 'grunt_build']) {
+task releaseZip(type: Zip, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
    description 'Build a release in zip format'
-   with distributionsCopySpec 
+   with distributionsCopySpec
+   archiveName = "identio-server.zip"
 }
 
-task releaseTarGz(type: Tar, dependsOn: ['jar', 'grunt_build']) { 
+task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) { 
    description 'Build a release in tar.gz format'
    compression = Compression.GZIP
-   extension = "tar.gz"
-   with distributionsCopySpec 
+   with distributionsCopySpec
+   archiveName = "identio-server.tar.gz"
 }
 
 task wrapper(type: Wrapper) {

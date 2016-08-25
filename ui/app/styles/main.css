@@ -6,7 +6,7 @@ body {
 }
 
 p {
-	margin: 0px;
+	margin: 0;
 }
 
 .row.header {
@@ -50,7 +50,8 @@ p {
 	margin: auto;
 	margin-top: 5px;
 	-webkit-transition: 1s linear all; /* Chrome */
-	-moz-transition: 1s linear all; /* Firefox */	
+	-moz-transition: 1s linear all; /* Firefox */
+	-o-transition: 1s linear all; /* Opera */	
 	transition: 1s linear all;
 	opacity: 1;
 }

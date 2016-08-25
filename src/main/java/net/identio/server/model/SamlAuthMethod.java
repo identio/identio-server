@@ -22,7 +22,7 @@ package net.identio.server.model;
 public class SamlAuthMethod extends AuthMethod {
 
 	private String metadata;
-	private boolean certificateCheckEnabled = false;
+	private boolean certificateCheckEnabled;
 	private SamlAuthMap samlAuthMap;
 
 	public SamlAuthMethod() {

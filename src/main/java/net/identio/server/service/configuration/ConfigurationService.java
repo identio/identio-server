@@ -44,7 +44,7 @@ public class ConfigurationService {
 	private String configFile;
 
 	@Autowired
-	public ConfigurationService(@Value("${identio.config}") String configFile) throws Exception {
+	public ConfigurationService(@Value("${identio.config}") String configFile) throws InitializationException {
 
 		this.configFile = configFile;
 
@@ -53,7 +53,7 @@ public class ConfigurationService {
 		try (FileInputStream is = new FileInputStream(configFile)) {
 
 			Yaml yaml = new Yaml(new CustomClassLoaderConstructor(IdentioConfiguration.class,
-					IdentioConfiguration.class.getClassLoader()));
+					Thread.currentThread().getContextClassLoader()));
 
 			// convert json string to object
 			configuration = (IdentioConfiguration) yaml.load(is);
@@ -96,7 +96,7 @@ public class ConfigurationService {
 		}
 
 		if (configuration.getGlobalConfiguration().getWorkDirectory() == null) {
-			configuration.getGlobalConfiguration().setWorkDirectory(configDirectoryPath);
+			configuration.getGlobalConfiguration().setWorkDirectory(Paths.get(configDirectoryPath, "work").toString());
 		}
 
 		if (configuration.getGlobalConfiguration().getStaticResourcesPath() == null) {

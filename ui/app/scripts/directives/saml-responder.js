@@ -15,7 +15,7 @@ angular.module('identioUiApp')
                       '<input type="hidden" name="RelayState" value="{{ formData.relayState }}" />'+
                   '</form>',
         link: function($scope, element, $attrs) {
-            $scope.$on($attrs['event'], function(event, data) {
+            $scope.$on($attrs.event, function(event, data) {
                 $scope.formData = data;
                 $timeout(function() {
                     element[0].submit();

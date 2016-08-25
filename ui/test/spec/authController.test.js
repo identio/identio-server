@@ -64,10 +64,12 @@ describe('Test authentication controller', function() {
 	});
 
 	describe('test', function() {
-		it('should have authentication methods set after a successful call of the authentication methods list API', function() {
+		it('should have authentication methods set after a successful \
+				call of the authentication methods list API', function() {
 
 			$httpBackend.expectGET('/api/auth/methods').respond(200,
-					[{'name':'Corporate LDAP','type':'ldap'},{'name':'Identio Remote','type':'saml'}]);
+					[{'name':'Corporate LDAP','type':'ldap'},
+					 {'name':'Identio Remote','type':'saml'}]);
 
 			var vm = createController();
 			
@@ -86,7 +88,8 @@ describe('Test authentication controller', function() {
 	});
 
 	describe('test', function() {
-		it('should redirect to an error page if the call to the  the authentication methods list API fails', function() {
+		it('should redirect to an error page if the call to the \
+				authentication methods list API fails', function() {
 
 			$httpBackend.expectGET('/api/auth/methods').respond(500, {errorCode: 'an error code'});
 

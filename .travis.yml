@@ -1,7 +1,17 @@
 language: java
-
 jdk:
-  - oraclejdk8
-  
+- oraclejdk8
+script:
+- ./gradlew releaseZip
 after_success:
-  - bash <(curl -s https://codecov.io/bash)
+- bash <(curl -s https://codecov.io/bash)
+deploy:
+  provider: releases
+  api_key:
+    secure: ybw1Ycp9bk92wPXunEjp2LEexG1BXK6E52UP/7ka3BMQZT1hgb1E14YUaXO04QywmJSNfTfe31T8JvFFzIChpLNDowjfW6t8C1pxkiul1ewj3/ZsWW4e1yi2JVswkz6IFwO8/9txKkrqF6EFjW3rfQguqgA/utOHz3nuHZBRSEmff/V+rBOEz4m2/AbvfIY2/lZpZjNcUFmWV/E1DsreWptmjYUJ40a55UajtasjoB1o4gjSKI5QpI6lucrUQlLScl8py7s87RRTUDzpigplmGlsGoqsOYI8x1pdZBofUx60wWgb6rk3SbbP9+22nxkQfMp2TA6f/2SLLscaMuR694zra4tdWwOlPtFpRQGIr2nrU1VbI/6lUmK5MslVk83++w7ghsYHkRZDDf3Bcmg2iG+pjVlnOUN+t0I8p8QMkPVPdlhXGOVF/X4owCygqpESfXMiXnS0b7xvqiIwtK8NwsL9monP1KYdpfFvmjiGsq4gHc7iJgwmfVYvHbZCISYm6C1UXhRL9bgInYZa5LeTf27HmT/NerQGtGP9RkfhDRFOCsERQlzQ57PE3joZQ+UYjcaJQ6H2NTVjefzBBk0SpwjNwnql95eYDVz+FFdlmupzYwM6XzesvOw0LPgRLF2hwX7/VE6oqg4EFkCkam5rMaMaQihzPH2aHrJbWucGuLk=
+  file: 
+  - build/distributions/identio-server.tar.gz
+  - build/distributions/identio-server.zip  
+  on:
+    repo: identio/identio-server
+ 

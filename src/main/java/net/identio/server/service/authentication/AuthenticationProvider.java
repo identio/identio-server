@@ -26,8 +26,8 @@ import net.identio.server.model.TransactionData;
 
 public interface AuthenticationProvider {
 
-	public boolean accepts(Authentication authentication);
+	boolean accepts(Authentication authentication);
 
-	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
+	AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
 			TransactionData transactionData);
 }

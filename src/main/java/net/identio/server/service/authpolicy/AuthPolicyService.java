@@ -150,13 +150,13 @@ public class AuthPolicyService {
 
 				int requestedStrength = requestedAuthLevel.getStrength();
 
-				if ((SamlConstants.COMPARISON_EXACT.equals(requestedComparison) && strength == requestedStrength)
-						|| (SamlConstants.COMPARISON_MINIMUM.equals(requestedComparison)
-								&& strength >= requestedStrength)
-						|| (SamlConstants.COMPARISON_MAXIMUM.equals(requestedComparison)
-								&& strength <= requestedStrength)
-						|| (SamlConstants.COMPARISON_BETTER.equals(requestedComparison)
-								&& strength > requestedStrength)) {
+				if (SamlConstants.COMPARISON_EXACT.equals(requestedComparison) && strength == requestedStrength
+						|| SamlConstants.COMPARISON_MINIMUM.equals(requestedComparison)
+								&& strength >= requestedStrength
+						|| SamlConstants.COMPARISON_MAXIMUM.equals(requestedComparison)
+								&& strength <= requestedStrength
+						|| SamlConstants.COMPARISON_BETTER.equals(requestedComparison)
+								&& strength > requestedStrength) {
 					targetAuthLevels.add(authLevel);
 				}
 

@@ -43,7 +43,7 @@
 
 		<div ng-repeat="method in auth.samlMethods | orderBy:'name'">
 			<p class="centered">
-			  <a href="" ng-click="auth.samlSpSubmit(method.name)"><img src="/logo/{{method.name}}" alt="{{method.name}}"/></a>
+			  <a href="" ng-click="auth.samlSpSubmit(method.name)"><img ng-src="/logo/{{method.name}}" alt="{{method.name}}"/></a>
 			</p>
 		</div>
 	</div>

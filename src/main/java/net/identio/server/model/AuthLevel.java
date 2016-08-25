@@ -23,7 +23,7 @@ public class AuthLevel {
 
 	private String name;
 	private String urn;
-	private int strength = 0;
+	private int strength;
 
 	public String getName() {
 		return name;

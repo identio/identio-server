@@ -34,7 +34,7 @@ public class SecurityUtils {
 	public static final String escapeDN(String name) {
 		StringBuilder sb = new StringBuilder();
 
-		if ((name.length() > 0) && ((name.charAt(0) == ' ') || (name.charAt(0) == '#'))) {
+		if (name.length() > 0 && (name.charAt(0) == ' ' || name.charAt(0) == '#')) {
 			sb.append('\\'); // add the leading backslash if needed
 		}
 
@@ -68,7 +68,7 @@ public class SecurityUtils {
 			}
 		}
 
-		if ((name.length() > 1) && (name.charAt(name.length() - 1) == ' ')) {
+		if (name.length() > 1 && name.charAt(name.length() - 1) == ' ') {
 			sb.insert(sb.length() - 1, '\\'); // add the trailing backslash if
 												// needed
 		}
