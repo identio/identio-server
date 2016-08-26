@@ -42,12 +42,18 @@ public class ConfigurationService {
 
 	private IdentioConfiguration configuration;
 	private String configFile;
-
+	private String publicFqdn;
+	
 	@Autowired
-	public ConfigurationService(@Value("${identio.config}") String configFile) throws InitializationException {
+	public ConfigurationService(@Value("${identio.config}") String configFile, @Value("${identio.public.fqdn}") String publicFqdn) throws InitializationException {
 
+		if (publicFqdn == null) {
+			throw new InitializationException("No public FQDN specified");
+		}
+		
 		this.configFile = configFile;
-
+		this.publicFqdn = publicFqdn;
+		
 		LOG.debug("Loading configuration file: {}", configFile);
 
 		try (FileInputStream is = new FileInputStream(configFile)) {
@@ -67,6 +73,10 @@ public class ConfigurationService {
 		}
 	}
 
+	public String getPublicFqdn() {
+		return publicFqdn;
+	}
+	
 	public IdentioConfiguration getConfiguration() {
 		return configuration;
 	}

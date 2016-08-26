@@ -21,21 +21,12 @@ package net.identio.server.model;
 
 public class GlobalConfiguration {
 
-	private String publicUrl;
 	private int port;
 	private boolean secure;
 	private String keystorePath;
 	private String keystorePassword;
 	private String workDirectory;
 	private String staticResourcesPath;
-
-	public String getPublicFqdn() {
-		return publicUrl;
-	}
-
-	public void setPublicFqdn(String publicFqdn) {
-		this.publicUrl = publicFqdn;
-	}
 
 	public int getPort() {
 		return port;

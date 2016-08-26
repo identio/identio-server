@@ -1,6 +1,3 @@
-globalConfiguration:
-  publicFqdn: http://idp.identio.net:10080
-
 authPolicyConfiguration:
   authLevels:
     - &low
