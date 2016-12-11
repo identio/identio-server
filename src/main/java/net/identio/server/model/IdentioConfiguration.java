@@ -21,11 +21,11 @@ package net.identio.server.model;
 
 public class IdentioConfiguration {
 
-	private GlobalConfiguration globalConfiguration;
-	private SamlIdpConfiguration samlIdpConfiguration;
-	private SessionConfiguration sessionConfiguration;
-	private AuthPolicyConfiguration authPolicyConfiguration;
-	private AuthMethodConfiguration authMethodConfiguration;
+	private GlobalConfiguration globalConfiguration = new GlobalConfiguration();
+	private SamlIdpConfiguration samlIdpConfiguration = new SamlIdpConfiguration();
+	private SessionConfiguration sessionConfiguration = new SessionConfiguration();
+	private AuthPolicyConfiguration authPolicyConfiguration = new AuthPolicyConfiguration();
+	private AuthMethodConfiguration authMethodConfiguration = new AuthMethodConfiguration();
 
 	public GlobalConfiguration getGlobalConfiguration() {
 		return globalConfiguration;
