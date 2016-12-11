@@ -157,6 +157,11 @@ public class SamlService {
 		String requestId = ar.getId();
 		Endpoint destinationEndpoint = findResponseEndpoint(ar);
 
+		if (destinationEndpoint == null) {
+			LOG.error("No suitable response endpoint found");
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_UNKNOWN_ENDPOINT);
+		}
+		
 		result.setRequestId(requestId).setSourceApplicationName(requestIssuer).setAuthLevelComparison(comparison)
 				.setForceAuthentication(forceAuthn).setRequestType(RequestType.SAML)
 				.setRelayState(request.getRelayState()).setResponseUrl(destinationEndpoint.getLocation());
