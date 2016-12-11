@@ -19,6 +19,17 @@
  */
 package net.identio.server.model;
 
-public enum State {
-	AUTH, STEP_UP_AUTHENTICATION, RESPONSE, CONSENT
+import java.util.List;
+
+public class AuthorizationConfiguration {
+
+	private List<Scope> scopes;
+
+	public List<Scope> getScopes() {
+		return scopes;
+	}
+
+	public void setScopes(List<Scope> scopes) {
+		this.scopes = scopes;
+	}
 }

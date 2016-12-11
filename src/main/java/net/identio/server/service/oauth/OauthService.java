@@ -19,19 +19,43 @@
  */
 package net.identio.server.service.oauth;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import net.identio.server.model.AuthRequestValidationResult;
-import net.identio.server.model.InboundRequest;
+import net.identio.server.model.OAuthInboundRequest;
+import net.identio.server.model.OAuthResponseType;
+import net.identio.server.model.RequestType;
+import net.identio.server.service.configuration.ConfigurationService;
 
 @Service
 @Scope("singleton")
 public class OauthService {
 
-	public AuthRequestValidationResult validateAuthentRequest(InboundRequest request) {
+	private ConfigurationService configurationService;
 
-		throw new UnsupportedOperationException();
+	public OauthService(@Autowired ConfigurationService configurationService) {
+		this.configurationService = configurationService;
+	}
+
+	public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request) {
+
+		AuthRequestValidationResult result = new AuthRequestValidationResult();
+
+		// Validate response type
+		try {
+			OAuthResponseType.valueOf(request.getResponseType());
+		} catch (IllegalArgumentException e) {
+			// TODO: handle error
+		}
+		// Verify clientId
+
+		// Verify scope
+
+		// Verify redirectUri
+
+		return result;
 	}
 
 }

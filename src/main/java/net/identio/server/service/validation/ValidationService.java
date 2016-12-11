@@ -44,9 +44,11 @@ import net.identio.server.model.AuthenticationResult;
 import net.identio.server.model.AuthenticationResultStatus;
 import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.InboundRequest;
+import net.identio.server.model.OAuthInboundRequest;
 import net.identio.server.model.RequestType;
 import net.identio.server.model.SamlAuthMethod;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
+import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.model.State;
 import net.identio.server.model.TransactionData;
 import net.identio.server.model.UserSession;
@@ -100,10 +102,11 @@ public class ValidationService {
 		// Validate the request
 		AuthRequestValidationResult arValidationResult = null;
 
-		if (request.getType().equals(RequestType.SAML)) {
-			arValidationResult = samlService.validateAuthentRequest(request);
-		} else {
-			arValidationResult = oauthService.validateAuthentRequest(request);
+		if (request instanceof SamlInboundRequest) {
+			arValidationResult = samlService.validateAuthentRequest((SamlInboundRequest)request);
+		} 
+		if (request instanceof OAuthInboundRequest) {
+			arValidationResult = oauthService.validateAuthentRequest((OAuthInboundRequest)request);
 		}
 
 		validationResult.setArValidationResult(arValidationResult);

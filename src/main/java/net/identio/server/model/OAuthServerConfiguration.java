@@ -19,6 +19,16 @@
  */
 package net.identio.server.model;
 
-public enum State {
-	AUTH, STEP_UP_AUTHENTICATION, RESPONSE, CONSENT
+public class OAuthServerConfiguration {
+
+	private String clientFile;
+
+	public String getClientFile() {
+		return clientFile;
+	}
+
+	public void setClientFile(String clientFile) {
+		this.clientFile = clientFile;
+	}
+	
 }

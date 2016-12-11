@@ -61,9 +61,9 @@ import net.identio.server.model.AuthRequestValidationResult;
 import net.identio.server.model.AuthSession;
 import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.IdentioConfiguration;
-import net.identio.server.model.InboundRequest;
 import net.identio.server.model.RequestType;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
+import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.model.UserSession;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.configuration.ConfigurationService;
@@ -132,7 +132,7 @@ public class SamlService {
 		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_NOT_SIGNED, SamlConstants.STATUS_REQUEST_DENIED);
 	}
 
-	public AuthRequestValidationResult validateAuthentRequest(InboundRequest request) {
+	public AuthRequestValidationResult validateAuthentRequest(SamlInboundRequest request) {
 
 		LOG.debug("Starting SAML Authentication Request validation...");
 
@@ -243,7 +243,7 @@ public class SamlService {
 
 	}
 
-	private boolean validateRedirectRequest(Validator validator, InboundRequest request,
+	private boolean validateRedirectRequest(Validator validator, SamlInboundRequest request,
 			AuthRequestValidationResult result) {
 
 		LOG.debug("Validate query parameters of HTTP-Redirect Binding");
