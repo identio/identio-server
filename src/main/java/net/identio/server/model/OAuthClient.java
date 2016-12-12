@@ -28,7 +28,8 @@ public class OAuthClient {
 	private String clientSecret;
 	private List<String> allowedScopes;
 	private List<String> responseUri;
-
+	private List<String> allowedGrants;
+	
 	public String getName() {
 		return name;
 	}
@@ -67,5 +68,13 @@ public class OAuthClient {
 	
 	public void setResponseUri(List<String> responseUri) {
 		this.responseUri = responseUri;
+	}
+
+	public List<String> getAllowedGrants() {
+		return allowedGrants;
+	}
+
+	public void setAllowedGrants(List<String> allowedGrants) {
+		this.allowedGrants = allowedGrants;
 	}
 }

@@ -24,10 +24,12 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import net.identio.server.model.AuthRequestValidationResult;
+import net.identio.server.model.ErrorStatus;
+import net.identio.server.model.OAuthClient;
 import net.identio.server.model.OAuthInboundRequest;
 import net.identio.server.model.OAuthResponseType;
-import net.identio.server.model.RequestType;
 import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.oauth.exceptions.ClientNotFoundException;
 
 @Service
 @Scope("singleton")
@@ -35,26 +37,45 @@ public class OauthService {
 
 	private ConfigurationService configurationService;
 
-	public OauthService(@Autowired ConfigurationService configurationService) {
+	private OAuthClientRepository clientRepository;
+
+	public OauthService(@Autowired ConfigurationService configurationService,
+			@Autowired OAuthClientRepository clientRepository) {
 		this.configurationService = configurationService;
+		this.clientRepository = clientRepository;
 	}
 
 	public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request) {
 
 		AuthRequestValidationResult result = new AuthRequestValidationResult();
 
-		// Validate response type
-		try {
-			OAuthResponseType.valueOf(request.getResponseType());
-		} catch (IllegalArgumentException e) {
-			// TODO: handle error
-		}
-		// Verify clientId
+		// Fetch client
+		OAuthClient client;
 
-		// Verify scope
+		try {
+			client = clientRepository.getOAuthClientbyId(request.getClientId());
+		} catch (ClientNotFoundException e) {
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_CLIENT_NOT_FOUND);
+
+		}
+
+		// Validate response type
+		if (!request.getResponseType().equals(OAuthResponseType.TOKEN) && client.getAllowedGrants().contains("implicit")) {
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_RESPONSE_TYPE_NOT_SUPPORTED);
+		}
+
+		
+		// Validate requested scopes
+		if (!client.getAllowedScopes().containsAll(request.getScopes())) {
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
+		}
 
 		// Verify redirectUri
-
+		if (!client.getResponseUri().contains(request.getRedirectUri())) {
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
+		}
+		
+		
 		return result;
 	}
 
