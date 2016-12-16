@@ -34,7 +34,7 @@ public class OAuthClient {
 		return name;
 	}
 	
-	public void setToto(String name) {
+	public void setName(String name) {
 		this.name = name;
 	}
 	

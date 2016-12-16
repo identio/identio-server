@@ -19,6 +19,8 @@
  */
 package net.identio.server.service.oauth;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -27,56 +29,74 @@ import net.identio.server.model.AuthRequestValidationResult;
 import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.OAuthClient;
 import net.identio.server.model.OAuthInboundRequest;
-import net.identio.server.model.OAuthResponseType;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.exceptions.ClientNotFoundException;
+import net.identio.server.service.oauth.exceptions.InvalidRedirectUriException;
+import net.identio.server.service.oauth.model.OAuthGrants;
+import net.identio.server.service.oauth.model.OAuthResponseType;
 
 @Service
 @Scope("singleton")
 public class OauthService {
 
-	private ConfigurationService configurationService;
-
 	private OAuthClientRepository clientRepository;
 
-	public OauthService(@Autowired ConfigurationService configurationService,
-			@Autowired OAuthClientRepository clientRepository) {
-		this.configurationService = configurationService;
+	@Autowired
+	public OauthService(OAuthClientRepository clientRepository) {
 		this.clientRepository = clientRepository;
 	}
 
-	public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request) {
+	public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request)
+			throws ClientNotFoundException, InvalidRedirectUriException {
 
 		AuthRequestValidationResult result = new AuthRequestValidationResult();
 
 		// Fetch client
 		OAuthClient client;
 
-		try {
-			client = clientRepository.getOAuthClientbyId(request.getClientId());
-		} catch (ClientNotFoundException e) {
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_CLIENT_NOT_FOUND);
+		client = clientRepository.getOAuthClientbyId(request.getClientId());
 
+		// Verify redirectUri
+		if (!client.getResponseUri().contains(request.getRedirectUri())) {
+			throw new InvalidRedirectUriException("Unknown redirectUri" + request.getRedirectUri());
 		}
 
-		// Validate response type
-		if (!request.getResponseType().equals(OAuthResponseType.TOKEN) && client.getAllowedGrants().contains("implicit")) {
+		// Validate response type value
+		if (!checkValidResponseTypes(request.getResponseType())) {
 			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_RESPONSE_TYPE_NOT_SUPPORTED);
 		}
-
+		// Validate scope value
+		if (!checkValidScopes(request.getScopes())) {
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_INVALID_SCOPE);
+		}
 		
+		// Validate requested response type
+		if (!request.getResponseType().equals(OAuthResponseType.TOKEN) && client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
+				|| !request.getResponseType().equals(OAuthResponseType.CODE)
+						&& client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
+			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
+		}
+
+
 		// Validate requested scopes
 		if (!client.getAllowedScopes().containsAll(request.getScopes())) {
 			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
 		}
 
-		// Verify redirectUri
-		if (!client.getResponseUri().contains(request.getRedirectUri())) {
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
-		}
-		
-		
 		return result;
+	}
+
+	private boolean checkValidResponseTypes(String responseType) {
+
+		// Only valid response types are "token" and "code"
+		return responseType.equals(OAuthResponseType.CODE) || responseType.equals(OAuthResponseType.CODE);
+	}
+
+	private boolean checkValidScopes(List<String> scopes) {
+
+		// TODO: to be implemented
+
+		return true;
 	}
 
 }

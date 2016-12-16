@@ -1,4 +1,4 @@
-package net.identio.server.model;
+package net.identio.server.service.oauth.model;
 
 public enum OAuthResponseType {
 	CODE("code"), TOKEN("token");
