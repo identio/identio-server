@@ -35,12 +35,6 @@
 		// Request the list of authentication methods
 		function init() {
 			
-			if ($stateParams.transactionId) {
-				$state.go('error', {
-					errorCode : 'AUTH_NO_TRANSACTION'
-				});
-			}
-			
 			vm.submitInProgress = false;
 			vm.methodChoiceEnabled = true;
 			vm.password = null;
