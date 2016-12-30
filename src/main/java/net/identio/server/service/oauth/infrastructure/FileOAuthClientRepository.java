@@ -41,7 +41,7 @@ public class FileOAuthClientRepository implements OAuthClientRepository {
 
 			OAuthClientFile clientFile = (OAuthClientFile) yaml.load(is);
 
-			for (OAuthClient client : clientFile.getOauthClients()) {
+			for (OAuthClient client : clientFile.getoAuthClients()) {
 				clients.put(client.getClientId(), client);
 			}
 

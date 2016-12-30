@@ -19,10 +19,11 @@
  */
 package net.identio.server.model;
 
-public class Scope {
+public class AuthorizationScope {
 
 	private String name;
 	private AuthLevel authLevel;
+	private int expirationTime;
 	
 	public String getName() {
 		return name;
@@ -38,6 +39,14 @@ public class Scope {
 	
 	public void setAuthLevel(AuthLevel authLevel) {
 		this.authLevel = authLevel;
+	}
+
+	public int getExpirationTime() {
+		return expirationTime;
+	}
+
+	public void setExpirationTime(int expirationTime) {
+		this.expirationTime = expirationTime;
 	}
 
 }

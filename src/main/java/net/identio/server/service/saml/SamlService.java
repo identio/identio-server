@@ -61,7 +61,7 @@ import net.identio.server.model.AuthRequestValidationResult;
 import net.identio.server.model.AuthSession;
 import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.IdentioConfiguration;
-import net.identio.server.model.RequestType;
+import net.identio.server.model.ProtocolType;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
 import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.model.UserSession;
@@ -107,8 +107,8 @@ public class SamlService {
 
 	private void initSigner(IdentioConfiguration config) throws TechnicalException {
 
-		String keystoreFile = config.getSamlIdpConfiguration().getKeystore();
-		String keystorePassword = config.getSamlIdpConfiguration().getKeystorePassword();
+		String keystoreFile = config.getGlobalConfiguration().getSignatureKeystorePath();
+		String keystorePassword = config.getGlobalConfiguration().getSignatureKeystorePassword();
 		boolean isCertificateCheckEnabled = config.getSamlIdpConfiguration().isCertificateCheckEnabled();
 
 		LOG.debug("Initializing SAML signer...");
@@ -161,9 +161,9 @@ public class SamlService {
 			LOG.error("No suitable response endpoint found");
 			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_UNKNOWN_ENDPOINT);
 		}
-		
+
 		result.setRequestId(requestId).setSourceApplicationName(requestIssuer).setAuthLevelComparison(comparison)
-				.setForceAuthentication(forceAuthn).setRequestType(RequestType.SAML)
+				.setForceAuthentication(forceAuthn).setProtocolType(ProtocolType.SAML)
 				.setRelayState(request.getRelayState()).setResponseUrl(destinationEndpoint.getLocation());
 
 		// Extract the requested authentication level, if any

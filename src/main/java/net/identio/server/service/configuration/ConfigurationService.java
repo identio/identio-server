@@ -88,13 +88,13 @@ public class ConfigurationService {
 
 		// Global configuration default values
 
-		if (configuration.getGlobalConfiguration().getKeystorePassword() == null) {
-			configuration.getGlobalConfiguration().setKeystorePassword("password");
+		if (configuration.getGlobalConfiguration().getSslKeystorePassword() == null) {
+			configuration.getGlobalConfiguration().setSslKeystorePassword("password");
 		}
 
-		if (configuration.getGlobalConfiguration().getKeystorePath() == null) {
+		if (configuration.getGlobalConfiguration().getSslKeystorePath() == null) {
 			configuration.getGlobalConfiguration()
-					.setKeystorePath(Paths.get(configDirectoryPath, "ssl-certificate.p12").toString());
+					.setSslKeystorePath(Paths.get(configDirectoryPath, "ssl-certificate.p12").toString());
 		}
 
 		if (configuration.getGlobalConfiguration().getPort() == 0) {
@@ -105,6 +105,15 @@ public class ConfigurationService {
 			}
 		}
 
+		if (configuration.getGlobalConfiguration().getSignatureKeystorePath() == null) {
+			configuration.getGlobalConfiguration()
+					.setSignatureKeystorePath(Paths.get(configDirectoryPath, "default-sign-certificate.p12").toString());
+		}
+
+		if (configuration.getGlobalConfiguration().getSslKeystorePassword() == null) {
+			configuration.getGlobalConfiguration().setSslKeystorePassword("password");
+		}
+		
 		if (configuration.getGlobalConfiguration().getWorkDirectory() == null) {
 			configuration.getGlobalConfiguration().setWorkDirectory(Paths.get(configDirectoryPath, "work").toString());
 		}
@@ -114,20 +123,11 @@ public class ConfigurationService {
 		}
 
 		// SAML IDP configuration default values
-
-		if (configuration.getSamlIdpConfiguration().getKeystore() == null) {
-			configuration.getSamlIdpConfiguration()
-					.setKeystore(Paths.get(configDirectoryPath, "idp-default-sign-certificate.p12").toString());
-		}
-
+		
 		if (configuration.getSamlIdpConfiguration().getTokenValidityLength() == 0) {
 			configuration.getSamlIdpConfiguration().setTokenValidityLength(3);
 		}
-
-		if (configuration.getSamlIdpConfiguration().getKeystorePassword() == null) {
-			configuration.getSamlIdpConfiguration().setKeystorePassword("password");
-		}
-
+		
 		if (configuration.getSamlIdpConfiguration().getSpMetadataDirectory() == null) {
 			configuration.getSamlIdpConfiguration()
 					.setSpMetadataDirectory(Paths.get(configDirectoryPath, "trusted-sp").toString());

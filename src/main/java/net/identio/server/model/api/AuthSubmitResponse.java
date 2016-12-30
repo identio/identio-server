@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import net.identio.server.model.ErrorStatus;
+import net.identio.server.model.ProtocolType;
 import net.identio.server.model.State;
 
 @JsonInclude(Include.NON_NULL)
@@ -32,7 +33,8 @@ public class AuthSubmitResponse {
 	private ErrorStatus errorStatus;
 	private String destinationUrl;
 	private String relayState;
-	private String samlResponse;
+	private String response;
+	private ProtocolType protocolType;
 	private String challengeType;
 	private String challengeValue;
 
@@ -72,12 +74,21 @@ public class AuthSubmitResponse {
 		return this;
 	}
 
-	public String getSamlResponse() {
-		return samlResponse;
+	public String getResponse() {
+		return response;
 	}
 
-	public AuthSubmitResponse setSamlResponse(String samlResponse) {
-		this.samlResponse = samlResponse;
+	public AuthSubmitResponse setResponse(String response) {
+		this.response = response;
+		return this;
+	}
+
+	public ProtocolType getProtocolType() {
+		return protocolType;
+	}
+
+	public AuthSubmitResponse setProtocolType(ProtocolType protocolType) {
+		this.protocolType = protocolType;
 		return this;
 	}
 

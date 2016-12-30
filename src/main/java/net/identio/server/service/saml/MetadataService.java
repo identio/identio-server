@@ -111,9 +111,9 @@ public class MetadataService {
 		// Extract certificate from provided P12
 		ArrayList<X509Certificate> certs = new ArrayList<>();
 
-		try (FileInputStream fis = new FileInputStream(config.getSamlIdpConfiguration().getKeystore())) {
+		try (FileInputStream fis = new FileInputStream(config.getGlobalConfiguration().getSignatureKeystorePath())) {
 			KeyStore ks = KeyStore.getInstance("PKCS12");
-			ks.load(fis, config.getSamlIdpConfiguration().getKeystorePassword().toCharArray());
+			ks.load(fis, config.getGlobalConfiguration().getSignatureKeystorePassword().toCharArray());
 
 			Enumeration<String> aliases = ks.aliases();
 

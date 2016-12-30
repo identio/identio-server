@@ -1,15 +1,7 @@
 package net.identio.server.service.oauth.model;
 
-public enum OAuthResponseType {
-	CODE("code"), TOKEN("token");
+public class OAuthResponseType {
 	
-	private String name;
-	
-	OAuthResponseType(String name) {
-		this.name = name;
-	}
-	
-	public String toString() {
-		return this.name;
-	}
+	public static final String CODE = "code";
+	public static final String TOKEN = "token";
 }

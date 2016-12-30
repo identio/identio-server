@@ -19,6 +19,7 @@
  */
 package net.identio.server.mvc.oauth;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -64,9 +65,13 @@ public class OAuthController {
 		LOG.debug("RT: {} - RU: {} - SC: {} - ST: {}", responseType, redirectUri, scopes, state);
 
 		// Scopes are separated by a space
-		List<String> scopesArray = Arrays.asList(scopes.split(" "));
 
-		OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopesArray, state);
+		List<String> scopesList = new ArrayList<>();
+		if (scopes != null) {
+			scopesList = Arrays.asList(scopes.split(" "));
+		}
+
+		OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopesList, state);
 
 		ValidationResult result = validationService.validateAuthentRequest(request, identioSession);
 

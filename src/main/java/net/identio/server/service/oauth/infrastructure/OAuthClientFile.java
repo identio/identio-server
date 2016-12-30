@@ -6,13 +6,14 @@ import net.identio.server.model.OAuthClient;
 
 public class OAuthClientFile {
 
-	private List<OAuthClient> oauthClients;
+	private List<OAuthClient> oAuthClients;
 
-	public List<OAuthClient> getOauthClients() {
-		return oauthClients;
+	public List<OAuthClient> getoAuthClients() {
+		return oAuthClients;
 	}
 
-	public void setOauthClients(List<OAuthClient> oauthClients) {
-		this.oauthClients = oauthClients;
+	public void setoAuthClients(List<OAuthClient> oAuthClients) {
+		this.oAuthClients = oAuthClients;
 	}
+
 }

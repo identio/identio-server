@@ -23,13 +23,13 @@ import java.util.List;
 
 public class AuthorizationConfiguration {
 
-	private List<Scope> scopes;
+	private List<AuthorizationScope> scopes;
 
-	public List<Scope> getScopes() {
+	public List<AuthorizationScope> getScopes() {
 		return scopes;
 	}
 
-	public void setScopes(List<Scope> scopes) {
+	public void setScopes(List<AuthorizationScope> scopes) {
 		this.scopes = scopes;
 	}
 }

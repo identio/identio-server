@@ -19,6 +19,6 @@
  */
 package net.identio.server.model;
 
-public enum RequestType {
+public enum ProtocolType {
 	SAML, OAUTH
 }

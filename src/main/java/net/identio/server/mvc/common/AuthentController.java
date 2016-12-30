@@ -81,8 +81,8 @@ public class AuthentController {
 
 			return new AuthSubmitResponse().setState(State.RESPONSE)
 					.setDestinationUrl(result.getArValidationResult().getResponseUrl())
-					.setRelayState(result.getArValidationResult().getRelayState())
-					.setSamlResponse(result.getResponseData());
+					.setRelayState(result.getArValidationResult().getRelayState()).setResponse(result.getResponseData())
+					.setProtocolType(result.getArValidationResult().getProtocolType());
 		}
 
 		// Default response: authentication failed
@@ -143,5 +143,5 @@ public class AuthentController {
 	public ApiErrorResponse handleServletRequestBindingException(ServletRequestBindingException e) {
 		return new ApiErrorResponse("error.mssing.parameter", e.getMessage());
 	}
-	
+
 }

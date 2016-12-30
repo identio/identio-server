@@ -23,8 +23,10 @@ public class GlobalConfiguration {
 
 	private int port;
 	private boolean secure;
-	private String keystorePath;
-	private String keystorePassword;
+	private String sslKeystorePath;
+	private String sslKeystorePassword;
+	private String signatureKeystorePath;
+	private String signatureKeystorePassword;	
 	private String workDirectory;
 	private String staticResourcesPath;
 
@@ -44,20 +46,36 @@ public class GlobalConfiguration {
 		this.secure = secure;
 	}
 
-	public String getKeystorePath() {
-		return keystorePath;
+	public String getSslKeystorePath() {
+		return sslKeystorePath;
 	}
 
-	public void setKeystorePath(String keystorePath) {
-		this.keystorePath = keystorePath;
+	public void setSslKeystorePath(String sslKeystorePath) {
+		this.sslKeystorePath = sslKeystorePath;
 	}
 
-	public String getKeystorePassword() {
-		return keystorePassword;
+	public String getSslKeystorePassword() {
+		return sslKeystorePassword;
 	}
 
-	public void setKeystorePassword(String keystorePassword) {
-		this.keystorePassword = keystorePassword;
+	public void setSslKeystorePassword(String sslKeystorePassword) {
+		this.sslKeystorePassword = sslKeystorePassword;
+	}
+
+	public String getSignatureKeystorePath() {
+		return signatureKeystorePath;
+	}
+
+	public void setSignatureKeystorePath(String signatureKeystorePath) {
+		this.signatureKeystorePath = signatureKeystorePath;
+	}
+
+	public String getSignatureKeystorePassword() {
+		return signatureKeystorePassword;
+	}
+
+	public void setSignatureKeystorePassword(String signatureKeystorePassword) {
+		this.signatureKeystorePassword = signatureKeystorePassword;
 	}
 
 	public String getWorkDirectory() {

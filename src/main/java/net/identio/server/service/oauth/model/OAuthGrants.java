@@ -1,15 +1,8 @@
 package net.identio.server.service.oauth.model;
 
-public enum OAuthGrants {
-	IMPLICIT("implicit"), AUTHORIZATION_CODE("authorization_code");
+public class OAuthGrants {
 	
-	private String name;
+	public static final String IMPLICIT = "implicit";
+	public static final String AUTHORIZATION_CODE = "code";
 	
-	OAuthGrants(String name) {
-		this.name = name;
-	}
-	
-	public String toString() {
-		return this.name;
-	}
 }
