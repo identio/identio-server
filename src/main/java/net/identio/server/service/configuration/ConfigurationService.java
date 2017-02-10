@@ -110,8 +110,8 @@ public class ConfigurationService {
 					.setSignatureKeystorePath(Paths.get(configDirectoryPath, "default-sign-certificate.p12").toString());
 		}
 
-		if (configuration.getGlobalConfiguration().getSslKeystorePassword() == null) {
-			configuration.getGlobalConfiguration().setSslKeystorePassword("password");
+		if (configuration.getGlobalConfiguration().getSignatureKeystorePassword() == null) {
+			configuration.getGlobalConfiguration().setSignatureKeystorePassword("password");
 		}
 		
 		if (configuration.getGlobalConfiguration().getWorkDirectory() == null) {

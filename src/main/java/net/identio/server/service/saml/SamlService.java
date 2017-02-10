@@ -138,6 +138,8 @@ public class SamlService {
 
 		AuthRequestValidationResult result = new AuthRequestValidationResult();
 
+		result.setProtocolType(ProtocolType.SAML);
+		
 		// Parse the authentication request
 		AuthentRequest ar = null;
 

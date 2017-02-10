@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +36,8 @@ import net.identio.server.service.configuration.ConfigurationService;
 @Service
 public class AuthorizationService {
 
+	private static final Logger LOG = LoggerFactory.getLogger(AuthorizationService.class);
+	
 	private HashMap<String, AuthorizationScope> scopes;
 
 	@Autowired
@@ -41,7 +45,15 @@ public class AuthorizationService {
 
 		scopes = new HashMap<>();
 
-		for (AuthorizationScope scope : configurationService.getConfiguration().getAuthorizationConfiguration().getScopes()) {
+		List<AuthorizationScope> configuredScopes = configurationService.getConfiguration().getAuthorizationConfiguration().getScopes();
+
+		if (configuredScopes == null) {
+			return;
+		}
+		
+		LOG.info("Initializing Authorization Service");
+		
+		for (AuthorizationScope scope : configuredScopes) {
 			scopes.put(scope.getName(), scope);
 		}
 

@@ -28,11 +28,16 @@ public class FileOAuthClientRepository implements OAuthClientRepository {
 	@Autowired
 	public FileOAuthClientRepository(ConfigurationService configurationService) throws InitializationException {
 
-		LOG.info("Initializing File OAUth Client Repository");
 
 		clients = new HashMap<>();
 
 		String clientFilePath = configurationService.getConfiguration().getoAuthServerConfiguration().getClientFile();
+
+		if (clientFilePath == null) {
+			return;
+		}
+		
+		LOG.info("Initializing File OAUth Client Repository");
 
 		try (FileInputStream is = new FileInputStream(clientFilePath)) {
 
