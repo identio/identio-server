@@ -81,7 +81,7 @@ public class PreAuthController {
 			HttpUtils.setSessionCookie(httpResponse, result.getSessionId(),
 					configurationService.getConfiguration().getGlobalConfiguration().isSecure());
 
-			return "redirect:/#/auth/" + validationResult.getTransactionId();
+			return "redirect:/#!/auth/" + validationResult.getTransactionId();
 		}
 	}
 }

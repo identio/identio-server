@@ -85,7 +85,7 @@ public class AssertionConsumerController {
 			HttpUtils.setSessionCookie(httpResponse, result.getSessionId(),
 					configurationService.getConfiguration().getGlobalConfiguration().isSecure());
 
-			return "redirect:/#/auth/" + result.getTransactionId();
+			return "redirect:/#!/auth/" + result.getTransactionId();
 		}
 
 	}
