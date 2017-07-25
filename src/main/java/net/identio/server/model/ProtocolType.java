@@ -17,21 +17,8 @@
  You should have received a copy of the GNU Affero General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package net.identio.server.service.oauth;
+package net.identio.server.model;
 
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import net.identio.server.model.AuthRequestValidationResult;
-import net.identio.server.model.InboundRequest;
-
-@Service
-@Scope("singleton")
-public class OauthService {
-
-	public AuthRequestValidationResult validateAuthentRequest(InboundRequest request) {
-
-		throw new UnsupportedOperationException();
-	}
-
+public enum ProtocolType {
+	SAML, OAUTH
 }

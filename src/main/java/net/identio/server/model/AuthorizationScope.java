@@ -19,6 +19,34 @@
  */
 package net.identio.server.model;
 
-public enum State {
-	AUTH, STEP_UP_AUTHENTICATION, RESPONSE, CONSENT
+public class AuthorizationScope {
+
+	private String name;
+	private AuthLevel authLevel;
+	private int expirationTime;
+	
+	public String getName() {
+		return name;
+	}
+	
+	public void setName(String name) {
+		this.name = name;
+	}
+	
+	public AuthLevel getAuthLevel() {
+		return authLevel;
+	}
+	
+	public void setAuthLevel(AuthLevel authLevel) {
+		this.authLevel = authLevel;
+	}
+
+	public int getExpirationTime() {
+		return expirationTime;
+	}
+
+	public void setExpirationTime(int expirationTime) {
+		this.expirationTime = expirationTime;
+	}
+
 }

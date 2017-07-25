@@ -1,5 +1,5 @@
 /*
- This file is part of Ident.io
+ This file is part of Ident.io.
 
  Ident.io - A flexible authentication server
  Copyright (C) Loeiz TANGUY
@@ -19,6 +19,17 @@
  */
 package net.identio.server.model;
 
-public enum RequestType {
-	SAML, OAUTH
+import java.util.List;
+
+public class AuthorizationConfiguration {
+
+	private List<AuthorizationScope> scopes;
+
+	public List<AuthorizationScope> getScopes() {
+		return scopes;
+	}
+
+	public void setScopes(List<AuthorizationScope> scopes) {
+		this.scopes = scopes;
+	}
 }

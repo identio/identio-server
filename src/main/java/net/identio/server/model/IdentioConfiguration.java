@@ -26,6 +26,8 @@ public class IdentioConfiguration {
 	private SessionConfiguration sessionConfiguration = new SessionConfiguration();
 	private AuthPolicyConfiguration authPolicyConfiguration = new AuthPolicyConfiguration();
 	private AuthMethodConfiguration authMethodConfiguration = new AuthMethodConfiguration();
+	private OAuthServerConfiguration oAuthServerConfiguration = new OAuthServerConfiguration();
+	private AuthorizationConfiguration authorizationConfiguration = new AuthorizationConfiguration();
 
 	public GlobalConfiguration getGlobalConfiguration() {
 		return globalConfiguration;
@@ -65,5 +67,21 @@ public class IdentioConfiguration {
 
 	public void setAuthMethodConfiguration(AuthMethodConfiguration authMethodConfiguration) {
 		this.authMethodConfiguration = authMethodConfiguration;
+	}
+
+	public OAuthServerConfiguration getoAuthServerConfiguration() {
+		return oAuthServerConfiguration;
+	}
+
+	public void setoAuthServerConfiguration(OAuthServerConfiguration oAuthServerConfiguration) {
+		this.oAuthServerConfiguration = oAuthServerConfiguration;
+	}
+
+	public AuthorizationConfiguration getAuthorizationConfiguration() {
+		return authorizationConfiguration;
+	}
+
+	public void setAuthorizationConfiguration(AuthorizationConfiguration authorizationConfiguration) {
+		this.authorizationConfiguration = authorizationConfiguration;
 	}
 }

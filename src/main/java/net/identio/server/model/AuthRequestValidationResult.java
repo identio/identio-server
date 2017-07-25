@@ -19,21 +19,23 @@
  */
 package net.identio.server.model;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public class AuthRequestValidationResult {
 
 	private boolean success;
 	private ErrorStatus errorStatus;
 	private String requestId;
-	private RequestType requestType;
+	private ProtocolType protocolType;
 	private String sourceApplicationName;
 	private boolean forceAuthentication;
 	private String authLevelComparison;
-	private ArrayList<AuthLevel> requestedAuthLevels;
+	private List<AuthLevel> requestedAuthLevels;
 	private String relayState;
 	private String responseUrl;
-
+	private List<AuthorizationScope> requestedScopes;
+	private String responseType;
+	
 	public boolean isSuccess() {
 		return success;
 	}
@@ -61,12 +63,12 @@ public class AuthRequestValidationResult {
 		return this;
 	}
 
-	public RequestType getRequestType() {
-		return requestType;
+	public ProtocolType getProtocolType() {
+		return protocolType;
 	}
 
-	public AuthRequestValidationResult setRequestType(RequestType requestType) {
-		this.requestType = requestType;
+	public AuthRequestValidationResult setProtocolType(ProtocolType protocolType) {
+		this.protocolType = protocolType;
 		return this;
 	}
 
@@ -97,11 +99,11 @@ public class AuthRequestValidationResult {
 		return this;
 	}
 
-	public ArrayList<AuthLevel> getRequestedAuthLevels() {
+	public List<AuthLevel> getRequestedAuthLevels() {
 		return requestedAuthLevels;
 	}
 
-	public AuthRequestValidationResult setRequestedAuthLevels(ArrayList<AuthLevel> requestedAuthLevels) {
+	public AuthRequestValidationResult setRequestedAuthLevels(List<AuthLevel> requestedAuthLevels) {
 		this.requestedAuthLevels = requestedAuthLevels;
 		return this;
 	}
@@ -122,5 +124,22 @@ public class AuthRequestValidationResult {
 	public AuthRequestValidationResult setResponseUrl(String responseUrl) {
 		this.responseUrl = responseUrl;
 		return this;
+	}
+
+	public List<AuthorizationScope> getRequestedScopes() {
+		return requestedScopes;
+	}
+
+	public AuthRequestValidationResult setRequestedScopes(List<AuthorizationScope> requestedScopes) {
+		this.requestedScopes = requestedScopes;
+		return this;
+	}
+
+	public String getResponseType() {
+		return responseType;
+	}
+
+	public void setResponseType(String responseType) {
+		this.responseType = responseType;
 	}
 }

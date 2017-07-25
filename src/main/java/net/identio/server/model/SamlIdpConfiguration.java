@@ -26,29 +26,11 @@ public class SamlIdpConfiguration {
 	private String organizationUrl;
 	private String contactPersonSurname;
 	private String contactPersonEmail;
-	private String keystore;
-	private String keystorePassword;
 	private boolean allowUnsecureRequests;
 	private boolean certificateCheckEnabled;
 	private int tokenValidityLength;
 	private int allowedTimeOffset;
 	private String spMetadataDirectory;
-
-	public String getKeystore() {
-		return keystore;
-	}
-
-	public void setKeystore(String keystore) {
-		this.keystore = keystore;
-	}
-
-	public String getKeystorePassword() {
-		return keystorePassword;
-	}
-
-	public void setKeystorePassword(String keystorePassword) {
-		this.keystorePassword = keystorePassword;
-	}
 
 	public boolean isCertificateCheckEnabled() {
 		return certificateCheckEnabled;

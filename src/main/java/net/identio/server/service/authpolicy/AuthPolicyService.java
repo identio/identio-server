@@ -105,7 +105,7 @@ public class AuthPolicyService {
 		// Otherwise, we apply the auth level specified in the configuration for
 		// this application
 		// If none is specified, we apply the default authent level
-		ArrayList<AuthLevel> requestedAuthLevels = new ArrayList<>();
+		List<AuthLevel> requestedAuthLevels = new ArrayList<>();
 		String requestedComparison = null;
 
 		ArrayList<AuthLevel> targetAuthLevels = new ArrayList<>();

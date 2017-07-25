@@ -61,9 +61,9 @@ import net.identio.server.model.AuthRequestValidationResult;
 import net.identio.server.model.AuthSession;
 import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.IdentioConfiguration;
-import net.identio.server.model.InboundRequest;
-import net.identio.server.model.RequestType;
+import net.identio.server.model.ProtocolType;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
+import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.model.UserSession;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.configuration.ConfigurationService;
@@ -107,8 +107,8 @@ public class SamlService {
 
 	private void initSigner(IdentioConfiguration config) throws TechnicalException {
 
-		String keystoreFile = config.getSamlIdpConfiguration().getKeystore();
-		String keystorePassword = config.getSamlIdpConfiguration().getKeystorePassword();
+		String keystoreFile = config.getGlobalConfiguration().getSignatureKeystorePath();
+		String keystorePassword = config.getGlobalConfiguration().getSignatureKeystorePassword();
 		boolean isCertificateCheckEnabled = config.getSamlIdpConfiguration().isCertificateCheckEnabled();
 
 		LOG.debug("Initializing SAML signer...");
@@ -132,12 +132,14 @@ public class SamlService {
 		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_NOT_SIGNED, SamlConstants.STATUS_REQUEST_DENIED);
 	}
 
-	public AuthRequestValidationResult validateAuthentRequest(InboundRequest request) {
+	public AuthRequestValidationResult validateAuthentRequest(SamlInboundRequest request) {
 
 		LOG.debug("Starting SAML Authentication Request validation...");
 
 		AuthRequestValidationResult result = new AuthRequestValidationResult();
 
+		result.setProtocolType(ProtocolType.SAML);
+		
 		// Parse the authentication request
 		AuthentRequest ar = null;
 
@@ -161,9 +163,9 @@ public class SamlService {
 			LOG.error("No suitable response endpoint found");
 			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_UNKNOWN_ENDPOINT);
 		}
-		
+
 		result.setRequestId(requestId).setSourceApplicationName(requestIssuer).setAuthLevelComparison(comparison)
-				.setForceAuthentication(forceAuthn).setRequestType(RequestType.SAML)
+				.setForceAuthentication(forceAuthn).setProtocolType(ProtocolType.SAML)
 				.setRelayState(request.getRelayState()).setResponseUrl(destinationEndpoint.getLocation());
 
 		// Extract the requested authentication level, if any
@@ -243,7 +245,7 @@ public class SamlService {
 
 	}
 
-	private boolean validateRedirectRequest(Validator validator, InboundRequest request,
+	private boolean validateRedirectRequest(Validator validator, SamlInboundRequest request,
 			AuthRequestValidationResult result) {
 
 		LOG.debug("Validate query parameters of HTTP-Redirect Binding");

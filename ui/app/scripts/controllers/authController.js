@@ -101,7 +101,13 @@
 				data.destinationUrl = $sce
 						.trustAsResourceUrl(data.destinationUrl);
 
-				$rootScope.$broadcast('saml.submit.response', data);
+				if (data.protocolType === 'SAML') {
+					$rootScope.$broadcast('saml.submit.response', data);
+				}
+				if (data.protocolType === 'OAUTH') {
+					$rootScope.$broadcast('oauth.submit.response', data);					
+				}
+				
 				return;
 			}
 

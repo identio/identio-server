@@ -78,9 +78,9 @@ public class BootCustomizationBean {
 					connector.setSecure(true);
 					connector.setScheme("https");
 					connector.setAttribute("keystoreFile", "file:///"
-							+ configurationService.getConfiguration().getGlobalConfiguration().getKeystorePath());
+							+ configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePath());
 					connector.setAttribute("keystorePass",
-							configurationService.getConfiguration().getGlobalConfiguration().getKeystorePassword());
+							configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePassword());
 					connector.setAttribute("keystoreType", "PKCS12");
 					connector.setAttribute("keyAlias", "1");
 					connector.setAttribute("sslProtocol", "TLSv1.2");

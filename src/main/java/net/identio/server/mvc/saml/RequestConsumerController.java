@@ -42,7 +42,7 @@ import net.identio.server.exceptions.SamlException;
 import net.identio.server.exceptions.ServerException;
 import net.identio.server.exceptions.UnknownAuthLevelException;
 import net.identio.server.exceptions.ValidationException;
-import net.identio.server.model.InboundRequest;
+import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.model.State;
 import net.identio.server.model.ValidationResult;
 import net.identio.server.mvc.common.PreAuthController;
@@ -170,7 +170,7 @@ public class RequestConsumerController {
 
 		LOG.debug("Processing SAML authentication request.");
 
-		InboundRequest samlRequest = new InboundRequest(binding, request, signatureValue, signedInfo, sigAlg,
+		SamlInboundRequest samlRequest = new SamlInboundRequest(binding, request, signatureValue, signedInfo, sigAlg,
 				relayState);
 
 		// The request is forwarded to the validation service

@@ -44,9 +44,11 @@ import net.identio.server.model.AuthenticationResult;
 import net.identio.server.model.AuthenticationResultStatus;
 import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.InboundRequest;
-import net.identio.server.model.RequestType;
+import net.identio.server.model.OAuthInboundRequest;
+import net.identio.server.model.ProtocolType;
 import net.identio.server.model.SamlAuthMethod;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
+import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.model.State;
 import net.identio.server.model.TransactionData;
 import net.identio.server.model.UserSession;
@@ -54,7 +56,9 @@ import net.identio.server.model.ValidationResult;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.saml.SamlAuthenticationProvider;
 import net.identio.server.service.authpolicy.AuthPolicyService;
-import net.identio.server.service.oauth.OauthService;
+import net.identio.server.service.oauth.OAuthService;
+import net.identio.server.service.oauth.exceptions.ClientNotFoundException;
+import net.identio.server.service.oauth.exceptions.InvalidRedirectUriException;
 import net.identio.server.service.saml.SamlService;
 import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.usersession.UserSessionService;
@@ -72,7 +76,7 @@ public class ValidationService {
 	private UserSessionService userSessionService;
 
 	@Autowired
-	private OauthService oauthService;
+	private OAuthService oauthService;
 
 	@Autowired
 	private AuthPolicyService authPolicyService;
@@ -89,21 +93,20 @@ public class ValidationService {
 	public ValidationResult validateAuthentRequest(InboundRequest request, String sessionId)
 			throws ValidationException {
 
-		TransactionData transactionData = transactionService.createTransaction();
-		UserSession userSession = userSessionService.getUserSession(sessionId);
-		transactionData.setUserSession(userSession);
-
 		ValidationResult validationResult = new ValidationResult();
-		validationResult.setTransactionId(transactionData.getTransactionId());
-		validationResult.setSessionId(userSession.getId());
 
 		// Validate the request
 		AuthRequestValidationResult arValidationResult = null;
 
-		if (request.getType().equals(RequestType.SAML)) {
-			arValidationResult = samlService.validateAuthentRequest(request);
-		} else {
-			arValidationResult = oauthService.validateAuthentRequest(request);
+		if (request instanceof SamlInboundRequest) {
+			arValidationResult = samlService.validateAuthentRequest((SamlInboundRequest) request);
+		}
+		if (request instanceof OAuthInboundRequest) {
+			try {
+				arValidationResult = oauthService.validateAuthentRequest((OAuthInboundRequest) request);
+			} catch (ClientNotFoundException | InvalidRedirectUriException e) {
+				throw new ValidationException("An error occured when processing the request", e);
+			}
 		}
 
 		validationResult.setArValidationResult(arValidationResult);
@@ -111,10 +114,17 @@ public class ValidationService {
 		if (!arValidationResult.isSuccess()) {
 
 			validationResult.setState(State.RESPONSE);
-			validationResult.setResponseData(generateFatalErrorResponse(arValidationResult, transactionData));
+			validationResult.setResponseData(generateFatalErrorResponse(arValidationResult));
 
 			return validationResult;
 		}
+
+		TransactionData transactionData = transactionService.createTransaction();
+		UserSession userSession = userSessionService.getUserSession(sessionId);
+		transactionData.setUserSession(userSession);
+
+		validationResult.setTransactionId(transactionData.getTransactionId());
+		validationResult.setSessionId(userSession.getId());
 
 		// Determine target auth levels and auth methods
 		ArrayList<AuthLevel> targetAuthLevels = authPolicyService.determineTargetAuthLevel(arValidationResult);
@@ -263,7 +273,7 @@ public class ValidationService {
 					validationResult.setChallengeType(authResult.getChallengeType());
 					validationResult.setChallengeValue(authResult.getChallengeValue());
 					break;
-				
+
 				default:
 					String message = "Unknown transaction state";
 					LOG.error(message);
@@ -335,7 +345,7 @@ public class ValidationService {
 	private String generateSuccessResponse(AuthPolicyDecision decision, AuthRequestValidationResult arValidationResult,
 			TransactionData transactionData) throws ValidationException {
 
-		if (arValidationResult.getRequestType() == RequestType.SAML) {
+		if (arValidationResult.getProtocolType() == ProtocolType.SAML) {
 
 			try {
 				return samlService.generateSuccessResponse(decision, arValidationResult,
@@ -348,14 +358,14 @@ public class ValidationService {
 				transactionService.removeTransactionData(transactionData);
 			}
 		} else {
-			throw new UnsupportedOperationException();
+			return oauthService.generateSuccessResponse(arValidationResult, transactionData.getUserSession());
 		}
 	}
 
-	private String generateFatalErrorResponse(AuthRequestValidationResult arValidationResult,
-			TransactionData transactionData) throws ValidationException {
+	private String generateFatalErrorResponse(AuthRequestValidationResult arValidationResult)
+			throws ValidationException {
 
-		if (arValidationResult.getRequestType() == RequestType.SAML) {
+		if (arValidationResult.getProtocolType() == ProtocolType.SAML) {
 
 			try {
 				return samlService.generateErrorResponse(arValidationResult);
@@ -363,8 +373,6 @@ public class ValidationService {
 				String message = "An error occured when generating response";
 				LOG.error(message);
 				throw new ValidationException(message, e);
-			} finally {
-				transactionService.removeTransactionData(transactionData);
 			}
 		} else {
 			throw new UnsupportedOperationException();
