@@ -26,7 +26,7 @@
 
 		vm.methods = [];
 		vm.samlMethods = [];
-		
+
 		vm.updateMethod = updateMethod;
 		vm.submit = submit;
 		vm.samlSpSubmit = samlSpSubmit;
@@ -34,31 +34,31 @@
 
 		// Request the list of authentication methods
 		function init() {
-			
+
 			vm.submitInProgress = false;
 			vm.methodChoiceEnabled = true;
 			vm.password = null;
 			vm.error = null;
 
-			AuthService.getAuthMethods($stateParams.transactionId).success(
-					function(response) {
+			AuthService.getAuthMethods($stateParams.transactionId).then(
+					function(successResponse) {
 						vm.methods = [];
 						vm.samlMethods = [];
 
-						for (var i = 0; i < response.length; i++) {
+						for (var i = 0; i < successResponse.data.length; i++) {
 
-							if (response[i].type === 'saml') {
-								vm.samlMethods.push(response[i]);
+							if (successResponse.data[i].type === 'saml') {
+								vm.samlMethods.push(successResponse.data[i]);
 							}
 							else {
-								vm.methods.push(response[i]);
+								vm.methods.push(successResponse.data[i]);
 							}
 						}
 						vm.selectedItem = vm.methods[0];
 						$state.go('auth.' + vm.methods[0].type);
-					}).error(function(error) {
+					}, function(errorResponse) {
 				$state.go('error', {
-					errorCode : error.errorCode
+					errorCode : errorResponse.errorCode
 				});
 			});
 		}
@@ -74,8 +74,8 @@
 
 			AuthService.submitAuth($stateParams.transactionId,
 					vm.selectedItem.name, vm.login, vm.password,
-					vm.challengeValue).success(authSubmitSuccessHandler).error(
-					errorHandler);
+					vm.challengeValue)
+					.then(authSubmitSuccessHandler, errorHandler);
 		}
 
 		function samlSpSubmit(methodName) {
@@ -94,7 +94,9 @@
 							}).error(errorHandler);
 		}
 
-		function authSubmitSuccessHandler(data) {
+		function authSubmitSuccessHandler(response) {
+
+      var data = response.data;
 
 			if (data.state === 'RESPONSE') {
 
@@ -105,9 +107,9 @@
 					$rootScope.$broadcast('saml.submit.response', data);
 				}
 				if (data.protocolType === 'OAUTH') {
-					$rootScope.$broadcast('oauth.submit.response', data);					
+					$rootScope.$broadcast('oauth.submit.response', data);
 				}
-				
+
 				return;
 			}
 
@@ -134,9 +136,9 @@
 			}
 		}
 
-		function errorHandler(data) {
+		function errorHandler(response) {
 			$state.go('error', {
-				errorCode : data.errorCode
+				errorCode : response.data.errorCode
 			});
 		}
 	}
