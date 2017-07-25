@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        springBootVersion = '1.4.0.RELEASE'
+        springBootVersion = '1.5.4.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -15,15 +15,15 @@ buildscript {
 }
 
 plugins {
-  id 'com.moowork.node' version '0.13'
-  id 'com.moowork.grunt' version '0.13'    
-  id 'com.github.ben-manes.versions' version '0.13.0'
+    id 'com.moowork.node' version '0.13'
+    id 'com.moowork.grunt' version '0.13'
+    id 'com.github.ben-manes.versions' version '0.15.0'
+    id 'org.springframework.boot' version '1.5.4.RELEASE'
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'idea'
-apply plugin: 'spring-boot' 
 apply plugin: 'war'
 apply plugin: 'application'
 
@@ -49,11 +49,11 @@ dependencies {
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
 	compile('com.github.identio:identio-saml:1.0.2')
-	compile('com.google.guava:guava:19.0')
-    compile('com.github.detiber:jradius-client:-SNAPSHOT')
+	compile('com.google.guava:guava:22.0')
+    compile('com.github.identio:jradius-client:-SNAPSHOT')
 	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:${springBootVersion}")
-	providedRuntime('ch.qos.logback:logback-core:1.1.7')
-	providedRuntime('ch.qos.logback:logback-classic:1.1.7')
+	providedRuntime('ch.qos.logback:logback-core:1.2.3')
+	providedRuntime('ch.qos.logback:logback-classic:1.2.3')
     testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") 
 }
 
@@ -171,5 +171,5 @@ task release(dependsOn: ['releaseTarGz', 'releaseZip']) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.14'
+    gradleVersion = '4.0'
 }
