@@ -28,12 +28,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,216 +62,221 @@ import net.identio.server.utils.FileUtils;
 @Scope("singleton")
 public class MetadataService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(MetadataService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(MetadataService.class);
 
-	// Private fields
-	private Metadata idpMetadata;
-	private HashMap<String, Validator> spValidators = new HashMap<>();
-	private HashMap<String, Metadata> spMetadatas = new HashMap<>();
+    // Private fields
+    private Metadata idpMetadata;
+    private HashMap<String, Validator> spValidators = new HashMap<>();
+    private HashMap<String, Metadata> spMetadatas = new HashMap<>();
 
-	private HashMap<String, HashMap<String, String>> loadedSpFiles = new HashMap<>();
+    private HashMap<String, HashMap<String, String>> loadedSpFiles = new HashMap<>();
 
-	// Services
-	private ConfigurationService configurationService;
+    // Services
+    private ConfigurationService configurationService;
 
-	@Autowired
-	public MetadataService(ConfigurationService configurationService) throws InitializationException {
+    @Autowired
+    public MetadataService(ConfigurationService configurationService) throws InitializationException {
 
-		LOG.debug("Initialization of Metadata Service...");
+        LOG.debug("Initialization of Metadata Service...");
 
-		this.configurationService = configurationService;
+        this.configurationService = configurationService;
 
-		try {
+        try {
 
-			initIdpMetadata();
+            initIdpMetadata();
 
-		} catch (TechnicalException ex) {
-			throw new InitializationException("Could not initialize Metadata service", ex);
-		}
-	}
+        } catch (TechnicalException ex) {
+            throw new InitializationException("Could not initialize Metadata service", ex);
+        }
+    }
 
-	private void initIdpMetadata() throws TechnicalException, InitializationException {
+    private void initIdpMetadata() throws TechnicalException, InitializationException {
 
-		IdentioConfiguration config = configurationService.getConfiguration();
+        IdentioConfiguration config = configurationService.getConfiguration();
 
-		LOG.info("Loading SAML IDP metadata...");
+        LOG.info("Loading SAML IDP metadata...");
 
-		// Determine idp endpoint configuration
-		ArrayList<Endpoint> idpEndpoints = new ArrayList<>();
-		String idpPostUrl = configurationService.getPublicFqdn() + "/SAML2/SSO/POST";
-		String idpRedirectUrl = configurationService.getPublicFqdn() + "/SAML2/SSO/Redirect";
-		idpEndpoints.add(new Endpoint(1, SamlConstants.BINDING_HTTP_REDIRECT, idpRedirectUrl, true));
-		idpEndpoints.add(new Endpoint(2, SamlConstants.BINDING_HTTP_POST, idpPostUrl, false));
+        // Determine idp endpoint configuration
+        ArrayList<Endpoint> idpEndpoints = new ArrayList<>();
+        String idpPostUrl = configurationService.getPublicFqdn() + "/SAML2/SSO/POST";
+        String idpRedirectUrl = configurationService.getPublicFqdn() + "/SAML2/SSO/Redirect";
+        idpEndpoints.add(new Endpoint(1, SamlConstants.BINDING_HTTP_REDIRECT, idpRedirectUrl, true));
+        idpEndpoints.add(new Endpoint(2, SamlConstants.BINDING_HTTP_POST, idpPostUrl, false));
 
-		// Determine sp endpoint configuration
-		ArrayList<Endpoint> spEndpoints = new ArrayList<>();
-		String spPostUrl = configurationService.getPublicFqdn() + "/SAML2/ACS/POST";
-		spEndpoints.add(new Endpoint(1, SamlConstants.BINDING_HTTP_POST, spPostUrl, true));
+        // Determine sp endpoint configuration
+        ArrayList<Endpoint> spEndpoints = new ArrayList<>();
+        String spPostUrl = configurationService.getPublicFqdn() + "/SAML2/ACS/POST";
+        spEndpoints.add(new Endpoint(1, SamlConstants.BINDING_HTTP_POST, spPostUrl, true));
 
-		// Extract certificate from provided P12
-		ArrayList<X509Certificate> certs = new ArrayList<>();
+        // Extract certificate from provided P12
+        ArrayList<X509Certificate> certs = new ArrayList<>();
 
-		try (FileInputStream fis = new FileInputStream(config.getGlobalConfiguration().getSignatureKeystorePath())) {
-			KeyStore ks = KeyStore.getInstance("PKCS12");
-			ks.load(fis, config.getGlobalConfiguration().getSignatureKeystorePassword().toCharArray());
+        try (FileInputStream fis = new FileInputStream(config.getGlobalConfiguration().getSignatureKeystorePath())) {
+            KeyStore ks = KeyStore.getInstance("PKCS12");
+            ks.load(fis, config.getGlobalConfiguration().getSignatureKeystorePassword().toCharArray());
 
-			Enumeration<String> aliases = ks.aliases();
+            Enumeration<String> aliases = ks.aliases();
 
-			if (aliases == null || !aliases.hasMoreElements()) {
-				throw new InitializationException("Keystore doesn't contain a certificate");
-			}
+            if (aliases == null || !aliases.hasMoreElements()) {
+                throw new InitializationException("Keystore doesn't contain a certificate");
+            }
 
-			String alias = aliases.nextElement();
+            String alias = aliases.nextElement();
 
-			certs.add((X509Certificate) (ks.getCertificate(alias)));
+            certs.add((X509Certificate) (ks.getCertificate(alias)));
 
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
-			throw new InitializationException("Could not initialize IDP Metadata", ex);
-		}
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
+            throw new InitializationException("Could not initialize IDP Metadata", ex);
+        }
 
-		// Allow unsecure requests ?
-		boolean wantRequestsSigned = !config.getSamlIdpConfiguration().isAllowUnsecureRequests();
+        // Allow unsecure requests ?
+        boolean wantRequestsSigned = !config.getSamlIdpConfiguration().isAllowUnsecureRequests();
 
-		// Generate idp metadata
-		IdpSsoDescriptor idpDescriptor = IdpSsoDescriptor.getInstance().setWantAuthnRequestsSigned(wantRequestsSigned)
-				.setSsoEndpoints(idpEndpoints)
-				.setNameIDFormat(Collections.singletonList(SamlConstants.NAMEID_UNSPECIFIED))
-				.setSigningCertificates(certs);
+        // Generate idp metadata
+        IdpSsoDescriptor idpDescriptor = IdpSsoDescriptor.getInstance().setWantAuthnRequestsSigned(wantRequestsSigned)
+                .setSsoEndpoints(idpEndpoints)
+                .setNameIDFormat(Collections.singletonList(SamlConstants.NAMEID_UNSPECIFIED))
+                .setSigningCertificates(certs);
 
-		SpSsoDescriptor spDescriptor = SpSsoDescriptor.getInstance().setAuthentRequestSigned(true)
-				.setAssertionConsumerService(spEndpoints)
-				.setNameIDFormat(Collections.singletonList(SamlConstants.NAMEID_UNSPECIFIED))
-				.setWantAssertionsSigned(false).setSigningCertificates(certs);
+        SpSsoDescriptor spDescriptor = SpSsoDescriptor.getInstance().setAuthentRequestSigned(true)
+                .setAssertionConsumerService(spEndpoints)
+                .setNameIDFormat(Collections.singletonList(SamlConstants.NAMEID_UNSPECIFIED))
+                .setWantAssertionsSigned(false).setSigningCertificates(certs);
 
-		idpMetadata = MetadataBuilder.getInstance()
-				.setEntityID(configurationService.getPublicFqdn() + "/SAML2")
-				.setOrganizationName(config.getSamlIdpConfiguration().getOrganizationName())
-				.setOrganizationDisplayName(config.getSamlIdpConfiguration().getOrganizationDisplayName())
-				.setOrganizationURL(config.getSamlIdpConfiguration().getOrganizationUrl())
-				.setContactName(config.getSamlIdpConfiguration().getContactPersonSurname())
-				.setContactEmail(config.getSamlIdpConfiguration().getContactPersonEmail())
-				.setIdpSsoDescriptors(Collections.singletonList(idpDescriptor))
-				.setSpSsoDescriptors(Collections.singletonList(spDescriptor)).build();
+        idpMetadata = MetadataBuilder.getInstance()
+                .setEntityID(configurationService.getPublicFqdn() + "/SAML2")
+                .setOrganizationName(config.getSamlIdpConfiguration().getOrganizationName())
+                .setOrganizationDisplayName(config.getSamlIdpConfiguration().getOrganizationDisplayName())
+                .setOrganizationURL(config.getSamlIdpConfiguration().getOrganizationUrl())
+                .setContactName(config.getSamlIdpConfiguration().getContactPersonSurname())
+                .setContactEmail(config.getSamlIdpConfiguration().getContactPersonEmail())
+                .setIdpSsoDescriptors(Collections.singletonList(idpDescriptor))
+                .setSpSsoDescriptors(Collections.singletonList(spDescriptor)).build();
 
-		LOG.info("* {}", idpMetadata.getEntityID());
-	}
+        LOG.info("* {}", idpMetadata.getEntityID());
+    }
 
-	private void loadMetadata(String filename) throws TechnicalException, UnsignedSAMLObjectException,
-			UntrustedSignerException, InvalidSignatureException, NoSuchAlgorithmException, IOException {
+    private void loadMetadata(String filename) throws TechnicalException, UnsignedSAMLObjectException,
+            UntrustedSignerException, InvalidSignatureException, NoSuchAlgorithmException, IOException {
 
-		File file = new File(filename);
+        File file = new File(filename);
 
-		Metadata spMetadata = MetadataBuilder.build(file);
+        Metadata spMetadata = MetadataBuilder.build(file);
 
-		LOG.info("Loading SP Metadata {}: {}", spMetadata.getEntityID(), file.getAbsolutePath());
+        LOG.info("Loading SP Metadata {}: {}", spMetadata.getEntityID(), file.getAbsolutePath());
 
-		if (spMetadatas.containsKey(spMetadata.getEntityID())) {
-			LOG.error("* Metadata ignored: an existing metadata has the same Entity ID");
-			return;
-		}
+        if (spMetadatas.containsKey(spMetadata.getEntityID())) {
+            LOG.error("* Metadata ignored: an existing metadata has the same Entity ID");
+            return;
+        }
 
-		ArrayList<X509Certificate> certificates = new ArrayList<>();
+        ArrayList<X509Certificate> certificates = new ArrayList<>();
 
-		for (SpSsoDescriptor descriptor : spMetadata.getSpSsoDescriptors()) {
-			certificates.addAll(descriptor.getSigningCertificates());
-		}
+        for (SpSsoDescriptor descriptor : spMetadata.getSpSsoDescriptors()) {
+            certificates.addAll(descriptor.getSigningCertificates());
+        }
 
-		// Check if the metadatas is valid
-		Validator validator = new Validator(certificates,
-				configurationService.getConfiguration().getSamlIdpConfiguration().isCertificateCheckEnabled());
+        // Check if the metadatas is valid
+        Validator validator = new Validator(certificates,
+                configurationService.getConfiguration().getSamlIdpConfiguration().isCertificateCheckEnabled());
 
-		spValidators.put(spMetadata.getEntityID(), validator);
-		spMetadatas.put(spMetadata.getEntityID(), spMetadata);
+        spValidators.put(spMetadata.getEntityID(), validator);
+        spMetadatas.put(spMetadata.getEntityID(), spMetadata);
 
-		HashMap<String, String> fileProperties = new HashMap<>();
+        HashMap<String, String> fileProperties = new HashMap<>();
 
-		fileProperties.put("issuer", spMetadata.getEntityID());
-		fileProperties.put("hash", FileUtils.getFileHash(filename));
+        fileProperties.put("issuer", spMetadata.getEntityID());
+        fileProperties.put("hash", FileUtils.getFileHash(filename));
 
-		loadedSpFiles.put(filename, fileProperties);
-	}
+        loadedSpFiles.put(filename, fileProperties);
+    }
 
-	private void unloadMetadata(String filename) throws TechnicalException, UnsignedSAMLObjectException,
-			UntrustedSignerException, InvalidSignatureException {
+    private void unloadMetadata(String filename) throws TechnicalException, UnsignedSAMLObjectException,
+            UntrustedSignerException, InvalidSignatureException {
 
-		LOG.info("Unloading SAML SP metadata: {}", filename);
+        LOG.info("Unloading SAML SP metadata: {}", filename);
 
-		HashMap<String, String> fileProperties = loadedSpFiles.get(filename);
+        HashMap<String, String> fileProperties = loadedSpFiles.get(filename);
 
-		String issuer = fileProperties.get("issuer");
+        String issuer = fileProperties.get("issuer");
 
-		spMetadatas.remove(issuer);
-		spValidators.remove(issuer);
-	}
+        spMetadatas.remove(issuer);
+        spValidators.remove(issuer);
+    }
 
-	private void checkUpdatedMetadata(String filename) throws NoSuchAlgorithmException, IOException, TechnicalException,
-			UnsignedSAMLObjectException, UntrustedSignerException, InvalidSignatureException {
+    private void checkUpdatedMetadata(String filename) throws NoSuchAlgorithmException, IOException, TechnicalException,
+            UnsignedSAMLObjectException, UntrustedSignerException, InvalidSignatureException {
 
-		LOG.debug("Check update of SAML SP metadata: {}", filename);
+        LOG.debug("Check update of SAML SP metadata: {}", filename);
 
-		HashMap<String, String> fileProperties = loadedSpFiles.get(filename);
+        HashMap<String, String> fileProperties = loadedSpFiles.get(filename);
 
-		String hash = fileProperties.get("hash");
+        String hash = fileProperties.get("hash");
 
-		// Check if the metadata is modified
-		if (!FileUtils.getFileHash(filename).equals(hash)) {
-			unloadMetadata(filename);
-			loadMetadata(filename);
-		}
-	}
+        // Check if the metadata is modified
+        if (!FileUtils.getFileHash(filename).equals(hash)) {
+            unloadMetadata(filename);
+            loadMetadata(filename);
+        }
+    }
 
-	@Scheduled(fixedDelayString = "60000")
-	public void refreshSpMetadatas() {
+    @Scheduled(fixedDelayString = "60000")
+    public void refreshSpMetadatas() {
 
-		LOG.debug("Refreshing SAML SP metadata...");
+        LOG.debug("Refreshing SAML SP metadata...");
 
-		IdentioConfiguration config = configurationService.getConfiguration();
+        IdentioConfiguration config = configurationService.getConfiguration();
 
-		String spMetadataDirectory = config.getSamlIdpConfiguration().getSpMetadataDirectory();
+        String spMetadataDirectory = config.getSamlIdpConfiguration().getSpMetadataDirectory();
+        List<String> spFiles = new ArrayList<>();
 
-		// Build the SP metadata
-		List<String> spFiles = Arrays.asList(new File(spMetadataDirectory).listFiles()).stream()
-				.filter(x -> x.isFile() && x.getName().endsWith(".xml")).map(x -> x.getAbsolutePath())
-				.collect(Collectors.toList());
+        // Build the SP metadata
+        File[] files = new File(spMetadataDirectory).listFiles();
 
-		List<String> newFileNames = new ArrayList<>(spFiles);
-		newFileNames.removeAll(loadedSpFiles.keySet());
+        if (files != null) {
+            spFiles = Stream.of(files)
+                    .filter(x -> x.isFile() && x.getName().endsWith(".xml")).map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
+        }
 
-		List<String> removedFileNames = new ArrayList<>(loadedSpFiles.keySet());
-		removedFileNames.removeAll(spFiles);
+        List<String> newFileNames = new ArrayList<>(spFiles);
+        newFileNames.removeAll(loadedSpFiles.keySet());
 
-		List<String> existingFileNames = new ArrayList<>(loadedSpFiles.keySet());
-		existingFileNames.retainAll(spFiles);
+        List<String> removedFileNames = new ArrayList<>(loadedSpFiles.keySet());
+        removedFileNames.removeAll(spFiles);
 
-		try {
-			for (String filename : newFileNames) {
-				loadMetadata(filename);
-			}
+        List<String> existingFileNames = new ArrayList<>(loadedSpFiles.keySet());
+        existingFileNames.retainAll(spFiles);
 
-			for (String filename : removedFileNames) {
-				unloadMetadata(filename);
-			}
+        try {
+            for (String filename : newFileNames) {
+                loadMetadata(filename);
+            }
 
-			for (String filename : existingFileNames) {
-				checkUpdatedMetadata(filename);
-			}
+            for (String filename : removedFileNames) {
+                unloadMetadata(filename);
+            }
 
-		} catch (NoSuchAlgorithmException | TechnicalException | UnsignedSAMLObjectException | UntrustedSignerException
-				| InvalidSignatureException | IOException e) {
-			LOG.error("An error occured when refreshing SP metadatas: {}", e.getMessage());
-			LOG.debug("* Detailed exception:", e);
-		}
-	}
+            for (String filename : existingFileNames) {
+                checkUpdatedMetadata(filename);
+            }
 
-	public Validator getSpValidator(String issuer) {
-		return spValidators.get(issuer);
-	}
+        } catch (NoSuchAlgorithmException | TechnicalException | UnsignedSAMLObjectException | UntrustedSignerException
+                | InvalidSignatureException | IOException e) {
+            LOG.error("An error occured when refreshing SP metadatas: {}", e.getMessage());
+            LOG.debug("* Detailed exception:", e);
+        }
+    }
 
-	public Metadata getIdpMetadata() {
-		return idpMetadata;
-	}
+    public Validator getSpValidator(String issuer) {
+        return spValidators.get(issuer);
+    }
 
-	public Metadata getSpMetadata(String issuer) {
-		return spMetadatas.get(issuer);
-	}
+    public Metadata getIdpMetadata() {
+        return idpMetadata;
+    }
+
+    public Metadata getSpMetadata(String issuer) {
+        return spMetadatas.get(issuer);
+    }
 }
