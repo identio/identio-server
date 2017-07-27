@@ -137,7 +137,7 @@ public class OAuthService {
 			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
 		}
 
-		result.setSuccess(true).setSourceApplicationName(client.getName()).setResponseUrl(request.getRedirectUri())
+		result.setSuccess(true).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
 				.setProtocolType(ProtocolType.OAUTH).setRelayState(request.getState()).setRequestedScopes(scopes)
 				.setResponseType(request.getResponseType());
 
