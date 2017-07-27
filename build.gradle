@@ -24,7 +24,6 @@ plugins {
 apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'idea'
-apply plugin: 'war'
 apply plugin: 'application'
 
 sourceCompatibility = 1.8
@@ -52,10 +51,10 @@ dependencies {
 	compile('com.google.guava:guava:22.0')
     compile('com.github.identio:jradius-client:-SNAPSHOT')
     compile('com.auth0:java-jwt:3.0.2')
-	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:${springBootVersion}")
-	providedRuntime('ch.qos.logback:logback-core:1.2.3')
-	providedRuntime('ch.qos.logback:logback-classic:1.2.3')
-    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") 
+	compile('ch.qos.logback:logback-core:1.2.3')
+	compile('ch.qos.logback:logback-classic:1.2.3')
+    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+    testCompile("org.apache.httpcomponents:httpclient:4.5.3")
 }
 
 eclipse {
