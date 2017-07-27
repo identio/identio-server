@@ -31,7 +31,7 @@ public class DefaultErrorController implements ErrorController {
 	@RequestMapping(value = PATH)
 	public String displayErrorPage(String errorId) {
 
-		return "redirect:/#/error/" + (errorId != null ? errorId : "");
+		return "redirect:/#!/error/" + (errorId != null ? errorId : "");
 	}
 
 	public String getErrorPath() {
