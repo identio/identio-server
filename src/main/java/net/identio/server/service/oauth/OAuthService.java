@@ -112,7 +112,11 @@ public class OAuthService {
 		OAuthClient client = clientRepository.getOAuthClientbyId(request.getClientId());
 
 		// Verify redirectUri
-		checkRedirectUri(client, request.getRedirectUri());
+		String redirectUri = client.getResponseUri().get(0);
+
+		if (request.getRedirectUri() != null && checkRedirectUri(client, request.getRedirectUri())) {
+			redirectUri = request.getRedirectUri();
+		}
 
 		// Validate response type value
 		if (!checkValidResponseTypes(request.getResponseType())) {
@@ -199,13 +203,15 @@ public class OAuthService {
 		return true;
 	}
 
-	private void checkRedirectUri(OAuthClient client, String redirectUri) throws InvalidRedirectUriException {
+	private boolean checkRedirectUri(OAuthClient client, String redirectUri) throws InvalidRedirectUriException {
 
 		if (!client.getResponseUri().contains(redirectUri)) {
 			String message = "Unknown redirectUri: " + redirectUri;
 			LOG.error(message);
 			throw new InvalidRedirectUriException(message);
 		}
+
+		return true;
 	}
 
 	private boolean checkClientAuthorization(OAuthClient client, String responseType, List<String> requestedScopes) {
