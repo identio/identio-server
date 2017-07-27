@@ -1,0 +1,11 @@
+oAuthClients:
+  - name: Test Client
+    clientId: test
+    clientSecret: test
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://test
+    allowedGrants:
+      - implicit

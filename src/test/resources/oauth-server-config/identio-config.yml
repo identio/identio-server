@@ -1,0 +1,48 @@
+authPolicyConfiguration:
+  authLevels:
+    - &low
+      name: low
+      urn: urn:identio:auth-level:low
+    - &medium
+      name: medium
+      urn: urn:identio:auth-level:medium
+    - &strong
+      name: strong
+      urn: urn:identio:auth-level:strong
+  defaultAuthLevel:
+    authLevel: *medium
+    comparison: minimum
+
+authorizationConfiguration:
+  scopes:
+    - name: scope.test.1
+      authLevel: *medium
+    - name: scope.test.2
+      authLevel: *strong
+
+globalConfiguration:
+  staticResourcesPath: ui/app
+
+oAuthServerConfiguration:
+  clientFile: src/test/resources/oauth-server-config/oauth-clients.yml
+
+samlIdpConfiguration:
+  allowUnsecureRequests: true
+  allowedTimeOffset: 1
+  certificateCheckEnabled: true
+  contactPersonEmail: support@identio.net
+  contactPersonSurname: Ident.io Support
+  organizationDisplayName: Ident.io Identity Provider
+  organizationName: Ident.io
+  organizationUrl: http://identio.net
+  tokenValidityLength: 3
+
+sessionConfiguration:
+  duration: 120
+  
+authMethodConfiguration:
+
+  localAuthMethods:
+  - &local
+      name: Local
+      authLevel: *medium
