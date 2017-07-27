@@ -35,19 +35,16 @@ public class GlobalControllerExceptionHandler {
 	@Autowired
 	private DefaultErrorController errorController;
 
-	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	@ExceptionHandler(ServerException.class)
 	public String handleServerException() {
 		return errorController.displayErrorPage("error.server");
 	}
 
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(ValidationException.class)
 	public String handleValidationException() {
 		return errorController.displayErrorPage("error.validation");
 	}
 	
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
 	@ExceptionHandler(ServletRequestBindingException.class)
 	public String handleServletRequestBindingException() {
 		return errorController.displayErrorPage("error.missing.parameter");
