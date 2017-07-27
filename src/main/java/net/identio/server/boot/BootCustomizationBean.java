@@ -39,14 +39,14 @@ import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory
 import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Configuration;
 
 import net.identio.server.model.X509AuthMethod;
 import net.identio.server.service.authentication.x509.X509AuthenticationProvider;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.utils.SecurityUtils;
 
-@Component
+@Configuration
 public class BootCustomizationBean {
 
 	private static final Logger LOG = LoggerFactory.getLogger(BootCustomizationBean.class);
