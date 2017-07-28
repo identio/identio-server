@@ -22,7 +22,6 @@ package net.identio.server.service.saml;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.zip.DataFormatException;
 
 import org.apache.xml.security.exceptions.Base64DecodingException;
@@ -59,7 +58,6 @@ import net.identio.server.model.AuthLevel;
 import net.identio.server.model.AuthPolicyDecision;
 import net.identio.server.model.AuthRequestValidationResult;
 import net.identio.server.model.AuthSession;
-import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.IdentioConfiguration;
 import net.identio.server.model.ProtocolType;
 import net.identio.server.model.SamlAuthRequestGenerationResult;
@@ -83,8 +81,6 @@ public class SamlService {
 
 	private AuthPolicyService authPolicyService;
 
-	private HashMap<ErrorStatus, String> errorMapping;
-
 	@Autowired
 	public SamlService(ConfigurationService configurationService, MetadataService metadataService,
 			AuthPolicyService authPolicyService) throws InitializationException {
@@ -92,8 +88,6 @@ public class SamlService {
 		this.configurationService = configurationService;
 		this.metadataService = metadataService;
 		this.authPolicyService = authPolicyService;
-
-		initErrorMapping();
 
 		try {
 
@@ -117,21 +111,6 @@ public class SamlService {
 				SamlConstants.SIGNATURE_ALG_RSA_SHA256);
 	}
 
-	private void initErrorMapping() {
-
-		errorMapping = new HashMap<>();
-
-		errorMapping.put(ErrorStatus.BUILD_AUTHENT_REQUEST_FAILED, SamlConstants.STATUS_REQUEST_UNSUPPORTED);
-		errorMapping.put(ErrorStatus.AUTH_LEVEL_UNKNOWN, SamlConstants.STATUS_NO_AUTHN_CONTEXT);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_ISSUER_EMPTY, SamlConstants.STATUS_REQUEST_DENIED);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_ISSUER_UNKNOWN, SamlConstants.STATUS_REQUEST_DENIED);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_NO_DESTINATION, SamlConstants.STATUS_UNSUPPORTED_BINDING);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_UNKNOWN_ENDPOINT, SamlConstants.STATUS_UNSUPPORTED_BINDING);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_INVALID_ENCODING, SamlConstants.STATUS_REQUEST_UNSUPPORTED);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_SIGNATURE_INVALID, SamlConstants.STATUS_REQUEST_DENIED);
-		errorMapping.put(ErrorStatus.AUTHENT_REQUEST_NOT_SIGNED, SamlConstants.STATUS_REQUEST_DENIED);
-	}
-
 	public AuthRequestValidationResult validateAuthentRequest(SamlInboundRequest request) {
 
 		LOG.debug("Starting SAML Authentication Request validation...");
@@ -141,13 +120,12 @@ public class SamlService {
 		result.setProtocolType(ProtocolType.SAML);
 		
 		// Parse the authentication request
-		AuthentRequest ar = null;
-
+		AuthentRequest ar;
 		try {
 			ar = AuthentRequestBuilder.getInstance().build(request.getSerializedRequest(), false);
 		} catch (TechnicalException | InvalidRequestException e1) {
 			LOG.error("Impossible to build AuthentRequest");
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.BUILD_AUTHENT_REQUEST_FAILED);
+			return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
 		}
 
 		// Extract interesting values
@@ -161,7 +139,7 @@ public class SamlService {
 
 		if (destinationEndpoint == null) {
 			LOG.error("No suitable response endpoint found");
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_UNKNOWN_ENDPOINT);
+			return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_UNSUPPORTED_BINDING);
 		}
 
 		result.setRequestId(requestId).setSourceApplicationName(requestIssuer).setAuthLevelComparison(comparison)
@@ -176,7 +154,7 @@ public class SamlService {
 				try {
 					requestedAuthLevels.add(authPolicyService.getAuthLevelByUrn(authLevelString));
 				} catch (UnknownAuthLevelException e) {
-					return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTH_LEVEL_UNKNOWN);
+					return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_NO_AUTHN_CONTEXT);
 				}
 			}
 
@@ -196,14 +174,14 @@ public class SamlService {
 		// The request issuer field cannot be null
 		if (requestIssuer == null) {
 			LOG.error("Request Issuer is empty");
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_ISSUER_EMPTY);
+			return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
 		}
 
 		// Check if the issuer is registered
 		Validator validator = metadataService.getSpValidator(requestIssuer);
 		if (validator == null) {
 			LOG.error("No validator found for issuer {}", requestIssuer);
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_ISSUER_UNKNOWN);
+			return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
 		}
 
 		// Check that we are the recipient of the Authentication Request
@@ -211,7 +189,7 @@ public class SamlService {
 
 		if (destination == null) {
 			LOG.error("No destination specified in request");
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_NO_DESTINATION);
+			return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_UNSUPPORTED_BINDING);
 
 		} else {
 
@@ -227,7 +205,7 @@ public class SamlService {
 			}
 			if (!endpointFound) {
 				LOG.error("The request destination doesn't match server SAML endpoints");
-				return result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_UNKNOWN_ENDPOINT);
+				return result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_UNSUPPORTED_BINDING);
 			}
 		}
 
@@ -254,7 +232,7 @@ public class SamlService {
 		try {
 			signature = DecodeUtils.decode(request.getSignatureValue(), false);
 		} catch (Base64DecodingException | IOException | DataFormatException e) {
-			result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_INVALID_ENCODING);
+			result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
 			return false;
 		}
 		String signedInfo = request.getSignedInfo();
@@ -268,7 +246,7 @@ public class SamlService {
 				validator.validate(signedInfo, signature, sigAlg);
 			} catch (NoSuchAlgorithmException | TechnicalException | InvalidSignatureException e) {
 				LOG.error("Request signature is invalid");
-				result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_SIGNATURE_INVALID);
+				result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
 				return false;
 			}
 
@@ -280,7 +258,7 @@ public class SamlService {
 
 			if (!configurationService.getConfiguration().getSamlIdpConfiguration().isAllowUnsecureRequests()) {
 				LOG.error("Unsigned requests are not supported.");
-				result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_NOT_SIGNED);
+				result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
 				return false;
 			}
 		}
@@ -301,7 +279,7 @@ public class SamlService {
 			} catch (NoSuchAlgorithmException | UnsignedSAMLObjectException | TechnicalException
 					| UntrustedSignerException | InvalidSignatureException e) {
 				LOG.error("Request signature is invalid");
-				result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_SIGNATURE_INVALID);
+				result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
 				return false;
 			}
 
@@ -312,7 +290,7 @@ public class SamlService {
 
 			if (!configurationService.getConfiguration().getSamlIdpConfiguration().isAllowUnsecureRequests()) {
 				LOG.error("Unsigned requests are not supported.");
-				result.setSuccess(false).setErrorStatus(ErrorStatus.AUTHENT_REQUEST_NOT_SIGNED);
+				result.setSuccess(false).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
 				return false;
 			}
 
@@ -395,7 +373,7 @@ public class SamlService {
 			// Build the response
 			AuthentResponse response = AuthentResponseBuilder.getInstance()
 					.setIssuer(metadataService.getIdpMetadata().getEntityID())
-					.setStatus(false, errorMapping.get(result.getErrorStatus())).setDestination(destinationUrl).build();
+					.setStatus(false, result.getErrorStatus()).setDestination(destinationUrl).build();
 
 			LOG.debug("* SAML response built");
 
@@ -429,9 +407,6 @@ public class SamlService {
 						break outerloop;
 					}
 				} else {
-					if (endpoint == null) {
-						selectedEndpoint = endpoint;
-					}
 					if (endpoint.isDefault()) {
 						selectedEndpoint = endpoint;
 					}

@@ -53,8 +53,8 @@ public class OAuthController {
 	private PreAuthController preAuthController;
 	
 	@RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
-	public String authorizeRequest(@RequestParam("response_type") String responseType,
-			@RequestParam("client_id") String clientId,
+	public String authorizeRequest(@RequestParam(value = "response_type", required = false) String responseType,
+			@RequestParam(value = "client_id", required = false) String clientId,
 			@RequestParam(value = "redirect_uri", required = false) String redirectUri,
 			@RequestParam(value = "scope", required = false) String scopes,
 			@RequestParam(value = "state", required = false) String state,
@@ -76,14 +76,16 @@ public class OAuthController {
 		ValidationResult result = validationService.validateAuthentRequest(request, identioSession);
 
 		switch (result.getState()) {
-		case RESPONSE:
-			return "redirect:" + result.getResponseData();
+		    case RESPONSE:
+			    return "redirect:" + result.getResponseData();
 
-		case CONSENT:
-			return "redirect:/#/consent/";
-			
-		default:
-			return preAuthController.checkTransparentAuthentication(httpRequest, httpResponse, result);
+		    case CONSENT:
+			    return "redirect:/#!/consent/";
+
+			case ERROR:
+				return "redirect:/#!/error/" + result.getArValidationResult().getErrorStatus();
+		    default:
+			    return preAuthController.checkTransparentAuthentication(httpRequest, httpResponse, result);
 		}
 	}
 

@@ -6,6 +6,6 @@ oAuthClients:
       - scope.test.1
       - scope.test.2
     responseUri:
-      - http://test
+      - http://example.com/cb
     allowedGrants:
       - implicit

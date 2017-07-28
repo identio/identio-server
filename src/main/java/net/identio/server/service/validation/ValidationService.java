@@ -57,8 +57,6 @@ import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.saml.SamlAuthenticationProvider;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.oauth.OAuthService;
-import net.identio.server.service.oauth.exceptions.ClientNotFoundException;
-import net.identio.server.service.oauth.exceptions.InvalidRedirectUriException;
 import net.identio.server.service.saml.SamlService;
 import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.usersession.UserSessionService;
@@ -102,19 +100,20 @@ public class ValidationService {
 			arValidationResult = samlService.validateAuthentRequest((SamlInboundRequest) request);
 		}
 		if (request instanceof OAuthInboundRequest) {
-			try {
-				arValidationResult = oauthService.validateAuthentRequest((OAuthInboundRequest) request);
-			} catch (ClientNotFoundException | InvalidRedirectUriException e) {
-				throw new ValidationException("An error occured when processing the request", e);
-			}
+            arValidationResult = oauthService.validateAuthentRequest((OAuthInboundRequest) request);
 		}
 
 		validationResult.setArValidationResult(arValidationResult);
 
 		if (!arValidationResult.isSuccess()) {
 
-			validationResult.setState(State.RESPONSE);
-			validationResult.setResponseData(generateFatalErrorResponse(arValidationResult));
+			if (arValidationResult.getResponseUrl() != null) {
+                validationResult.setState(State.RESPONSE);
+                validationResult.setResponseData(generateFatalErrorResponse(arValidationResult));
+            }
+            else {
+			    validationResult.setState(State.ERROR);
+            }
 
 			return validationResult;
 		}
@@ -375,7 +374,7 @@ public class ValidationService {
 				throw new ValidationException(message, e);
 			}
 		} else {
-			throw new UnsupportedOperationException();
+			return oauthService.generateErrorResponse(arValidationResult);
 		}
 	}
 

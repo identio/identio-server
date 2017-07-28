@@ -47,6 +47,6 @@ public class GlobalControllerExceptionHandler {
 	
 	@ExceptionHandler(ServletRequestBindingException.class)
 	public String handleServletRequestBindingException() {
-		return errorController.displayErrorPage("error.missing.parameter");
+		return errorController.displayErrorPage("missing.parameter");
 	}
 }

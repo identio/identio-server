@@ -31,6 +31,7 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 
+import net.identio.server.service.oauth.model.OAuthErrors;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -43,7 +44,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.AuthRequestValidationResult;
-import net.identio.server.model.ErrorStatus;
 import net.identio.server.model.OAuthClient;
 import net.identio.server.model.OAuthInboundRequest;
 import net.identio.server.model.ProtocolType;
@@ -53,185 +53,207 @@ import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
 import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.oauth.exceptions.ClientNotFoundException;
-import net.identio.server.service.oauth.exceptions.InvalidRedirectUriException;
 import net.identio.server.service.oauth.model.OAuthGrants;
 import net.identio.server.service.oauth.model.OAuthResponseType;
 
 @Service
 public class OAuthService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(OAuthService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthService.class);
 
-	@Autowired
-	private OAuthClientRepository clientRepository;
-	@Autowired
-	private AuthorizationService authorizationService;
+    @Autowired
+    private OAuthClientRepository clientRepository;
+    @Autowired
+    private AuthorizationService authorizationService;
 
-	private ConfigurationService configurationService;
+    private ConfigurationService configurationService;
 
-	private RSAKey signingKey;
+    private RSAKey signingKey;
 
-	@Autowired
-	public OAuthService(ConfigurationService configurationService) throws InitializationException {
-		this.configurationService = configurationService;
+    @Autowired
+    public OAuthService(ConfigurationService configurationService) throws InitializationException {
+        this.configurationService = configurationService;
 
-		// Cache signing certificate
-		try (FileInputStream fis = new FileInputStream(
-				configurationService.getConfiguration().getGlobalConfiguration().getSignatureKeystorePath())) {
-			KeyStore ks = KeyStore.getInstance("PKCS12");
-			ks.load(fis, configurationService.getConfiguration().getGlobalConfiguration().getSignatureKeystorePassword()
-					.toCharArray());
+        // Cache signing certificate
+        try (FileInputStream fis = new FileInputStream(
+                configurationService.getConfiguration().getGlobalConfiguration().getSignatureKeystorePath())) {
+            KeyStore ks = KeyStore.getInstance("PKCS12");
+            ks.load(fis, configurationService.getConfiguration().getGlobalConfiguration().getSignatureKeystorePassword()
+                    .toCharArray());
 
-			Enumeration<String> aliases = ks.aliases();
+            Enumeration<String> aliases = ks.aliases();
 
-			if (aliases == null || !aliases.hasMoreElements()) {
-				throw new InitializationException("Keystore doesn't contain a certificate");
-			}
+            if (aliases == null || !aliases.hasMoreElements()) {
+                throw new InitializationException("Keystore doesn't contain a certificate");
+            }
 
-			String alias = aliases.nextElement();
+            String alias = aliases.nextElement();
 
-			KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry(alias,
-					new KeyStore.PasswordProtection(configurationService.getConfiguration().getGlobalConfiguration()
-							.getSignatureKeystorePassword().toCharArray()));
+            KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry(alias,
+                    new KeyStore.PasswordProtection(configurationService.getConfiguration().getGlobalConfiguration()
+                            .getSignatureKeystorePassword().toCharArray()));
 
-			signingKey = (RSAKey) keyEntry.getPrivateKey();
+            signingKey = (RSAKey) keyEntry.getPrivateKey();
 
-		} catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
-				| UnrecoverableEntryException ex) {
-			throw new InitializationException("Could not initialize OAuth Service", ex);
-		}
-	}
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
+                | UnrecoverableEntryException ex) {
+            throw new InitializationException("Could not initialize OAuth Service", ex);
+        }
+    }
 
-	public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request)
-			throws ClientNotFoundException, InvalidRedirectUriException {
+    public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request) {
 
-		AuthRequestValidationResult result = new AuthRequestValidationResult();
+        AuthRequestValidationResult result = new AuthRequestValidationResult();
 
-		// Fetch client
-		OAuthClient client = clientRepository.getOAuthClientbyId(request.getClientId());
+        result.setProtocolType(ProtocolType.OAUTH);
 
-		// Verify redirectUri
-		String redirectUri = client.getResponseUri().get(0);
+        // Handle state and copy it in the response
+        if (request.getState() != null) {
+            result.setRelayState(request.getState());
+        }
 
-		if (request.getRedirectUri() != null && checkRedirectUri(client, request.getRedirectUri())) {
-			redirectUri = request.getRedirectUri();
-		}
+        // Fetch client
+        OAuthClient client = clientRepository.getOAuthClientbyId(request.getClientId());
+        if (client == null) {
+            return result.setSuccess(false).setErrorStatus(OAuthErrors.UNKNOWN_CLIENT);
+        }
 
-		// Validate response type value
-		if (!checkValidResponseTypes(request.getResponseType())) {
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_RESPONSE_TYPE_NOT_SUPPORTED);
-		}
+        // Verify redirectUri
+        String redirectUri = client.getResponseUri().get(0);
 
-		// Validate scope value
-		List<AuthorizationScope> scopes;
-		try {
-			scopes = authorizationService.getScopes(request.getScopes());
-		} catch (UnknownScopeException | NoScopeProvidedException e) {
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_INVALID_SCOPE);
-		}
+        if (request.getRedirectUri() != null) {
+            if (checkRedirectUri(client, request.getRedirectUri())) {
+                redirectUri = request.getRedirectUri();
+            } else {
+                return result.setSuccess(false).setErrorStatus(OAuthErrors.UNKNOWN_REDIRECT_URI);
+            }
+        }
 
-		// Validate client authorization regarding allowed scopes and response
-		// types
-		if (!checkClientAuthorization(client, request.getResponseType(), request.getScopes())) {
-			return result.setSuccess(false).setErrorStatus(ErrorStatus.OAUTH_UNAUTHORIZED_CLIENT);
-		}
+        // Validate response type value
+        if (request.getResponseType() == null || !checkValidResponseTypes(request.getResponseType())) {
+            return result.setSuccess(false).setErrorStatus(OAuthErrors.RESPONSE_TYPE_NOT_SUPPORTED)
+                    .setResponseUrl(redirectUri);
+        }
 
-		result.setSuccess(true).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
-				.setProtocolType(ProtocolType.OAUTH).setRelayState(request.getState()).setRequestedScopes(scopes)
-				.setResponseType(request.getResponseType());
+        // Validate scope value
+        List<AuthorizationScope> scopes;
+        try {
+            scopes = authorizationService.getScopes(request.getScopes());
+        } catch (UnknownScopeException | NoScopeProvidedException e) {
+            return result.setSuccess(false).setErrorStatus(OAuthErrors.INVALID_SCOPE).setResponseUrl(redirectUri);
+        }
 
-		return result;
-	}
+        // Validate client authorization regarding allowed scopes and response
+        // types
+        if (!checkClientAuthorization(client, request.getResponseType(), request.getScopes())) {
+            return result.setSuccess(false).setErrorStatus(OAuthErrors.UNAUTHORIZED_CLIENT).setResponseUrl(redirectUri);
+        }
 
-	public String generateSuccessResponse(AuthRequestValidationResult result, UserSession userSession) {
+        result.setSuccess(true).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
+                .setRequestedScopes(scopes).setResponseType(request.getResponseType());
 
-		// http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA&state=xyz&token_type=example&expires_in=3600
-		StringBuilder responseBuilder = new StringBuilder();
+        return result;
+    }
 
-		responseBuilder.append(result.getResponseUrl()).append("#");
+    public String generateSuccessResponse(AuthRequestValidationResult result, UserSession userSession) {
 
-		// Determine expiration time of the authorization
-		int expirationTime = -1;
-		for (AuthorizationScope scope : result.getRequestedScopes()) {
-			if (expirationTime == -1 || scope.getExpirationTime() < expirationTime) {
-				expirationTime = scope.getExpirationTime();
-			}
-		}
-		
-		responseBuilder.append("expires_in=").append(expirationTime);
-		
-		// Calculate scope string
-		StringBuilder scopeBuilder = new StringBuilder();
-		for (AuthorizationScope scope : result.getRequestedScopes()) {
-			scopeBuilder.append(scope.getName()).append(' ');
-		}
+        // http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA&state=xyz&token_type=example&expires_in=3600
+        StringBuilder responseBuilder = new StringBuilder();
 
-		scopeBuilder.deleteCharAt(scopeBuilder.length() - 1); // delete last comma
+        responseBuilder.append(result.getResponseUrl()).append("#");
 
-		if (result.getResponseType().equals(OAuthResponseType.TOKEN)) {
-			responseBuilder.append("&token_type=Bearer");
-		
-		DateTime now = new DateTime(DateTimeZone.UTC);
+        // Determine expiration time of the authorization
+        int expirationTime = -1;
+        for (AuthorizationScope scope : result.getRequestedScopes()) {
+            if (expirationTime == -1 || scope.getExpirationTime() < expirationTime) {
+                expirationTime = scope.getExpirationTime();
+            }
+        }
 
-		String accessToken = JWT.create().withIssuer(configurationService.getPublicFqdn())
-				.withExpiresAt(now.plusSeconds(expirationTime).toDate()).withIssuedAt(now.toDate())
-				.withSubject(userSession.getUserId()).withAudience(result.getSourceApplicationName())
-				.withJWTId(UUID.randomUUID().toString()).withClaim("scope", scopeBuilder.toString())
-				.sign(Algorithm.RSA256(signingKey));
+        responseBuilder.append("expires_in=").append(expirationTime);
 
-		responseBuilder.append("&access_token=").append(accessToken);
-		}
+        // Calculate scope string
+        StringBuilder scopeBuilder = new StringBuilder();
+        for (AuthorizationScope scope : result.getRequestedScopes()) {
+            scopeBuilder.append(scope.getName()).append(' ');
+        }
 
-		if (result.getRelayState() != null) {
-			responseBuilder.append("&state=").append(result.getRelayState());
-		}
+        scopeBuilder.deleteCharAt(scopeBuilder.length() - 1); // delete last comma
 
-		System.out.println(responseBuilder.toString());
-		
-		return responseBuilder.toString();
-	}
+        if (result.getResponseType().equals(OAuthResponseType.TOKEN)) {
+            responseBuilder.append("&token_type=Bearer");
 
-	private boolean checkValidResponseTypes(String responseType) {
+            DateTime now = new DateTime(DateTimeZone.UTC);
 
-		// Only valid response types are "token" and "code"
-		if (!responseType.equals(OAuthResponseType.CODE) && !responseType.equals(OAuthResponseType.TOKEN)) {
-			LOG.error("ResponseType not supported: {}", responseType);
-			return false;
-		}
+            String accessToken = JWT.create().withIssuer(configurationService.getPublicFqdn())
+                    .withExpiresAt(now.plusSeconds(expirationTime).toDate()).withIssuedAt(now.toDate())
+                    .withSubject(userSession.getUserId()).withAudience(result.getSourceApplicationName())
+                    .withJWTId(UUID.randomUUID().toString()).withClaim("scope", scopeBuilder.toString())
+                    .sign(Algorithm.RSA256(signingKey));
 
-		return true;
-	}
+            responseBuilder.append("&access_token=").append(accessToken);
+        }
 
-	private boolean checkRedirectUri(OAuthClient client, String redirectUri) throws InvalidRedirectUriException {
+        if (result.getRelayState() != null) {
+            responseBuilder.append("&state=").append(result.getRelayState());
+        }
 
-		if (!client.getResponseUri().contains(redirectUri)) {
-			String message = "Unknown redirectUri: " + redirectUri;
-			LOG.error(message);
-			throw new InvalidRedirectUriException(message);
-		}
+        return responseBuilder.toString();
+    }
 
-		return true;
-	}
+    public String generateErrorResponse(AuthRequestValidationResult result) {
 
-	private boolean checkClientAuthorization(OAuthClient client, String responseType, List<String> requestedScopes) {
+        StringBuilder responseBuilder = new StringBuilder();
 
-		if (!responseType.equals(OAuthResponseType.TOKEN) && client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
-				|| !responseType.equals(OAuthResponseType.CODE)
-						&& client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
+        responseBuilder.append(result.getResponseUrl()).append("#error=").append(result.getErrorStatus());
 
-			LOG.error("Client not authorized to use the response type: {}", responseType);
-			return false;
-		}
+        if (result.getRelayState() != null) {
+            responseBuilder.append("&state=").append(result.getRelayState());
+        }
 
-		if (!client.getAllowedScopes().containsAll(requestedScopes)) {
+        return responseBuilder.toString();
+    }
 
-			LOG.error("Client not authorized to use the requested scope");
-			return false;
-		}
+    private boolean checkValidResponseTypes(String responseType) {
 
-		return true;
+        // Only valid response types are "token" and "code"
+        if (!responseType.equals(OAuthResponseType.CODE) && !responseType.equals(OAuthResponseType.TOKEN)) {
+            LOG.error("ResponseType not supported: {}", responseType);
+            return false;
+        }
 
-	}
+        return true;
+    }
+
+    private boolean checkRedirectUri(OAuthClient client, String redirectUri) {
+
+        if (!client.getResponseUri().contains(redirectUri)) {
+            String message = "Unknown redirectUri: " + redirectUri;
+            LOG.error(message);
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean checkClientAuthorization(OAuthClient client, String responseType, List<String> requestedScopes) {
+
+        if (!responseType.equals(OAuthResponseType.TOKEN) && client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
+                || !responseType.equals(OAuthResponseType.CODE)
+                && client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
+
+            LOG.error("Client not authorized to use the response type: {}", responseType);
+            return false;
+        }
+
+        if (!client.getAllowedScopes().containsAll(requestedScopes)) {
+
+            LOG.error("Client not authorized to use the requested scope");
+            return false;
+        }
+
+        return true;
+
+    }
 
 }

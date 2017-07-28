@@ -20,5 +20,5 @@
 package net.identio.server.model;
 
 public enum State {
-	AUTH, STEP_UP_AUTHENTICATION, RESPONSE, CONSENT
+	AUTH, STEP_UP_AUTHENTICATION, RESPONSE, CONSENT, ERROR
 }

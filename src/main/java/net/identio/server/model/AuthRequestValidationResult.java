@@ -24,7 +24,7 @@ import java.util.List;
 public class AuthRequestValidationResult {
 
 	private boolean success;
-	private ErrorStatus errorStatus;
+	private String errorStatus;
 	private String requestId;
 	private ProtocolType protocolType;
 	private String sourceApplicationName;
@@ -40,17 +40,17 @@ public class AuthRequestValidationResult {
 		return success;
 	}
 
-	public ErrorStatus getErrorStatus() {
-		return errorStatus;
-	}
-
-	public AuthRequestValidationResult setErrorStatus(ErrorStatus errorStatus) {
-		this.errorStatus = errorStatus;
+	public AuthRequestValidationResult setSuccess(boolean success) {
+		this.success = success;
 		return this;
 	}
 
-	public AuthRequestValidationResult setSuccess(boolean success) {
-		this.success = success;
+	public String getErrorStatus() {
+		return errorStatus;
+	}
+
+	public AuthRequestValidationResult setErrorStatus(String errorStatus) {
+		this.errorStatus = errorStatus;
 		return this;
 	}
 

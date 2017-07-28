@@ -16,7 +16,6 @@ import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.OAuthClient;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.OAuthClientRepository;
-import net.identio.server.service.oauth.exceptions.ClientNotFoundException;
 
 @Service
 public class FileOAuthClientRepository implements OAuthClientRepository {
@@ -61,9 +60,7 @@ public class FileOAuthClientRepository implements OAuthClientRepository {
 	}
 
 	@Override
-	public OAuthClient getOAuthClientbyId(String cliendId) throws ClientNotFoundException {
-
-		if (!clients.containsKey(cliendId)) { throw new ClientNotFoundException("Unknown clientId"); }
+	public OAuthClient getOAuthClientbyId(String cliendId) {
 		
 		return clients.get(cliendId);
 	}
