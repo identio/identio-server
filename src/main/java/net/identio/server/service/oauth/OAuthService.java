@@ -165,8 +165,11 @@ public class OAuthService {
         // Determine expiration time of the authorization
         int expirationTime = -1;
         for (AuthorizationScope scope : result.getRequestedScopes()) {
-            if (expirationTime == -1 || scope.getExpirationTime() < expirationTime) {
-                expirationTime = scope.getExpirationTime();
+
+            int scopeExpirationTime = scope.getExpirationTime() != 0 ? scope.getExpirationTime() : 3600;
+
+            if (expirationTime == -1 || scopeExpirationTime < expirationTime) {
+                expirationTime = scopeExpirationTime;
             }
         }
 
