@@ -1,5 +1,8 @@
 package net.identio.server.tests.integ.oauth;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
 import net.identio.server.boot.IdentioServerApplication;
 import net.identio.server.model.ProtocolType;
 import net.identio.server.model.State;
@@ -16,15 +19,20 @@ import org.springframework.http.*;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import java.io.FileInputStream;
+import java.security.*;
+import java.security.interfaces.RSAKey;
+import java.util.Enumeration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
-        "identio.public.fqdn: http://localhost:443",
+        "identio.public.fqdn: https://localhost",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
 public class OAuthImplicitFullCinematicTest {
 
@@ -94,6 +102,48 @@ public class OAuthImplicitFullCinematicTest {
         assertEquals(authSubmitResponse.getProtocolType(), ProtocolType.OAUTH);
         assertEquals(authSubmitResponse.getRelayState(), "1234");
         assertTrue(authSubmitResponse.getResponse().matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
+
+        // Parse and validate JWT
+        Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
+        Matcher matcher = pattern.matcher(authSubmitResponse.getResponse());
+
+        Algorithm algorithm = null;
+        try {
+            algorithm = Algorithm.RSA256(getPublicSigningKey());
+        } catch (Exception e) {
+            fail();
+        }
+
+        JWTVerifier verifier = JWT.require(algorithm)
+                .withIssuer("https://localhost")
+                .withSubject("johndoe")
+                .withAudience("Test Client")
+                .withClaim("scope", "scope.test.1 scope.test.2")
+                .build();
+
+        if (matcher.find()) {
+            verifier.verify(matcher.group(1));
+        }
+        else {
+            fail();
+        }
+
+    }
+
+    private RSAKey getPublicSigningKey() throws Exception {
+
+        FileInputStream fis = new FileInputStream(
+                "src/test/resources/oauth-server-config/default-sign-certificate.p12");
+
+        KeyStore ks = KeyStore.getInstance("PKCS12");
+        ks.load(fis, "password".toCharArray());
+
+        Enumeration<String> aliases = ks.aliases();
+
+        String alias = aliases.nextElement();
+
+        return (RSAKey) (ks.getCertificate(alias)).getPublicKey();
+
     }
 
 
