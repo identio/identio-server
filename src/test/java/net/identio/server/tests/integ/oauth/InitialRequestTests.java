@@ -1,4 +1,4 @@
-package net.identio.server.tests.oauth;
+package net.identio.server.tests.integ.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
 import org.junit.Test;
@@ -20,7 +20,7 @@ import static org.junit.Assert.assertTrue;
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
         "identio.public.fqdn: http://localhost:443",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
-public class OauthIntegrationTests {
+public class InitialRequestTests {
 
     @LocalServerPort
     private int port;
@@ -28,136 +28,142 @@ public class OauthIntegrationTests {
     @Autowired
     private TestRestTemplate restTemplate = new TestRestTemplate();
 
+    private static final String AUTHORIZE_URL = "/oauth/authorize";
+    private static final String AUTHENTICATION_URL = "/#!/auth/";
+    private static final String UNKNOWN_CLIENT_ERROR_URL = "/#!/error/unknown.client";
+    private static final String UNSUPPORTED_RESPONSE_TYPE_ERROR_URL = "http://example.com/cb#error=unsupported_response_type&state=1234";
+    private static final String UNAUTHORIZED_CLIENT_ERROR_URL = "http://example.com/cb#error=unauthorized_client&state=1234";
+    private static final String UNKNOWN_REDIRECT_URI_ERROR_URL = "/#!/error/unknown.redirect.uri";
+    private static final String INVALID_SCOPE_ERROR_URI = "http://example.com/cb#error=invalid_scope&state=1234";
+
     @Test
     public void oAuthAuthorizeRequestWithoutParameters() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort(AUTHORIZE_URL),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals(getUrlWithPort("/#!/error/unknown.client"), response.getHeaders().get("Location").get(0));
+        assertEquals(getUrlWithPort(UNKNOWN_CLIENT_ERROR_URL), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithoutClientId() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals(getUrlWithPort("/#!/error/unknown.client"), response.getHeaders().get("Location").get(0));
+        assertEquals(getUrlWithPort(UNKNOWN_CLIENT_ERROR_URL), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithInvalidClientId() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=invalid&response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=invalid&response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals(getUrlWithPort("/#!/error/unknown.client"), response.getHeaders().get("Location").get(0));
+        assertEquals(getUrlWithPort(UNKNOWN_CLIENT_ERROR_URL), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithoutResponseType() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals("http://example.com/cb#error=unsupported_response_type&state=1234", response.getHeaders().get("Location").get(0));
+        assertEquals(UNSUPPORTED_RESPONSE_TYPE_ERROR_URL, response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithInvalidResponseType() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&response_type=invalid&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&response_type=invalid&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals("http://example.com/cb#error=unsupported_response_type&state=1234", response.getHeaders().get("Location").get(0));
+        assertEquals(UNSUPPORTED_RESPONSE_TYPE_ERROR_URL, response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithUnauthorizedResponseType() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&response_type=code&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&response_type=code&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals("http://example.com/cb#error=unauthorized_client&state=1234", response.getHeaders().get("Location").get(0));
+        assertEquals(UNAUTHORIZED_CLIENT_ERROR_URL, response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithoutRedirectUri() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&response_type=token&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&response_type=token&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertTrue(response.getHeaders().get("Location").get(0).startsWith(getUrlWithPort("/#!/auth/")));
+        assertTrue(response.getHeaders().getFirst(HttpHeaders.LOCATION).startsWith(getUrlWithPort(AUTHENTICATION_URL)));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithUnknownUri() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://evil.com/cb&response_type=token&scope=scope.test.1&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://evil.com/cb&response_type=token&scope=scope.test.1&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals(getUrlWithPort("/#!/error/unknown.redirect.uri"), response.getHeaders().get("Location").get(0));
+        assertEquals(getUrlWithPort(UNKNOWN_REDIRECT_URI_ERROR_URL), response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithoutScope() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals("http://example.com/cb#error=invalid_scope&state=1234", response.getHeaders().get("Location").get(0));
+        assertEquals(INVALID_SCOPE_ERROR_URI, response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     @Test
     public void oAuthAuthorizeRequestWithInvalidScope() {
 
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&scope=invalid&state=1234"),
+        ResponseEntity<String> response = restTemplate.exchange(
+                getUrlWithPort("/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&scope=invalid&state=1234"),
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
 
         assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertEquals("http://example.com/cb#error=invalid_scope&state=1234", response.getHeaders().get("Location").get(0));
-    }
-
-    @Test
-    public void oAuthAuthorizeValidRequest() {
-
-        ResponseEntity<String> response = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&response_type=token&scope=scope.test.1&state=1234"),
-                HttpMethod.GET,
-                new HttpEntity<String>(null, new HttpHeaders()),
-                String.class);
-
-        assertEquals(HttpStatus.FOUND, response.getStatusCode());
-        assertTrue(response.getHeaders().get("Location").get(0).startsWith(getUrlWithPort("/#!/auth/")));
+        assertEquals(INVALID_SCOPE_ERROR_URI, response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 
     private String getUrlWithPort(String url) {

@@ -17,8 +17,10 @@ authorizationConfiguration:
   scopes:
     - name: scope.test.1
       authLevel: *medium
+      expirationTime: 2400
     - name: scope.test.2
       authLevel: *strong
+      expirationTime: 3600
 
 globalConfiguration:
   staticResourcesPath: ui/app
