@@ -157,10 +157,9 @@ public class OAuthService {
 
     public String generateSuccessResponse(AuthRequestValidationResult result, UserSession userSession) {
 
-        // http://example.com/cb#access_token=2YotnFZFEjr1zCsicMWpAA&state=xyz&token_type=example&expires_in=3600
         StringBuilder responseBuilder = new StringBuilder();
 
-        responseBuilder.append(result.getResponseUrl()).append("#");
+        responseBuilder.append(result.getResponseUrl()).append("#expires_in=");
 
         // Determine expiration time of the authorization
         int expirationTime = -1;
@@ -173,7 +172,7 @@ public class OAuthService {
             }
         }
 
-        responseBuilder.append("expires_in=").append(expirationTime);
+        responseBuilder.append(expirationTime);
 
         // Calculate scope string
         StringBuilder scopeBuilder = new StringBuilder();
@@ -184,7 +183,7 @@ public class OAuthService {
         scopeBuilder.deleteCharAt(scopeBuilder.length() - 1); // delete last comma
 
         if (result.getResponseType().equals(OAuthResponseType.TOKEN)) {
-            responseBuilder.append("&token_type=Bearer");
+            responseBuilder.append("&token_type=Bearer&access_token=");
 
             DateTime now = new DateTime(DateTimeZone.UTC);
 
@@ -194,7 +193,7 @@ public class OAuthService {
                     .withJWTId(UUID.randomUUID().toString()).withClaim("scope", scopeBuilder.toString())
                     .sign(Algorithm.RSA256(signingKey));
 
-            responseBuilder.append("&access_token=").append(accessToken);
+            responseBuilder.append(accessToken);
         }
 
         if (result.getRelayState() != null) {
