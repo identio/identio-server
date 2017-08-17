@@ -1,10 +1,9 @@
 package net.identio.server.service.oauth.infrastructure;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.service.oauth.model.OAuthClient;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.oauth.OAuthClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,10 +11,10 @@ import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.OAuthClient;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.oauth.OAuthClientRepository;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
 
 @Service
 public class FileOAuthClientRepository implements OAuthClientRepository {

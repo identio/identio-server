@@ -19,36 +19,26 @@
  */
 package net.identio.server.service.authpolicy;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
+import net.identio.saml.SamlConstants;
+import net.identio.server.exceptions.AuthMethodNotAllowedException;
+import net.identio.server.exceptions.UnknownAuthLevelException;
+import net.identio.server.exceptions.UnknownAuthMethodException;
+import net.identio.server.model.*;
+import net.identio.server.service.authentication.model.AuthenticationResult;
+import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
+import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import net.identio.saml.SamlConstants;
-import net.identio.server.exceptions.AuthMethodNotAllowedException;
-import net.identio.server.exceptions.UnknownAuthLevelException;
-import net.identio.server.exceptions.UnknownAuthMethodException;
-import net.identio.server.model.AppAuthLevel;
-import net.identio.server.model.AuthLevel;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.AuthMethodConfiguration;
-import net.identio.server.model.AuthPolicyConfiguration;
-import net.identio.server.model.AuthPolicyDecision;
-import net.identio.server.model.AuthRequestValidationResult;
-import net.identio.server.model.AuthSession;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.SamlAuthMethod;
-import net.identio.server.model.State;
-import net.identio.server.model.StepUpAuthMethod;
-import net.identio.server.model.UserSession;
-import net.identio.server.service.configuration.ConfigurationService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
 @Service
 @Scope("singleton")
@@ -59,7 +49,7 @@ public class AuthPolicyService {
 	private AuthPolicyConfiguration authPolicyConfiguration;
 	private AuthMethodConfiguration authMethodConfiguration;
 
-	private HashMap<String, AuthLevel> authLevelByUrn = new HashMap<>();;
+	private HashMap<String, AuthLevel> authLevelByUrn = new HashMap<>();
 	private HashMap<String, AppAuthLevel> authLevelByApp = new HashMap<>();
 	private HashMap<String, AuthMethod> authMethodByName = new HashMap<>();
 
@@ -95,7 +85,7 @@ public class AuthPolicyService {
 
 	}
 
-	public ArrayList<AuthLevel> determineTargetAuthLevel(AuthRequestValidationResult arValidationResult) {
+	public ArrayList<AuthLevel> determineTargetAuthLevel(RequestParsingInfo parsingInfo) {
 
 		LOG.debug("Determining authentication strategy for request");
 
@@ -106,21 +96,21 @@ public class AuthPolicyService {
 		// this application
 		// If none is specified, we apply the default authent level
 		List<AuthLevel> requestedAuthLevels = new ArrayList<>();
-		String requestedComparison = null;
+		String requestedComparison;
 
 		ArrayList<AuthLevel> targetAuthLevels = new ArrayList<>();
 
-		if (arValidationResult.getRequestedAuthLevels() != null) {
+		if (parsingInfo.getRequestedAuthLevels() != null) {
 
-			requestedAuthLevels = arValidationResult.getRequestedAuthLevels();
-			requestedComparison = arValidationResult.getAuthLevelComparison();
+			requestedAuthLevels = parsingInfo.getRequestedAuthLevels();
+			requestedComparison = parsingInfo.getAuthLevelComparison();
 
 			LOG.debug("* Request specify an auth level. Applying requested auth level");
 		} else {
 			// Request doesn't specify a minimum auth level
 			// , we check if we have a specific auth level
 			// for this application
-			AppAuthLevel appAuthLevel = authLevelByApp.get(arValidationResult.getSourceApplicationName());
+			AppAuthLevel appAuthLevel = authLevelByApp.get(parsingInfo.getSourceApplicationName());
 
 			if (appAuthLevel != null) {
 
@@ -196,7 +186,7 @@ public class AuthPolicyService {
 	}
 
 	public AuthPolicyDecision checkPreviousAuthSessions(UserSession userSession,
-			ArrayList<AuthLevel> targetAuthLevels) {
+														ArrayList<AuthLevel> targetAuthLevels) {
 
 		LOG.debug("Check previous authentication sessions");
 
@@ -208,68 +198,41 @@ public class AuthPolicyService {
 
 					LOG.debug("* Found compliant auth session");
 
-					return new AuthPolicyDecision(State.RESPONSE, authSession, null);
+					return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.OK)
+							.setValidatedAuthSession(authSession);
 				}
 			}
 		}
 
 		LOG.debug("* No compliant auth session found. Asking for an explicit authentication");
-		return new AuthPolicyDecision(State.AUTH, null, null);
+		return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
 	}
 
-	public void checkAllowedAuthMethods(State state, HashSet<AuthMethod> targetAuthMethods,
-			AuthMethod selectedAuthMethod, AuthMethod submittedAuthMethod)
+	public void checkAllowedAuthMethods(HashSet<AuthMethod> targetAuthMethods, AuthMethod submittedAuthMethod)
 					throws UnknownAuthMethodException, AuthMethodNotAllowedException {
 
 		if (submittedAuthMethod == null) {
 			throw new UnknownAuthMethodException("Unknown authentication method");
 		}
 
-		// Check if the used authentication method is a valid step-up
-		// authentication method
-		switch (state) {
-		case AUTH:
-			if (!targetAuthMethods.contains(submittedAuthMethod)) {
+		if (!targetAuthMethods.contains(submittedAuthMethod)) {
 				throw new AuthMethodNotAllowedException("Authentication method " + submittedAuthMethod.getName()
 						+ " is not allowed for this transaction");
-			}
-			break;
-
-		case STEP_UP_AUTHENTICATION:
-			if (!selectedAuthMethod.getStepUpAuthentication().getAuthMethod().equals(submittedAuthMethod)) {
-				throw new AuthMethodNotAllowedException("Authentication method " + submittedAuthMethod.getName()
-						+ " is not allowed for this transaction");
-			}
-		default:
 		}
 	}
 
 	public AuthPolicyDecision checkAuthPolicyCompliance(UserSession userSession, AuthenticationResult result,
-			ArrayList<AuthLevel> targetAuthLevels, AuthMethod selectedAuthMethod, State state) {
+			ArrayList<AuthLevel> targetAuthLevels) {
 
-		if (state == State.STEP_UP_AUTHENTICATION) {
+		// Check that the authlevel matches
+		if (targetAuthLevels.contains(result.getAuthLevel())) {
 
-			AuthSession authSession = updateUserSession(userSession, result,
-					selectedAuthMethod.getStepUpAuthentication(),
-					selectedAuthMethod.getStepUpAuthentication().getAuthLevel());
-			return new AuthPolicyDecision(State.RESPONSE, authSession, null);
-		}
-
-		if (result.getAuthMethod().getStepUpAuthentication() != null) {
-
-			LOG.debug("* This method has a step-up authentication declared");
-
-			return new AuthPolicyDecision(State.STEP_UP_AUTHENTICATION, null,
-					new HashSet<AuthMethod>(Arrays.asList(result.getAuthMethod())));
+			AuthSession authSession = updateUserSession(userSession, result, result.getAuthLevel());
+			return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.OK)
+			.setValidatedAuthSession(authSession);
 
 		} else {
-			// Check that the authlevel matches
-			if (targetAuthLevels.contains(result.getAuthLevel())) {
-				AuthSession authSession = updateUserSession(userSession, result, null, result.getAuthLevel());
-				return new AuthPolicyDecision(State.RESPONSE, authSession, null);
-			} else {
-				return new AuthPolicyDecision(state, null, null);
-			}
+			return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
 		}
 	}
 
@@ -306,7 +269,8 @@ public class AuthPolicyService {
 	}
 
 	private AuthSession updateUserSession(UserSession userSession, AuthenticationResult result,
-			StepUpAuthMethod stepupAuthMethod, AuthLevel authLevel) {
-		return userSession.addAuthSession(result.getUserId(), result.getAuthMethod(), stepupAuthMethod, authLevel);
+			AuthLevel authLevel) {
+
+		return userSession.addAuthSession(result.getUserId(), result.getAuthMethod(), authLevel);
 	}
 }

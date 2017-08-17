@@ -19,17 +19,16 @@
  */
 package net.identio.server.service.authentication;
 
-import java.util.HashMap;
-
+import net.identio.server.model.*;
+import net.identio.server.service.authentication.model.Authentication;
+import net.identio.server.service.authentication.model.AuthenticationResult;
+import net.identio.server.service.authentication.model.AuthenticationResultStatus;
+import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.TransactionData;
+import java.util.HashMap;
 
 @Service
 public class AuthenticationService {

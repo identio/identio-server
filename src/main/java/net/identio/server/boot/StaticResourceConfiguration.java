@@ -19,15 +19,14 @@
  */
 package net.identio.server.boot;
 
-import java.io.File;
-
+import net.identio.server.service.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
-import net.identio.server.service.configuration.ConfigurationService;
+import java.io.File;
 
 @Configuration
 public class StaticResourceConfiguration extends WebMvcConfigurerAdapter {

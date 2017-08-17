@@ -19,11 +19,8 @@
  */
 package net.identio.server.service.configuration;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.Paths;
-
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.model.IdentioConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,8 +29,10 @@ import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.IdentioConfiguration;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Paths;
 
 @Service
 public class ConfigurationService {
@@ -81,7 +80,7 @@ public class ConfigurationService {
 		return configuration;
 	}
 
-	private void setDefaultValues() throws IOException {
+	private void setDefaultValues() {
 
 		String configDirectoryPath = Paths.get(configFile).getParent().toAbsolutePath().normalize().toString();
 		String home = Paths.get(configDirectoryPath).getParent().toString();

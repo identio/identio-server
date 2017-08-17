@@ -4,11 +4,13 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.model.ProtocolType;
-import net.identio.server.model.State;
-import net.identio.server.model.api.AuthMethodResponse;
-import net.identio.server.model.api.AuthSubmitRequest;
-import net.identio.server.model.api.AuthSubmitResponse;
+import net.identio.server.mvc.common.model.ApiResponseStatus;
+import net.identio.server.mvc.common.model.AuthMethodResponse;
+import net.identio.server.mvc.common.model.AuthSubmitRequest;
+import net.identio.server.mvc.common.model.AuthSubmitResponse;
+import net.identio.server.mvc.oauth.model.ConsentContext;
+import net.identio.server.mvc.oauth.model.ConsentRequest;
+import net.identio.server.mvc.oauth.model.ConsentResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.FileInputStream;
 import java.security.*;
 import java.security.interfaces.RSAKey;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -78,9 +81,9 @@ public class OAuthImplicitFullCinematicTest {
                 AuthMethodResponse[].class);
 
         assertEquals(HttpStatus.OK, authMethodResponse.getStatusCode());
-        assertEquals(authMethodResponse.getBody().length, 1);
-        assertEquals(authMethodResponse.getBody()[0].getName(), "Local");
-        assertEquals(authMethodResponse.getBody()[0].getType(), "local");
+        assertEquals(1, authMethodResponse.getBody().length);
+        assertEquals("Local", authMethodResponse.getBody()[0].getName());
+        assertEquals("local", authMethodResponse.getBody()[0].getType());
 
         // Authenticate with local method
         AuthSubmitRequest authenticationSubmit = new AuthSubmitRequest().setLogin("johndoe").setPassword("password")
@@ -92,20 +95,42 @@ public class OAuthImplicitFullCinematicTest {
                 new HttpEntity<>(authenticationSubmit, headers),
                 AuthSubmitResponse.class);
 
-        // Check that the authentication is successful and that we get a response
+        // Check that the authentication is successful and that we're asked for consent
         AuthSubmitResponse authSubmitResponse = authSubmitResponseEntity.getBody();
 
         assertEquals(HttpStatus.OK, authSubmitResponseEntity.getStatusCode());
-        assertNotNull(authSubmitResponse);
+        assertEquals(ApiResponseStatus.CONSENT, authSubmitResponse.getStatus());
 
-        assertEquals(authSubmitResponse.getState(), State.RESPONSE);
-        assertEquals(authSubmitResponse.getProtocolType(), ProtocolType.OAUTH);
-        assertEquals(authSubmitResponse.getRelayState(), "1234");
-        assertTrue(authSubmitResponse.getResponse().matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
+        // Get information for consent screen
+        ResponseEntity<ConsentContext> consentContextEntity = restTemplate.exchange(
+                getUrlWithPort("/api/authz/consent"),
+                HttpMethod.GET,
+                new HttpEntity<>(null, headers),
+                ConsentContext.class);
+
+        ConsentContext consentContext = consentContextEntity.getBody();
+
+        assertEquals("Test Client", consentContext.getAudience());
+        assertEquals(Arrays.asList("scope.test.1", "scope.test.2"), consentContext.getRequestedScopes());
+        assertEquals("/logo/app/test", consentContext.getAudienceLogo());
+
+        // Send the consent
+        ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Arrays.asList("scope.test.1", "scope.test.2"));
+
+        ResponseEntity<ConsentResponse> consentResponseEntity = restTemplate.exchange(
+                getUrlWithPort("/api/authz/consent"),
+                HttpMethod.POST,
+                new HttpEntity<>(consentRequest, headers),
+                ConsentResponse.class);
+
+        ConsentResponse consentResponse = consentResponseEntity.getBody();
+
+        assertEquals(true, consentResponse.isSuccess());
+        assertTrue(consentResponse.getResponse().matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
 
         // Parse and validate JWT
         Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
-        Matcher matcher = pattern.matcher(authSubmitResponse.getResponse());
+        Matcher matcher = pattern.matcher(authSubmitResponse.getDestinationUrl());
 
         Algorithm algorithm = null;
         try {
@@ -123,8 +148,7 @@ public class OAuthImplicitFullCinematicTest {
 
         if (matcher.find()) {
             verifier.verify(matcher.group(1));
-        }
-        else {
+        } else {
             fail();
         }
 

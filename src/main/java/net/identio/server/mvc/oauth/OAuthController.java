@@ -19,13 +19,13 @@
  */
 package net.identio.server.mvc.oauth;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import net.identio.server.service.orchestration.exceptions.ServerException;
+import net.identio.server.service.orchestration.exceptions.ValidationException;
+import net.identio.server.service.orchestration.exceptions.WebSecurityException;
+import net.identio.server.model.OAuthInboundRequest;
+import net.identio.server.mvc.common.TransparentAuthController;
+import net.identio.server.service.orchestration.RequestOrchestrationService;
+import net.identio.server.service.orchestration.model.RequestValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +35,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import net.identio.server.exceptions.ServerException;
-import net.identio.server.exceptions.ValidationException;
-import net.identio.server.model.OAuthInboundRequest;
-import net.identio.server.model.ValidationResult;
-import net.identio.server.mvc.common.PreAuthController;
-import net.identio.server.service.validation.ValidationService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Controller
 public class OAuthController {
@@ -48,18 +47,20 @@ public class OAuthController {
 	private static final Logger LOG = LoggerFactory.getLogger(OAuthController.class);
 
 	@Autowired
-	private ValidationService validationService;
+	private RequestOrchestrationService validationService;
 	@Autowired
-	private PreAuthController preAuthController;
+	private TransparentAuthController transparentAuthController;
 	
 	@RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
-	public String authorizeRequest(@RequestParam(value = "response_type", required = false) String responseType,
+	public String authorizeRequest(
+			@RequestParam(value = "response_type", required = false) String responseType,
 			@RequestParam(value = "client_id", required = false) String clientId,
 			@RequestParam(value = "redirect_uri", required = false) String redirectUri,
 			@RequestParam(value = "scope", required = false) String scopes,
 			@RequestParam(value = "state", required = false) String state,
 			@CookieValue(required = false) String identioSession,
-			HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws ValidationException, ServerException {
+			HttpServletRequest httpRequest,
+			HttpServletResponse httpResponse) throws ValidationException, ServerException, WebSecurityException {
 
 		LOG.info("Received OAuth authorization request from ClientId: {}", clientId);
 		LOG.debug("RT: {} - RU: {} - SC: {} - ST: {}", responseType, redirectUri, scopes, state);
@@ -73,19 +74,21 @@ public class OAuthController {
 
 		OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopesList, state);
 
-		ValidationResult result = validationService.validateAuthentRequest(request, identioSession);
+		RequestValidationResult result = validationService.validateRequest(request, identioSession);
 
-		switch (result.getState()) {
+		switch (result.getValidationStatus()) {
 		    case RESPONSE:
-			    return "redirect:" + result.getResponseData();
+			    return "redirect:" + result.getResponseData().getUrl();
 
 		    case CONSENT:
 			    return "redirect:/#!/consent/";
 
 			case ERROR:
-				return "redirect:/#!/error/" + result.getArValidationResult().getErrorStatus();
+				return "redirect:/#!/error/" + result.getErrorStatus();
+
 		    default:
-			    return preAuthController.checkTransparentAuthentication(httpRequest, httpResponse, result);
+			    return transparentAuthController.checkTransparentAuthentication(
+			    		httpRequest, httpResponse, result.getSessionId(), result.getTransactionId());
 		}
 	}
 

@@ -1,6 +1,6 @@
 package net.identio.server.service.oauth;
 
-import net.identio.server.model.OAuthClient;
+import net.identio.server.service.oauth.model.OAuthClient;
 
 public interface OAuthClientRepository {
 

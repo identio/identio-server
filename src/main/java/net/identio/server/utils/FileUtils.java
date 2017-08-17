@@ -19,12 +19,12 @@
  */
 package net.identio.server.utils;
 
+import org.springframework.security.crypto.codec.Hex;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-
-import org.springframework.security.crypto.codec.Hex;
 
 public class FileUtils {
 

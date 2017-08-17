@@ -19,6 +19,25 @@
  */
 package net.identio.server.service.authentication.ldap;
 
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.model.*;
+import net.identio.server.service.authentication.AuthenticationProvider;
+import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.*;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.transaction.model.TransactionData;
+import net.identio.server.utils.SecurityUtils;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import javax.naming.NamingEnumeration;
+import javax.naming.directory.SearchControls;
+import javax.naming.directory.SearchResult;
+import javax.naming.ldap.InitialLdapContext;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -27,33 +46,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.HashMap;
 import java.util.List;
-
-import javax.naming.NamingEnumeration;
-import javax.naming.directory.SearchControls;
-import javax.naming.directory.SearchResult;
-import javax.naming.ldap.InitialLdapContext;
-
-import org.apache.commons.pool2.impl.GenericObjectPool;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.ErrorStatus;
-import net.identio.server.model.LdapAuthMethod;
-import net.identio.server.model.LdapPoolConfig;
-import net.identio.server.model.TransactionData;
-import net.identio.server.model.UserPasswordAuthentication;
-import net.identio.server.service.authentication.AuthenticationProvider;
-import net.identio.server.service.authentication.AuthenticationService;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.utils.SecurityUtils;
 
 @Service
 @Scope("singleton")
@@ -88,12 +80,12 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+										 TransactionData transactionData) {
 
 		LdapAuthMethod ldapAuthMethod = (LdapAuthMethod) authMethod;
 		UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;
 
-		boolean validation = false;
+		boolean validation;
 
 		String userId = userPwAuthentication.getUserId();
 		String password = userPwAuthentication.getPassword();
@@ -114,7 +106,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
 			NamingEnumeration<SearchResult> results = ctx.search(ldapAuthMethod.getBaseDn(), searchFilter, controls);
 
-			SearchResult result = null;
+			SearchResult result;
 
 			if (results.hasMoreElements()) {
 				result = results.next();
@@ -122,12 +114,12 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 				if (results.hasMoreElements()) {
 					LOG.error("User ID {} is not unique in LDAP {}", userId, authMethod.getName());
 					return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-							.setErrorStatus(ErrorStatus.AUTH_USER_NOT_UNIQUE);
+							.setErrorStatus(AuthenticationErrorStatus.USER_NOT_UNIQUE);
 				}
 			} else {
 				LOG.error("User ID {} does not exist in LDAP {}", userId, authMethod.getName());
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+						.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 			}
 
 			// Try to bind with the found user id
@@ -143,7 +135,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 			} else {
 				LOG.error("Authentication failed for user {} with {}", userId, authMethod.getName());
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+						.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 			}
 
 		} catch (Exception ex) {
@@ -158,7 +150,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 			}
 
 			return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-					.setErrorStatus(ErrorStatus.AUTH_TECHNICAL_ERROR);
+					.setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
 		}
 
 	}
@@ -173,7 +165,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
 			LdapConnectionFactory factory = new LdapConnectionFactory(ldapAuthMethod);
 
-			GenericObjectPool<InitialLdapContext> pool = new GenericObjectPool<InitialLdapContext>(factory);
+			GenericObjectPool<InitialLdapContext> pool = new GenericObjectPool<>(factory);
 
 			LdapPoolConfig poolConfig = ldapAuthMethod.getPoolConfig();
 

@@ -49,4 +49,11 @@ public class AuthorizationScope {
 		this.expirationTime = expirationTime;
 	}
 
+	public AuthorizationScope getPublicCopy() {
+		AuthorizationScope response = new AuthorizationScope();
+		response.setName(this.name);
+
+		return response;
+	}
+
 }

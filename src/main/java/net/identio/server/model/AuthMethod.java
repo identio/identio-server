@@ -26,7 +26,6 @@ public abstract class AuthMethod {
 	private String name;
 	private String logoFileName;
 	private AuthLevel authLevel;
-	private StepUpAuthMethod stepUpAuthentication;
 	protected String type;
 
 	public boolean isExplicit() {
@@ -55,14 +54,6 @@ public abstract class AuthMethod {
 
 	public void setAuthLevel(AuthLevel authLevel) {
 		this.authLevel = authLevel;
-	}
-
-	public StepUpAuthMethod getStepUpAuthentication() {
-		return stepUpAuthentication;
-	}
-
-	public void setStepUpAuthentication(StepUpAuthMethod stepUpAuthentication) {
-		this.stepUpAuthentication = stepUpAuthentication;
 	}
 
 	public String getType() {

@@ -19,6 +19,28 @@
  */
 package net.identio.server.service.oauth;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.model.*;
+import net.identio.server.service.authorization.AuthorizationService;
+import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
+import net.identio.server.service.authorization.exceptions.UnknownScopeException;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.oauth.model.OAuthClient;
+import net.identio.server.service.oauth.model.OAuthErrors;
+import net.identio.server.service.oauth.model.OAuthGrants;
+import net.identio.server.service.oauth.model.OAuthResponseType;
+import net.identio.server.service.orchestration.model.RequestParsingInfo;
+import net.identio.server.service.orchestration.model.RequestParsingStatus;
+import net.identio.server.service.orchestration.model.ResponseData;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
@@ -31,31 +53,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.UUID;
 
-import net.identio.server.service.oauth.model.OAuthErrors;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.AuthRequestValidationResult;
-import net.identio.server.model.OAuthClient;
-import net.identio.server.model.OAuthInboundRequest;
-import net.identio.server.model.ProtocolType;
-import net.identio.server.model.AuthorizationScope;
-import net.identio.server.model.UserSession;
-import net.identio.server.service.authorization.AuthorizationService;
-import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
-import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.oauth.model.OAuthGrants;
-import net.identio.server.service.oauth.model.OAuthResponseType;
-
 @Service
 public class OAuthService {
 
@@ -63,6 +60,7 @@ public class OAuthService {
 
     @Autowired
     private OAuthClientRepository clientRepository;
+
     @Autowired
     private AuthorizationService authorizationService;
 
@@ -101,9 +99,9 @@ public class OAuthService {
         }
     }
 
-    public AuthRequestValidationResult validateAuthentRequest(OAuthInboundRequest request) {
+    public RequestParsingInfo validateAuthentRequest(OAuthInboundRequest request) {
 
-        AuthRequestValidationResult result = new AuthRequestValidationResult();
+        RequestParsingInfo result = new RequestParsingInfo();
 
         result.setProtocolType(ProtocolType.OAUTH);
 
@@ -115,7 +113,7 @@ public class OAuthService {
         // Fetch client
         OAuthClient client = clientRepository.getOAuthClientbyId(request.getClientId());
         if (client == null) {
-            return result.setSuccess(false).setErrorStatus(OAuthErrors.UNKNOWN_CLIENT);
+            return result.setStatus(RequestParsingStatus.FATAL_ERROR).setErrorStatus(OAuthErrors.UNKNOWN_CLIENT);
         }
 
         // Verify redirectUri
@@ -125,13 +123,13 @@ public class OAuthService {
             if (checkRedirectUri(client, request.getRedirectUri())) {
                 redirectUri = request.getRedirectUri();
             } else {
-                return result.setSuccess(false).setErrorStatus(OAuthErrors.UNKNOWN_REDIRECT_URI);
+                return result.setStatus(RequestParsingStatus.FATAL_ERROR).setErrorStatus(OAuthErrors.UNKNOWN_REDIRECT_URI);
             }
         }
 
         // Validate response type value
         if (request.getResponseType() == null || !checkValidResponseTypes(request.getResponseType())) {
-            return result.setSuccess(false).setErrorStatus(OAuthErrors.RESPONSE_TYPE_NOT_SUPPORTED)
+            return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.RESPONSE_TYPE_NOT_SUPPORTED)
                     .setResponseUrl(redirectUri);
         }
 
@@ -140,22 +138,22 @@ public class OAuthService {
         try {
             scopes = authorizationService.getScopes(request.getScopes());
         } catch (UnknownScopeException | NoScopeProvidedException e) {
-            return result.setSuccess(false).setErrorStatus(OAuthErrors.INVALID_SCOPE).setResponseUrl(redirectUri);
+            return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.INVALID_SCOPE).setResponseUrl(redirectUri);
         }
 
         // Validate client authorization regarding allowed scopes and response
         // types
         if (!checkClientAuthorization(client, request.getResponseType(), request.getScopes())) {
-            return result.setSuccess(false).setErrorStatus(OAuthErrors.UNAUTHORIZED_CLIENT).setResponseUrl(redirectUri);
+            return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.UNAUTHORIZED_CLIENT).setResponseUrl(redirectUri);
         }
 
-        result.setSuccess(true).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
+        result.setStatus(RequestParsingStatus.OK).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
                 .setRequestedScopes(scopes).setResponseType(request.getResponseType());
 
         return result;
     }
 
-    public String generateSuccessResponse(AuthRequestValidationResult result, UserSession userSession) {
+    public ResponseData generateSuccessResponse(RequestParsingInfo result, UserSession userSession) {
 
         StringBuilder responseBuilder = new StringBuilder();
 
@@ -200,10 +198,10 @@ public class OAuthService {
             responseBuilder.append("&state=").append(result.getRelayState());
         }
 
-        return responseBuilder.toString();
+        return new ResponseData().setUrl(responseBuilder.toString());
     }
 
-    public String generateErrorResponse(AuthRequestValidationResult result) {
+    public ResponseData generateErrorResponse(RequestParsingInfo result) {
 
         StringBuilder responseBuilder = new StringBuilder();
 
@@ -213,7 +211,7 @@ public class OAuthService {
             responseBuilder.append("&state=").append(result.getRelayState());
         }
 
-        return responseBuilder.toString();
+        return new ResponseData().setUrl(responseBuilder.toString());
     }
 
     private boolean checkValidResponseTypes(String responseType) {

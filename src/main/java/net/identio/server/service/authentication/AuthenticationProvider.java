@@ -20,9 +20,9 @@
 package net.identio.server.service.authentication;
 
 import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.TransactionData;
+import net.identio.server.service.authentication.model.Authentication;
+import net.identio.server.service.authentication.model.AuthenticationResult;
+import net.identio.server.service.transaction.model.TransactionData;
 
 public interface AuthenticationProvider {
 

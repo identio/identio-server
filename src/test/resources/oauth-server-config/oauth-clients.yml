@@ -9,3 +9,4 @@ oAuthClients:
       - http://example.com/cb
     allowedGrants:
       - implicit
+    needConsent: true

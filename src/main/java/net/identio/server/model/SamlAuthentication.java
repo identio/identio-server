@@ -19,6 +19,8 @@
  */
 package net.identio.server.model;
 
+import net.identio.server.service.authentication.model.Authentication;
+
 public class SamlAuthentication implements Authentication {
 
 	private String response;

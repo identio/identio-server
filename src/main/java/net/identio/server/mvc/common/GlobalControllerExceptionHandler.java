@@ -19,13 +19,13 @@
  */
 package net.identio.server.mvc.common;
 
+import net.identio.server.service.orchestration.exceptions.ServerException;
+import net.identio.server.service.orchestration.exceptions.ValidationException;
+import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.ServletRequestBindingException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import net.identio.server.exceptions.ServerException;
-import net.identio.server.exceptions.ValidationException;
 
 @ControllerAdvice
 public class GlobalControllerExceptionHandler {
@@ -34,17 +34,18 @@ public class GlobalControllerExceptionHandler {
 	private DefaultErrorController errorController;
 
 	@ExceptionHandler(ServerException.class)
-	public String handleServerException() {
-		return errorController.displayErrorPage("error.server");
+	public String handleServerException(ServerException e) {
+		return errorController.displayErrorPage(e.getMessage());
 	}
 
 	@ExceptionHandler(ValidationException.class)
-	public String handleValidationException() {
-		return errorController.displayErrorPage("error.validation");
+	public String handleValidationException(ValidationException e) {
+		return errorController.displayErrorPage(e.getMessage());
 	}
-	
-	@ExceptionHandler(ServletRequestBindingException.class)
-	public String handleServletRequestBindingException() {
-		return errorController.displayErrorPage("missing.parameter");
+
+	@ExceptionHandler(WebSecurityException.class)
+	public String handleWebSecurityException(WebSecurityException e) {
+		return errorController.displayErrorPage(e.getMessage());
 	}
+
 }

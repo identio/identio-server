@@ -98,7 +98,7 @@
 
       var data = response.data;
 
-			if (data.state === 'RESPONSE') {
+			if (data.status === 'RESPONSE') {
 
 				data.destinationUrl = $sce
 						.trustAsResourceUrl(data.destinationUrl);
@@ -128,11 +128,6 @@
 				vm.password = null;
 				vm.error = false;
 				$state.go('auth.challenge');
-			}
-
-			if (data.state === 'STEP_UP_AUTHENTICATION') {
-				init();
-				vm.state = data.state;
 			}
 		}
 

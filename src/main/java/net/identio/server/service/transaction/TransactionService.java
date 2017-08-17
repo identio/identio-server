@@ -19,20 +19,19 @@
  */
 package net.identio.server.service.transaction;
 
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import net.identio.server.service.orchestration.exceptions.WebSecurityException;
+import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-
-import net.identio.server.model.TransactionData;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Scope("singleton")
@@ -73,7 +72,7 @@ public class TransactionService {
 		transactionCache.invalidate(transactionData.getTransactionId());
 	}
 
-	public TransactionData getTransaction(String transactionId) {
+	public TransactionData fetchTransaction(String transactionId) {
 
 		if (transactionId == null) {
 			return new TransactionData();
@@ -86,6 +85,31 @@ public class TransactionService {
 		} catch (ExecutionException e) {
 			return new TransactionData();
 		}
+	}
+
+	public TransactionData getTransaction(String sessionId, String transactionId) throws WebSecurityException {
+
+		LOG.debug("Security verification of coherence between transaction ID and session ID");
+
+		TransactionData transactionData = fetchTransaction(transactionId);
+
+		if (transactionData.getTransactionId() == null) {
+			String message = "Could not find a valid transaction";
+			LOG.error(message);
+			throw new WebSecurityException(message);
+		}
+
+		if (!sessionId.equals(transactionData.getUserSession().getId())) {
+			removeTransactionData(transactionData);
+
+			String message = "Session ID in transaction doesn't match browser session ID. Possible session fixation attack ?";
+			LOG.error(message);
+			throw new WebSecurityException(message);
+		}
+
+		LOG.debug("Security verification OK");
+
+		return transactionData;
 	}
 
 }

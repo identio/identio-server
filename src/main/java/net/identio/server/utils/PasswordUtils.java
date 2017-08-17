@@ -19,9 +19,9 @@
  */
 package net.identio.server.utils;
 
-import java.io.Console;
-
 import org.springframework.security.crypto.bcrypt.BCrypt;
+
+import java.io.Console;
 
 public class PasswordUtils {
 

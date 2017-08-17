@@ -107,13 +107,13 @@ public class SecurityUtils {
 
 
 	public static final void addCertificateToKeyStore(KeyStore ks, X509Certificate cert, String alias)
-			throws FileNotFoundException, IOException, CertificateException, KeyStoreException {
+			throws KeyStoreException {
 
 		ks.setCertificateEntry(alias, cert);
 	}
 
 	public static final X509Certificate parseCertificate(String path)
-			throws FileNotFoundException, IOException, CertificateException {
+			throws IOException, CertificateException {
 
 		try (FileInputStream fis = new FileInputStream(path); BufferedInputStream bis = new BufferedInputStream(fis)) {
 

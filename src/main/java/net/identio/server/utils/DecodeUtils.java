@@ -19,16 +19,16 @@
  */
 package net.identio.server.utils;
 
+import org.apache.xml.security.exceptions.Base64DecodingException;
+import org.apache.xml.security.utils.Base64;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
-
-import org.apache.xml.security.exceptions.Base64DecodingException;
-import org.apache.xml.security.utils.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class DecodeUtils {
 
@@ -86,7 +86,7 @@ public class DecodeUtils {
 
 		String encodedString = null;
 
-		byte[] deflatedData = deflate ? deflate(data,true) : data;
+		byte[] deflatedData = deflate ? deflate(data, true) : data;
 
 		// First, we decode the B64 string
 		encodedString = Base64.encode(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
@@ -153,7 +153,7 @@ public class DecodeUtils {
 		deflater.setInput(data);
 		deflater.finish();
 
-		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length);) {
+		try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length)) {
 
 			byte[] buffer = new byte[1024];
 

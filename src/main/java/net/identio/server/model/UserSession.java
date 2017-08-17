@@ -61,9 +61,8 @@ public class UserSession {
 		this.validatedAuthMethods = validatedAuthMethods;
 	}
 
-	public AuthSession addAuthSession(String userId, AuthMethod authMethod, StepUpAuthMethod stepUpAuthMethod,
-			AuthLevel authLevel) {
-		AuthSession authSession = new AuthSession(authMethod, stepUpAuthMethod, authLevel);
+	public AuthSession addAuthSession(String userId, AuthMethod authMethod,	AuthLevel authLevel) {
+		AuthSession authSession = new AuthSession(authMethod, authLevel);
 		this.userId = userId;
 		this.authSessions.add(authSession);
 		this.validatedAuthMethods.add(authMethod);

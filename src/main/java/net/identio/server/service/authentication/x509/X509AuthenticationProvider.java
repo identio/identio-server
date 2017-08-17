@@ -19,15 +19,15 @@
  */
 package net.identio.server.service.authentication.x509;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
+import net.identio.server.exceptions.ConfigurationException;
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.model.*;
+import net.identio.server.service.authentication.AuthenticationProvider;
+import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.*;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.transaction.model.TransactionData;
+import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,20 +40,14 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
 
-import net.identio.server.exceptions.ConfigurationException;
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.ErrorStatus;
-import net.identio.server.model.TransactionData;
-import net.identio.server.model.X509AuthMethod;
-import net.identio.server.model.X509Authentication;
-import net.identio.server.service.authentication.AuthenticationProvider;
-import net.identio.server.service.authentication.AuthenticationService;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.utils.SecurityUtils;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Scope("singleton")
@@ -135,7 +129,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+										 TransactionData transactionData) {
 
 		X509AuthMethod x509AuthMethod = (X509AuthMethod) authMethod;
 		X509Authentication x509Authentication = (X509Authentication) authentication;
@@ -153,7 +147,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 						authMethod.getName());
 
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+						.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 			}
 
 			// Check expressions
@@ -183,7 +177,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 		LOG.info("Could not validate user certificate with method {}", authMethod.getName());
 
 		return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-				.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+				.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 	}
 
 	private void register(List<X509AuthMethod> authMethods, AuthenticationService authenticationService) {

@@ -19,12 +19,17 @@
  */
 package net.identio.server.mvc.saml;
 
-import java.io.IOException;
-import java.util.zip.DataFormatException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import net.identio.saml.SamlConstants;
+import net.identio.server.exceptions.*;
+import net.identio.server.model.SamlInboundRequest;
+import net.identio.server.mvc.common.TransparentAuthController;
+import net.identio.server.service.orchestration.RequestOrchestrationService;
+import net.identio.server.service.orchestration.exceptions.ServerException;
+import net.identio.server.service.orchestration.exceptions.ValidationException;
+import net.identio.server.service.orchestration.exceptions.WebSecurityException;
+import net.identio.server.service.orchestration.model.ValidationStatus;
+import net.identio.server.service.orchestration.model.RequestValidationResult;
+import net.identio.server.utils.DecodeUtils;
 import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,18 +41,10 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.HtmlUtils;
 
-import net.identio.saml.SamlConstants;
-import net.identio.server.exceptions.NoAuthMethodFoundException;
-import net.identio.server.exceptions.SamlException;
-import net.identio.server.exceptions.ServerException;
-import net.identio.server.exceptions.UnknownAuthLevelException;
-import net.identio.server.exceptions.ValidationException;
-import net.identio.server.model.SamlInboundRequest;
-import net.identio.server.model.State;
-import net.identio.server.model.ValidationResult;
-import net.identio.server.mvc.common.PreAuthController;
-import net.identio.server.service.validation.ValidationService;
-import net.identio.server.utils.DecodeUtils;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.zip.DataFormatException;
 
 @Controller
 public class RequestConsumerController {
@@ -55,9 +52,9 @@ public class RequestConsumerController {
 	private static final Logger LOG = LoggerFactory.getLogger(RequestConsumerController.class);
 
 	@Autowired
-	private ValidationService validationService;
+	private RequestOrchestrationService validationService;
 	@Autowired
-	private PreAuthController preAuthController;
+	private TransparentAuthController transparentAuthController;
 	@Autowired
 	private ResponderController responderController;
 
@@ -65,10 +62,10 @@ public class RequestConsumerController {
 	public String samlConsumerPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
 			@RequestParam("SAMLRequest") String usSamlRequest,
 			@RequestParam(value = "RelayState", required = false) String usRelayState,
-			@CookieValue(required = false) String identioSession) throws ServerException, ValidationException {
+			@CookieValue(required = false) String identioSession) throws ServerException, ValidationException, WebSecurityException {
 
-		String decodedSamlRequest = null;
-		String decodedRelayState = null;
+		String decodedSamlRequest;
+		String decodedRelayState;
 
 		LOG.debug("Received request on /SAML2/SSO/POST");
 		LOG.debug("* SAMLRequest: {}", usSamlRequest);
@@ -105,7 +102,7 @@ public class RequestConsumerController {
 			@RequestParam(value = "RelayState", required = false) String usRelayState,
 			@RequestParam(value = "SigAlg", required = false) String usSigAlg,
 			@RequestParam(value = "Signature", required = false) String usSignature,
-			@CookieValue(required = false) String identioSession) throws ServerException, ValidationException {
+			@CookieValue(required = false) String identioSession) throws ServerException, ValidationException, WebSecurityException {
 
 		String signedInfo = null;
 		String decodedSamlRequest = null;
@@ -166,25 +163,25 @@ public class RequestConsumerController {
 
 	private String processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String binding,
 			String request, String relayState, String sigAlg, String signatureValue, String signedInfo,
-			String sessionId) throws ServerException, ValidationException {
+			String sessionId) throws ServerException, ValidationException, WebSecurityException {
 
 		LOG.debug("Processing SAML authentication request.");
 
 		SamlInboundRequest samlRequest = new SamlInboundRequest(binding, request, signatureValue, signedInfo, sigAlg,
 				relayState);
 
-		// The request is forwarded to the validation service
-		ValidationResult result = validationService.validateAuthentRequest(samlRequest, sessionId);
+		// The request is forwarded to the orchestration service
+		RequestValidationResult result = validationService.validateRequest(samlRequest, sessionId);
 
-		if (result.getState() == State.RESPONSE) {
+		if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
 
-			String responseView = responderController.displayResponderPage(
-					result.getArValidationResult().getResponseUrl(), result.getResponseData(),
-					samlRequest.getRelayState(), result.getSessionId(), httpResponse);
-			return responseView;
+			return responderController.displayResponderPage(
+					result.getResponseData().getUrl(), result.getResponseData().getData(),
+					result.getResponseData().getRelayState(), result.getSessionId(), httpResponse);
 
 		} else {
-			return preAuthController.checkTransparentAuthentication(httpRequest, httpResponse, result);
+			return transparentAuthController.checkTransparentAuthentication(httpRequest, httpResponse,
+					result.getSessionId(), result.getTransactionId());
 		}
 
 	}

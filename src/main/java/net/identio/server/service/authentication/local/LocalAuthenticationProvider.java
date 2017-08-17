@@ -19,12 +19,13 @@
  */
 package net.identio.server.service.authentication.local;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.model.*;
+import net.identio.server.service.authentication.AuthenticationProvider;
+import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.*;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,18 +35,11 @@ import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.ErrorStatus;
-import net.identio.server.model.LocalAuthMethod;
-import net.identio.server.model.TransactionData;
-import net.identio.server.model.UserPasswordAuthentication;
-import net.identio.server.service.authentication.AuthenticationProvider;
-import net.identio.server.service.authentication.AuthenticationService;
-import net.identio.server.service.configuration.ConfigurationService;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 @Scope("singleton")
@@ -107,7 +101,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+                                         TransactionData transactionData) {
 
 		LocalAuthMethod fileAuthMethod = (LocalAuthMethod) authMethod;
 		UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;
@@ -118,7 +112,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 		if (userId == null || password == null) {
 			LOG.error("UserId or password is empty");
 			return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-					.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+					.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 		}
 
 		User user = globalUsersMap.get(fileAuthMethod).get(userId);
@@ -126,7 +120,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 		if (user == null) {
 			LOG.error("Unknown user: {}", userPwAuthentication.getUserId());
 			return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-					.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+					.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 		}
 
 		String hashedPassword = user.getPassword();
@@ -145,7 +139,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 		LOG.info("Failed authentication for user {} with {} method", user.getUserId(), fileAuthMethod.getName());
 
 		return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-				.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+				.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 	}
 
 	private void register(List<LocalAuthMethod> authMethods, AuthenticationService authenticationService) {

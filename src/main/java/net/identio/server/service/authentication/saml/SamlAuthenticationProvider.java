@@ -19,6 +19,29 @@
  */
 package net.identio.server.service.authentication.saml;
 
+import net.identio.saml.*;
+import net.identio.saml.exceptions.*;
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.exceptions.SamlException;
+import net.identio.server.model.*;
+import net.identio.server.service.authentication.AuthenticationProvider;
+import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.Authentication;
+import net.identio.server.service.authentication.model.AuthenticationResult;
+import net.identio.server.service.authentication.model.AuthenticationResultStatus;
+import net.identio.server.service.authentication.model.AuthenticationErrorStatus;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
+import net.identio.server.service.saml.MetadataService;
+import net.identio.server.service.saml.SamlService;
+import net.identio.server.service.transaction.model.TransactionData;
+import net.identio.server.utils.DecodeUtils;
+import org.apache.xml.security.exceptions.Base64DecodingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -27,47 +50,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.zip.DataFormatException;
-
-import org.apache.xml.security.exceptions.Base64DecodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import net.identio.saml.Assertion;
-import net.identio.saml.AuthentResponse;
-import net.identio.saml.AuthentResponseBuilder;
-import net.identio.saml.Endpoint;
-import net.identio.saml.IdpSsoDescriptor;
-import net.identio.saml.Metadata;
-import net.identio.saml.MetadataBuilder;
-import net.identio.saml.SamlConstants;
-import net.identio.saml.Validator;
-import net.identio.saml.exceptions.InvalidAssertionException;
-import net.identio.saml.exceptions.InvalidAuthentResponseException;
-import net.identio.saml.exceptions.InvalidSignatureException;
-import net.identio.saml.exceptions.TechnicalException;
-import net.identio.saml.exceptions.UnsignedSAMLObjectException;
-import net.identio.saml.exceptions.UntrustedSignerException;
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.exceptions.SamlException;
-import net.identio.server.model.AuthLevel;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.ErrorStatus;
-import net.identio.server.model.IdentioConfiguration;
-import net.identio.server.model.SamlAuthMethod;
-import net.identio.server.model.SamlAuthRequestGenerationResult;
-import net.identio.server.model.SamlAuthentication;
-import net.identio.server.model.TransactionData;
-import net.identio.server.service.authentication.AuthenticationProvider;
-import net.identio.server.service.authentication.AuthenticationService;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.saml.MetadataService;
-import net.identio.server.service.saml.SamlService;
-import net.identio.server.utils.DecodeUtils;
 
 @Service
 public class SamlAuthenticationProvider implements AuthenticationProvider {
@@ -100,14 +82,12 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			register(configurationService.getConfiguration().getAuthMethodConfiguration().getSamlAuthMethods(),
 					authenticationService);
 
-		} catch (TechnicalException | UnsignedSAMLObjectException | UntrustedSignerException
-				| InvalidSignatureException ex) {
+		} catch (TechnicalException ex) {
 			throw new InitializationException("Could not initialize Metadata service", ex);
 		}
 	}
 
-	private void initRemoteIdpMetadata() throws TechnicalException, UnsignedSAMLObjectException,
-			UntrustedSignerException, InvalidSignatureException {
+	private void initRemoteIdpMetadata() throws TechnicalException {
 
 		IdentioConfiguration config = configurationService.getConfiguration();
 
@@ -141,7 +121,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public SamlAuthRequestGenerationResult initRequest(SamlAuthMethod authMethod, ArrayList<AuthLevel> targetAuthLevels,
-			String transactionId) throws SamlException {
+                                                       String transactionId) throws SamlException {
 
 		Metadata remoteMetadata = remoteIdpMetadatasByName.get(authMethod.getName());
 
@@ -165,7 +145,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+										 TransactionData transactionData) {
 
 		LOG.info("Validating SAML response from proxy IDP");
 
@@ -189,21 +169,21 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			if (!SamlConstants.STATUS_SUCCESS.equals(responseStatusCode)) {
 				LOG.error("* Authentication rejected by proxy IDP");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_REJECTED_BY_PROXY);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_REJECTED);
 			}
 
 			// Verify the presence of a SAML Assertion
 			if (assertion == null) {
 				LOG.error("* No assertion found in response");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_NO_ASSERTION_IN_RESPONSE);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			// Check inResponseTo attribute coherence
 			if (!transactionData.getSamlProxyRequestId().equals(assertion.getInResponseTo())) {
 				LOG.error("* InResponseTo ID doesn't match request ID");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_INVALID_INRESPONSETO);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			// Check that the response user ID matches the ID in session
@@ -211,7 +191,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 					|| !assertion.getSubjectNameID().equals(transactionData.getUserSession().getUserId())) {
 				LOG.error("* Audience in assertion doesn't match IDP EntityID");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_USER_ID_MISMATCH);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			// Check that the recipient of the assertion is the IDP
@@ -219,7 +199,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 					|| !assertion.getAudienceRestriction().equals(idpMetadata.getEntityID())) {
 				LOG.error("* Audience in assertion doesn't match IDP EntityID");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_WRONG_AUDIENCE);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			// Check recipient and destination
@@ -230,14 +210,14 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			if (recipient == null) {
 				LOG.error("* No recipient specified in assertion");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_NO_RECIPIENT);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 
 			}
 
 			if (destination == null) {
 				LOG.error("* No destination specified in response");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_NO_DESTINATION);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			for (Endpoint endpoint : idpMetadata.getSpSsoDescriptors().get(0).getAssertionConsumerServices()) {
@@ -251,7 +231,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			if (!validation) {
 				LOG.error("* Recipient or destination in response doesn't match an IDP endpoint");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_WRONG_RECIPIENT_OR_DESTINATION);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			// Check assertion time conditions
@@ -260,10 +240,8 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			} catch (InvalidAssertionException ex) {
 				LOG.error("* Conditions in the assertion are not valid: {}", ex.getMessage());
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_CONDITIONS_NOT_MET);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
-
-			validation = false;
 
 			try {
 				validation = remoteValidator.validate(response);
@@ -275,7 +253,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 				LOG.debug("* Detailed stacktrace:", ex);
 
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+						.setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
 			}
 
 			// If the assertion is valid
@@ -293,7 +271,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 			LOG.error("* Error when parsing SAML Response: {}", ex.getMessage());
 		}
 		return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-				.setErrorStatus(ErrorStatus.AUTH_TECHNICAL_ERROR);
+				.setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
 	}
 
 	private void register(List<SamlAuthMethod> authMethods, AuthenticationService authenticationService) {

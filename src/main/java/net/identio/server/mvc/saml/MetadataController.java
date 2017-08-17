@@ -19,11 +19,8 @@
  */
 package net.identio.server.mvc.saml;
 
-import java.io.IOException;
-import java.io.Writer;
-
-import javax.servlet.http.HttpServletResponse;
-
+import net.identio.server.service.orchestration.exceptions.ServerException;
+import net.identio.server.service.saml.MetadataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +28,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import net.identio.server.exceptions.ServerException;
-import net.identio.server.service.saml.MetadataService;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
 
 @Controller
 public class MetadataController {
@@ -50,10 +48,10 @@ public class MetadataController {
 		String returnValue = metadataService.getIdpMetadata().toString();
 
 		httpResponse.setContentType("application/samlmetadata+xml");
-		httpResponse.setContentLength((int) returnValue.length());
+		httpResponse.setContentLength(returnValue.length());
 		httpResponse.setHeader("Content-Disposition", "attachment; filename=\"identio-idp-metadata.xml\"");
 
-		try (Writer writer = httpResponse.getWriter();) {
+		try (Writer writer = httpResponse.getWriter()) {
 			writer.write(returnValue);
 			writer.flush();
 

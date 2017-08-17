@@ -19,20 +19,15 @@
  */
 package net.identio.server.service.authentication.ldap;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.*;
 
 public class LdapSslSocketFactory extends SSLSocketFactory {
 
@@ -71,14 +66,13 @@ public class LdapSslSocketFactory extends SSLSocketFactory {
 	}
 
 	@Override
-	public Socket createSocket(String s, int i) throws IOException,
-			UnknownHostException {
+	public Socket createSocket(String s, int i) throws IOException {
 		return context.getSocketFactory().createSocket(s, i);
 	}
 
 	@Override
 	public Socket createSocket(String s, int i, InetAddress inetAddress, int i2)
-			throws IOException, UnknownHostException {
+			throws IOException {
 		return context.getSocketFactory().createSocket(s, i, inetAddress, i2);
 	}
 

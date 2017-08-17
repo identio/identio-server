@@ -19,9 +19,15 @@
  */
 package net.identio.server.mvc.saml;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import net.identio.server.service.orchestration.exceptions.ServerException;
+import net.identio.server.service.orchestration.exceptions.ValidationException;
+import net.identio.server.service.orchestration.exceptions.WebSecurityException;
+import net.identio.server.model.SamlAuthentication;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.orchestration.AuthOrchestrationService;
+import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
+import net.identio.server.service.orchestration.model.ValidationStatus;
+import net.identio.server.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,14 +38,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.util.HtmlUtils;
 
-import net.identio.server.exceptions.ServerException;
-import net.identio.server.exceptions.ValidationException;
-import net.identio.server.model.SamlAuthentication;
-import net.identio.server.model.State;
-import net.identio.server.model.ValidationResult;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.validation.ValidationService;
-import net.identio.server.utils.HttpUtils;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Controller
 public class AssertionConsumerController {
@@ -47,7 +47,7 @@ public class AssertionConsumerController {
 	private static final Logger LOG = LoggerFactory.getLogger(AssertionConsumerController.class);
 
 	@Autowired
-	private ValidationService validationService;
+	private AuthOrchestrationService authOrchestrationService;
 
 	@Autowired
 	private ConfigurationService configurationService;
@@ -59,33 +59,33 @@ public class AssertionConsumerController {
 	public String samlConsumerPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
 			@RequestParam("SAMLResponse") String usSamlResponse,
 			@RequestParam(value = "RelayState", required = false) String usRelayState,
-			@CookieValue String identioSession) throws ValidationException, ServerException {
+			@CookieValue String identioSession) throws ValidationException, ServerException, WebSecurityException {
 
 		LOG.debug("Received SAML response on /SAML2/ACS/POST");
 		LOG.debug("* SAMLResponse: {}", usSamlResponse);
 		LOG.debug("* RelayState: {}", usRelayState);
 
 		// To prevent XSS attacks, we escape the RelayState value
-		String decodedRelayState = HtmlUtils.htmlEscape(usRelayState);
+		String transactionId = HtmlUtils.htmlEscape(usRelayState);
 		SamlAuthentication authentication = new SamlAuthentication(usSamlResponse);
 
-		ValidationResult result = validationService.validateExplicitAuthentication(decodedRelayState, identioSession,
-				null, authentication);
+		AuthenticationValidationResult result = authOrchestrationService
+				.handleExplicitAuthentication(transactionId, identioSession, null, authentication);
 
-		if (result.getState() == State.RESPONSE) {
+		if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
 
 			String responseView = responderController.displayResponderPage(
-					result.getArValidationResult().getResponseUrl(), result.getResponseData(),
-					result.getArValidationResult().getRelayState(), result.getSessionId(), httpResponse);
+					result.getResponseData().getUrl(), result.getResponseData().getData(),
+					result.getResponseData().getRelayState(), identioSession, httpResponse);
 			return responseView;
 
 		} else {
 			LOG.debug("Displaying authentication page");
 
-			HttpUtils.setSessionCookie(httpResponse, result.getSessionId(),
+			HttpUtils.setSessionCookie(httpResponse, identioSession,
 					configurationService.getConfiguration().getGlobalConfiguration().isSecure());
 
-			return "redirect:/#!/auth/" + result.getTransactionId();
+			return "redirect:/#!/auth/" + transactionId;
 		}
 
 	}

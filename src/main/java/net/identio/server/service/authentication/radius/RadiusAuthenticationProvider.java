@@ -19,31 +19,13 @@
  */
 package net.identio.server.service.authentication.radius;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.zip.DataFormatException;
-
-import org.apache.xml.security.exceptions.Base64DecodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
 import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.ErrorStatus;
-import net.identio.server.model.RadiusAuthMethod;
-import net.identio.server.model.TransactionData;
-import net.identio.server.model.UserPasswordAuthentication;
+import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.*;
 import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.DecodeUtils;
 import net.sourceforge.jradiusclient.RadiusAttribute;
 import net.sourceforge.jradiusclient.RadiusAttributeValues;
@@ -52,6 +34,18 @@ import net.sourceforge.jradiusclient.RadiusPacket;
 import net.sourceforge.jradiusclient.exception.InvalidParameterException;
 import net.sourceforge.jradiusclient.exception.RadiusException;
 import net.sourceforge.jradiusclient.packets.PapAccessRequest;
+import org.apache.xml.security.exceptions.Base64DecodingException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.zip.DataFormatException;
 
 @Service
 @Scope("singleton")
@@ -65,7 +59,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
 	@Autowired
 	public RadiusAuthenticationProvider(ConfigurationService configurationService,
-			AuthenticationService authenticationService) throws InitializationException {
+			AuthenticationService authenticationService) {
 
 		List<RadiusAuthMethod> authMethods = configurationService.getConfiguration().getAuthMethodConfiguration()
 				.getRadiusAuthMethods();
@@ -89,7 +83,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 	}
 
 	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+										 TransactionData transactionData) {
 
 		RadiusAuthMethod radiusAuthMethod = (RadiusAuthMethod) authMethod;
 		UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;
@@ -117,13 +111,13 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 			} catch (RadiusException ex) {
 				LOG.error("An error occurend when authenticating user");
 				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_TECHNICAL_ERROR);
+						.setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
 			}
 		}
 	}
 
 	private AuthenticationResult authenticate(RadiusAuthMethod radiusAuthMethod, String userId, String password,
-			String challenge) throws RadiusException {
+											  String challenge) throws RadiusException {
 
 		try {
 
@@ -131,9 +125,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 					radiusAuthMethod.getAuthPort(), radiusAuthMethod.getAccountPort(),
 					radiusAuthMethod.getSharedSecret(), radiusAuthMethod.getTimeout());
 
-			RadiusPacket accessRequest = null;
-
-			accessRequest = new PapAccessRequest(userId, password);
+			RadiusPacket accessRequest = new PapAccessRequest(userId, password);
 
 			if (challenge != null) {
 				accessRequest.setAttribute(deserializeAttribute(challenge));
@@ -196,7 +188,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 					LOG.error("Authentication failed for user {} with {}", userId, radiusAuthMethod.getName());
 				}
 				new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
+						.setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
 			}
 
 		} catch (InvalidParameterException | IOException | Base64DecodingException | DataFormatException ex) {
@@ -205,7 +197,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 		}
 
 		return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-				.setErrorStatus(ErrorStatus.AUTH_TECHNICAL_ERROR);
+				.setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
 	}
 
 	private RadiusAttribute deserializeAttribute(String data)

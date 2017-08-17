@@ -19,6 +19,7 @@
  */
 package net.identio.server.mvc.common;
 
+import net.identio.server.service.usersession.UserSessionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +27,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import net.identio.server.service.usersession.UserSessionService;
 
 @Controller
 public class LogoutController {

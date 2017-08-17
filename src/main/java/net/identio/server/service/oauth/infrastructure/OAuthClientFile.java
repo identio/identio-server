@@ -1,8 +1,8 @@
 package net.identio.server.service.oauth.infrastructure;
 
-import java.util.List;
+import net.identio.server.service.oauth.model.OAuthClient;
 
-import net.identio.server.model.OAuthClient;
+import java.util.List;
 
 public class OAuthClientFile {
 

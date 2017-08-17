@@ -26,13 +26,11 @@ public class AuthSession {
 
 	private DateTime authInstant;
 	private AuthMethod authMethod;
-	private StepUpAuthMethod stepUpAuthMethod;
 	private AuthLevel authLevel;
 
-	public AuthSession(AuthMethod authMethod, StepUpAuthMethod stepUpAuthMethod, AuthLevel authLevel) {
+	public AuthSession(AuthMethod authMethod, AuthLevel authLevel) {
 		this.authInstant = new DateTime(DateTimeZone.UTC);
 		this.authMethod = authMethod;
-		this.stepUpAuthMethod = stepUpAuthMethod;
 		this.authLevel = authLevel;
 	}
 
@@ -50,14 +48,6 @@ public class AuthSession {
 
 	public void setAuthMethod(AuthMethod authMethod) {
 		this.authMethod = authMethod;
-	}
-
-	public StepUpAuthMethod getStepUpAuthMethod() {
-		return stepUpAuthMethod;
-	}
-
-	public void setStepUpAuthMethod(StepUpAuthMethod stepUpAuthMethod) {
-		this.stepUpAuthMethod = stepUpAuthMethod;
 	}
 
 	public AuthLevel getAuthLevel() {

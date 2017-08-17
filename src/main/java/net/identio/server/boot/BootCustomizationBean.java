@@ -19,17 +19,10 @@
  */
 package net.identio.server.boot;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
+import net.identio.server.model.X509AuthMethod;
+import net.identio.server.service.authentication.x509.X509AuthenticationProvider;
+import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.utils.SecurityUtils;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.slf4j.Logger;
@@ -41,10 +34,16 @@ import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletCon
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import net.identio.server.model.X509AuthMethod;
-import net.identio.server.service.authentication.x509.X509AuthenticationProvider;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.utils.SecurityUtils;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class BootCustomizationBean {

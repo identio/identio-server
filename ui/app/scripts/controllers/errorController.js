@@ -9,15 +9,15 @@
  */
 angular.module('identioUiApp')
   .controller('ErrorController', ErrorController);
-  
+
 ErrorController.$inject = ['$scope', '$state', '$stateParams'];
-  
+
   function ErrorController($scope, $state, $stateParams) {
-  
+
     /* jshint validthis: true */
     var vm = this;
-    
-    vm.message = $stateParams.errorCode;
-    
+
+    vm.errorId = $stateParams.errorId;
+
   }
 })();

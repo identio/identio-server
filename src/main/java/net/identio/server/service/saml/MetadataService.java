@@ -19,36 +19,7 @@
  */
 package net.identio.server.service.saml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-
-import net.identio.saml.Endpoint;
-import net.identio.saml.IdpSsoDescriptor;
-import net.identio.saml.Metadata;
-import net.identio.saml.MetadataBuilder;
-import net.identio.saml.SamlConstants;
-import net.identio.saml.SpSsoDescriptor;
-import net.identio.saml.Validator;
+import net.identio.saml.*;
 import net.identio.saml.exceptions.InvalidSignatureException;
 import net.identio.saml.exceptions.TechnicalException;
 import net.identio.saml.exceptions.UnsignedSAMLObjectException;
@@ -57,6 +28,24 @@ import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.IdentioConfiguration;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.utils.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Scope("singleton")
@@ -156,8 +145,8 @@ public class MetadataService {
         LOG.info("* {}", idpMetadata.getEntityID());
     }
 
-    private void loadMetadata(String filename) throws TechnicalException, UnsignedSAMLObjectException,
-            UntrustedSignerException, InvalidSignatureException, NoSuchAlgorithmException, IOException {
+    private void loadMetadata(String filename) throws TechnicalException,
+            NoSuchAlgorithmException, IOException {
 
         File file = new File(filename);
 
@@ -191,8 +180,7 @@ public class MetadataService {
         loadedSpFiles.put(filename, fileProperties);
     }
 
-    private void unloadMetadata(String filename) throws TechnicalException, UnsignedSAMLObjectException,
-            UntrustedSignerException, InvalidSignatureException {
+    private void unloadMetadata(String filename) {
 
         LOG.info("Unloading SAML SP metadata: {}", filename);
 

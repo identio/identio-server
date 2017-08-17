@@ -19,21 +19,19 @@
  */
 package net.identio.server.service.authentication.ldap;
 
-import java.util.Hashtable;
-
-import javax.naming.CommunicationException;
-import javax.naming.Context;
-import javax.naming.NamingException;
-import javax.naming.directory.SearchControls;
-import javax.naming.ldap.InitialLdapContext;
-
+import net.identio.server.model.LdapAuthMethod;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.identio.server.model.LdapAuthMethod;
+import javax.naming.CommunicationException;
+import javax.naming.Context;
+import javax.naming.NamingException;
+import javax.naming.directory.SearchControls;
+import javax.naming.ldap.InitialLdapContext;
+import java.util.Hashtable;
 
 public class LdapConnectionFactory extends BasePooledObjectFactory<InitialLdapContext> {
 
