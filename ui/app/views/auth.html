@@ -1,52 +1,52 @@
 <!-- Title -->
 <div class="row header">
-	<img src="/images/logo.png" class="main-logo" />
+  <img src="/images/logo.png" class="main-logo"/>
 </div>
 <div class="row">
-	<p class="main-title">{{'IDENTIO_SIGN_IN' | translate}}</p>
+  <p class="main-title">{{'IDENTIO_SIGN_IN' | translate}}</p>
 </div>
 
 <div class="row">
 
-	<!-- Alert box -->
-	<div class="alert alert-danger auth-error" role="alert"
-		ng-show="auth.error" translate="{{auth.errorMessage}}"></div>
+  <!-- Alert box -->
+  <div class="alert alert-danger auth-error" role="alert"
+       ng-show="auth.error" translate="{{auth.errorMessage}}"></div>
 
-	<!-- Main form -->
-	<div class="box">
-	
-		<div class="full-length" ng-show="auth.methodChoiceEnabled == true">
-			<p class="form-label" translate="AUTHENTICATION_METHOD"></p>
-			<select class="form-control" id="auth-choice"
-				ng-model="auth.selectedItem"
-				ng-options="method.name for method in auth.methods | orderBy:'name'"
-				ng-change="auth.updateMethod()">
-			</select>
-		</div>
-		
-		<form class="auth-form" ng-submit="auth.submit()">
+  <!-- Main form -->
+  <div class="box">
 
-			<div ui-view></div>
+    <div class="full-length" ng-show="auth.methodChoiceEnabled == true">
+      <p class="form-label" translate="AUTHENTICATION_METHOD"></p>
+      <select class="form-control" id="auth-choice"
+              ng-model="auth.selectedItem"
+              ng-options="method.name for method in auth.methods | orderBy:'name'"
+              ng-change="auth.updateMethod()">
+      </select>
+    </div>
 
-			<button class="btn btn-primary"
-				ng-disabled="auth.submitInProgress == true" type="submit"
-				aria-expanded="false">
-				<span ng-show="auth.submitInProgress == false" translate='SUBMIT'></span> 
-				<span ng-show="auth.submitInProgress == true" translate='SUBMIT_IN_PROGRESS'></span>
-			</button>
-		</form>
-	</div>
+    <form class="auth-form" ng-submit="auth.submit()">
 
-	<!-- SAML auth methods -->
-	<div class="box" ng-show="auth.samlMethods.length > 0">
-		<p translate='SAML_SECTION_HEADER'></p>
+      <div ui-view></div>
 
-		<div ng-repeat="method in auth.samlMethods | orderBy:'name'">
-			<p class="centered">
-			  <a href="" ng-click="auth.samlSpSubmit(method.name)"><img ng-src="/logo/{{method.name}}" alt="{{method.name}}"/></a>
-			</p>
-		</div>
-	</div>
+      <button class="btn btn-primary"
+              ng-disabled="auth.submitInProgress == true" type="submit"
+              aria-expanded="false">
+        <span ng-show="auth.submitInProgress == false" translate='SUBMIT'></span>
+        <span ng-show="auth.submitInProgress == true" translate='SUBMIT_IN_PROGRESS'></span>
+      </button>
+    </form>
+  </div>
+
+  <!-- SAML auth methods -->
+  <div class="box" ng-show="auth.samlMethods.length > 0">
+    <p translate='SAML_SECTION_HEADER'></p>
+
+    <div ng-repeat="method in auth.samlMethods | orderBy:'name'">
+      <p class="centered">
+        <a href="" ng-click="auth.samlSpSubmit(method.name)"><img ng-src="/logo/{{method.name}}" alt="{{method.name}}"/></a>
+      </p>
+    </div>
+  </div>
 
 </div>
 

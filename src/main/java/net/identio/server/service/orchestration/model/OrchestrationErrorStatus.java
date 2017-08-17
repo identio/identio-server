@@ -27,5 +27,5 @@ public class OrchestrationErrorStatus {
     public static final String AUTH_METHOD_UNKNOWN = "auth.method.unknown";
     public static final String AUTH_METHOD_NOT_ALLOWED = "auth.method.not.allowed";
     public static final String INVALID_TRANSACTION = "invalid.transaction";
-    public static final String  INVALID_REQUEST = "invalid.request";
+    public static final String INVALID_REQUEST = "invalid.request";
 }

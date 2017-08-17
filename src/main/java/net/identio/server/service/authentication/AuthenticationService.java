@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io.
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.service.authentication;
 
@@ -33,69 +34,69 @@ import java.util.HashMap;
 @Service
 public class AuthenticationService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AuthenticationService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AuthenticationService.class);
 
-	private HashMap<AuthMethod, AuthenticationProvider> explicitAuthenticationProviders = new HashMap<>();
-	private HashMap<AuthMethod, AuthenticationProvider> transparentAuthenticationProviders = new HashMap<>();
+    private HashMap<AuthMethod, AuthenticationProvider> explicitAuthenticationProviders = new HashMap<>();
+    private HashMap<AuthMethod, AuthenticationProvider> transparentAuthenticationProviders = new HashMap<>();
 
-	public void registerExplicit(AuthMethod authMethod, AuthenticationProvider provider) throws IllegalArgumentException {
+    public void registerExplicit(AuthMethod authMethod, AuthenticationProvider provider) throws IllegalArgumentException {
 
-		LOG.info("Registering explicit method {}", authMethod.getName());
+        LOG.info("Registering explicit method {}", authMethod.getName());
 
-		if (explicitAuthenticationProviders.containsKey(authMethod)) {
-			String message = "Authentication method name already in use";
-			LOG.error(message);
-			throw new IllegalArgumentException(message);
-		}
+        if (explicitAuthenticationProviders.containsKey(authMethod)) {
+            String message = "Authentication method name already in use";
+            LOG.error(message);
+            throw new IllegalArgumentException(message);
+        }
 
-		explicitAuthenticationProviders.put(authMethod, provider);
-	}
+        explicitAuthenticationProviders.put(authMethod, provider);
+    }
 
-	public void registerTransparent(AuthMethod authMethod, AuthenticationProvider provider) throws IllegalArgumentException {
+    public void registerTransparent(AuthMethod authMethod, AuthenticationProvider provider) throws IllegalArgumentException {
 
-		LOG.info("Registering transparent method {}", authMethod.getName());
-		
-		if (transparentAuthenticationProviders.containsKey(authMethod.getName())) {
-			String message = "Authentication method name already in use";
-			LOG.error(message);
-			throw new IllegalArgumentException(message);
-		}
+        LOG.info("Registering transparent method {}", authMethod.getName());
 
-		transparentAuthenticationProviders.put(authMethod, provider);
-	}
+        if (transparentAuthenticationProviders.containsKey(authMethod.getName())) {
+            String message = "Authentication method name already in use";
+            LOG.error(message);
+            throw new IllegalArgumentException(message);
+        }
 
-	public AuthenticationResult validateTransparent(Authentication authentication, TransactionData transactionData) {
+        transparentAuthenticationProviders.put(authMethod, provider);
+    }
 
-		AuthenticationResult result = null;
+    public AuthenticationResult validateTransparent(Authentication authentication, TransactionData transactionData) {
 
-		for (AuthMethod authMethod : transparentAuthenticationProviders.keySet()) {
+        AuthenticationResult result = null;
 
-			AuthenticationProvider provider = transparentAuthenticationProviders.get(authMethod);
+        for (AuthMethod authMethod : transparentAuthenticationProviders.keySet()) {
 
-			if (provider.accepts(authentication)) {
-				result = provider.validate(authMethod, authentication, transactionData);
+            AuthenticationProvider provider = transparentAuthenticationProviders.get(authMethod);
 
-				if (result.getStatus() != AuthenticationResultStatus.FAIL) {
-					break;
-				}
+            if (provider.accepts(authentication)) {
+                result = provider.validate(authMethod, authentication, transactionData);
 
-			}
-		}
+                if (result.getStatus() != AuthenticationResultStatus.FAIL) {
+                    break;
+                }
 
-		return result;
-	}
+            }
+        }
 
-	public AuthenticationResult validateExplicit(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+        return result;
+    }
 
-		AuthenticationResult result = null;
+    public AuthenticationResult validateExplicit(AuthMethod authMethod, Authentication authentication,
+                                                 TransactionData transactionData) {
 
-		AuthenticationProvider provider = explicitAuthenticationProviders.get(authMethod);
+        AuthenticationResult result = null;
 
-		if (provider.accepts(authentication)) {
-			result = provider.validate(authMethod, authentication, transactionData);
-		}
+        AuthenticationProvider provider = explicitAuthenticationProviders.get(authMethod);
 
-		return result;
-	}
+        if (provider.accepts(authentication)) {
+            result = provider.validate(authMethod, authentication, transactionData);
+        }
+
+        return result;
+    }
 }

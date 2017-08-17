@@ -25,74 +25,74 @@ import net.identio.server.model.AuthMethod;
 
 public class AuthenticationResult {
 
-	private AuthenticationResultStatus status;
-	private String errorStatus;
-	private String challengeType;
-	private String challengeValue;
-	private String userId;
-	private AuthMethod authMethod;
-	private AuthLevel authLevel;
+    private AuthenticationResultStatus status;
+    private String errorStatus;
+    private String challengeType;
+    private String challengeValue;
+    private String userId;
+    private AuthMethod authMethod;
+    private AuthLevel authLevel;
 
-	public AuthenticationResultStatus getStatus() {
-		return status;
-	}
+    public AuthenticationResultStatus getStatus() {
+        return status;
+    }
 
-	public AuthenticationResult setStatus(AuthenticationResultStatus status) {
-		this.status = status;
-		return this;
-	}
+    public AuthenticationResult setStatus(AuthenticationResultStatus status) {
+        this.status = status;
+        return this;
+    }
 
-	public String getErrorStatus() {
-		return errorStatus;
-	}
+    public String getErrorStatus() {
+        return errorStatus;
+    }
 
-	public AuthenticationResult setErrorStatus(String errorStatus) {
-		this.errorStatus = errorStatus;
-		return this;
-	}
+    public AuthenticationResult setErrorStatus(String errorStatus) {
+        this.errorStatus = errorStatus;
+        return this;
+    }
 
-	public String getChallengeType() {
-		return challengeType;
-	}
+    public String getChallengeType() {
+        return challengeType;
+    }
 
-	public AuthenticationResult setChallengeType(String challengeType) {
-		this.challengeType = challengeType;
-		return this;
-	}
+    public AuthenticationResult setChallengeType(String challengeType) {
+        this.challengeType = challengeType;
+        return this;
+    }
 
-	public String getChallengeValue() {
-		return challengeValue;
-	}
+    public String getChallengeValue() {
+        return challengeValue;
+    }
 
-	public AuthenticationResult setChallengeValue(String challengeValue) {
-		this.challengeValue = challengeValue;
-		return this;
-	}
+    public AuthenticationResult setChallengeValue(String challengeValue) {
+        this.challengeValue = challengeValue;
+        return this;
+    }
 
-	public String getUserId() {
-		return userId;
-	}
+    public String getUserId() {
+        return userId;
+    }
 
-	public AuthenticationResult setUserId(String userId) {
-		this.userId = userId;
-		return this;
-	}
+    public AuthenticationResult setUserId(String userId) {
+        this.userId = userId;
+        return this;
+    }
 
-	public AuthLevel getAuthLevel() {
-		return authLevel;
-	}
+    public AuthLevel getAuthLevel() {
+        return authLevel;
+    }
 
-	public AuthenticationResult setAuthLevel(AuthLevel authLevel) {
-		this.authLevel = authLevel;
-		return this;
-	}
+    public AuthenticationResult setAuthLevel(AuthLevel authLevel) {
+        this.authLevel = authLevel;
+        return this;
+    }
 
-	public AuthMethod getAuthMethod() {
-		return authMethod;
-	}
+    public AuthMethod getAuthMethod() {
+        return authMethod;
+    }
 
-	public AuthenticationResult setAuthMethod(AuthMethod authMethod) {
-		this.authMethod = authMethod;
-		return this;
-	}
+    public AuthenticationResult setAuthMethod(AuthMethod authMethod) {
+        this.authMethod = authMethod;
+        return this;
+    }
 }

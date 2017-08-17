@@ -1,51 +1,52 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.model;
 
 public class AppAuthLevel {
 
-	private String appName;
-	private AuthLevel authLevel;
-	private String comparison;
+    private String appName;
+    private AuthLevel authLevel;
+    private String comparison;
 
-	public String getAppName() {
-		return appName;
-	}
+    public String getAppName() {
+        return appName;
+    }
 
-	public void setAppName(String appName) {
-		this.appName = appName;
-	}
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
 
-	public AuthLevel getAuthLevel() {
-		return authLevel;
-	}
+    public AuthLevel getAuthLevel() {
+        return authLevel;
+    }
 
-	public void setAuthLevel(AuthLevel authLevel) {
-		this.authLevel = authLevel;
-	}
+    public void setAuthLevel(AuthLevel authLevel) {
+        this.authLevel = authLevel;
+    }
 
-	public String getComparison() {
-		return comparison;
-	}
+    public String getComparison() {
+        return comparison;
+    }
 
-	public void setComparison(String comparison) {
-		this.comparison = comparison;
-	}
+    public void setComparison(String comparison) {
+        this.comparison = comparison;
+    }
 }

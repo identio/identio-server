@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.service.usersession;
 
@@ -38,73 +39,73 @@ import java.util.concurrent.TimeUnit;
 @Scope("singleton")
 public class UserSessionService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(UserSessionService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(UserSessionService.class);
 
-	private LoadingCache<String, UserSession> sessionCache;
+    private LoadingCache<String, UserSession> sessionCache;
 
-	@Autowired
-	public UserSessionService(ConfigurationService configurationService) {
+    @Autowired
+    public UserSessionService(ConfigurationService configurationService) {
 
-		LOG.debug("Initializing in-memory session service");
+        LOG.debug("Initializing in-memory session service");
 
-		sessionCache = CacheBuilder.newBuilder().maximumSize(100000)
-				.expireAfterAccess(configurationService.getConfiguration().getSessionConfiguration().getDuration(),
-						TimeUnit.MINUTES)
-				.build(new CacheLoader<String, UserSession>() {
-					public UserSession load(String o) {
-						return new UserSession();
-					}
-				});
+        sessionCache = CacheBuilder.newBuilder().maximumSize(100000)
+                .expireAfterAccess(configurationService.getConfiguration().getSessionConfiguration().getDuration(),
+                        TimeUnit.MINUTES)
+                .build(new CacheLoader<String, UserSession>() {
+                    public UserSession load(String o) {
+                        return new UserSession();
+                    }
+                });
 
-		LOG.debug("* Successfully created session cache");
-	}
+        LOG.debug("* Successfully created session cache");
+    }
 
-	public UserSession createUserSession() {
-		LOG.debug("Creating new session");
+    public UserSession createUserSession() {
+        LOG.debug("Creating new session");
 
-		String sessionId = UUID.randomUUID().toString();
+        String sessionId = UUID.randomUUID().toString();
 
-		UserSession session = new UserSession();
-		session.setId(sessionId);
-		sessionCache.put(sessionId, session);
+        UserSession session = new UserSession();
+        session.setId(sessionId);
+        sessionCache.put(sessionId, session);
 
-		LOG.debug("New session generated {}", sessionId);
+        LOG.debug("New session generated {}", sessionId);
 
-		return session;
-	}
+        return session;
+    }
 
-	public UserSession getUserSession(String sessionId) {
+    public UserSession getUserSession(String sessionId) {
 
-		UserSession userSession = null;
+        UserSession userSession = null;
 
-		if (sessionId != null) {
+        if (sessionId != null) {
 
-			LOG.debug("Fetch session {} in cache", sessionId);
+            LOG.debug("Fetch session {} in cache", sessionId);
 
-			try {
-				userSession = sessionCache.get(sessionId);
-			} catch (ExecutionException ex) {
-				LOG.error("An error occured when loading session from cache: {}", ex.getMessage());
-				LOG.debug("* Detailed Stacktrace: ", ex);
-			}
-		}
+            try {
+                userSession = sessionCache.get(sessionId);
+            } catch (ExecutionException ex) {
+                LOG.error("An error occured when loading session from cache: {}", ex.getMessage());
+                LOG.debug("* Detailed Stacktrace: ", ex);
+            }
+        }
 
-		// Check that the session still exists. If not, we create a new one
-		if (userSession == null || userSession.getId() == null) {
+        // Check that the session still exists. If not, we create a new one
+        if (userSession == null || userSession.getId() == null) {
 
-			LOG.debug("No existing session found");
+            LOG.debug("No existing session found");
 
-			userSession = createUserSession();
-		}
+            userSession = createUserSession();
+        }
 
-		return userSession;
-	}
+        return userSession;
+    }
 
-	public void removeUserSession(String userSessionId) {
+    public void removeUserSession(String userSessionId) {
 
-		LOG.debug("Remove session {} from cache", userSessionId);
+        LOG.debug("Remove session {} from cache", userSessionId);
 
-		sessionCache.invalidate(userSessionId);
+        sessionCache.invalidate(userSessionId);
 
-	}
+    }
 }

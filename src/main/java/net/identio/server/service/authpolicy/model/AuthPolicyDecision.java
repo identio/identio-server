@@ -27,35 +27,35 @@ import java.util.HashSet;
 
 public class AuthPolicyDecision {
 
-	private AuthPolicyDecisionStatus status;
-	private AuthSession validatedAuthSession;
-	private HashSet<AuthMethod> nextAuthMethods;
+    private AuthPolicyDecisionStatus status;
+    private AuthSession validatedAuthSession;
+    private HashSet<AuthMethod> nextAuthMethods;
 
-	public AuthPolicyDecisionStatus getStatus() {
-		return status;
-	}
+    public AuthPolicyDecisionStatus getStatus() {
+        return status;
+    }
 
-	public AuthPolicyDecision setStatus(AuthPolicyDecisionStatus status) {
-		this.status = status;
-		return this;
-	}
+    public AuthPolicyDecision setStatus(AuthPolicyDecisionStatus status) {
+        this.status = status;
+        return this;
+    }
 
-	public AuthSession getValidatedAuthSession() {
-		return validatedAuthSession;
-	}
+    public AuthSession getValidatedAuthSession() {
+        return validatedAuthSession;
+    }
 
-	public AuthPolicyDecision setValidatedAuthSession(AuthSession validatedAuthSession) {
-		this.validatedAuthSession = validatedAuthSession;
-		return this;
-	}
+    public AuthPolicyDecision setValidatedAuthSession(AuthSession validatedAuthSession) {
+        this.validatedAuthSession = validatedAuthSession;
+        return this;
+    }
 
-	public HashSet<AuthMethod> getNextAuthMethods() {
-		return nextAuthMethods;
-	}
+    public HashSet<AuthMethod> getNextAuthMethods() {
+        return nextAuthMethods;
+    }
 
-	public AuthPolicyDecision setNextAuthMethods(HashSet<AuthMethod> nextAuthMethods) {
-		this.nextAuthMethods = nextAuthMethods;
-		return this;
-	}
+    public AuthPolicyDecision setNextAuthMethods(HashSet<AuthMethod> nextAuthMethods) {
+        this.nextAuthMethods = nextAuthMethods;
+        return this;
+    }
 
 }

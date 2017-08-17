@@ -26,74 +26,74 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class LaunchSamlAuthenticationResponse {
 
-	private String destinationUrl;
-	private String errorStatus;
-	private String binding;
-	private String relayState;
-	private String samlRequest;
-	private String sigAlg;
-	private String signature;
+    private String destinationUrl;
+    private String errorStatus;
+    private String binding;
+    private String relayState;
+    private String samlRequest;
+    private String sigAlg;
+    private String signature;
 
-	public String getDestinationUrl() {
-		return destinationUrl;
-	}
+    public String getDestinationUrl() {
+        return destinationUrl;
+    }
 
-	public LaunchSamlAuthenticationResponse setDestinationUrl(String destinationUrl) {
-		this.destinationUrl = destinationUrl;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setDestinationUrl(String destinationUrl) {
+        this.destinationUrl = destinationUrl;
+        return this;
+    }
 
-	public String getErrorStatus() {
-		return errorStatus;
-	}
+    public String getErrorStatus() {
+        return errorStatus;
+    }
 
-	public LaunchSamlAuthenticationResponse setErrorStatus(String errorStatus) {
-		this.errorStatus = errorStatus;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setErrorStatus(String errorStatus) {
+        this.errorStatus = errorStatus;
+        return this;
+    }
 
-	public String getBinding() {
-		return binding;
-	}
+    public String getBinding() {
+        return binding;
+    }
 
-	public LaunchSamlAuthenticationResponse setBinding(String binding) {
-		this.binding = binding;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setBinding(String binding) {
+        this.binding = binding;
+        return this;
+    }
 
-	public String getRelayState() {
-		return relayState;
-	}
+    public String getRelayState() {
+        return relayState;
+    }
 
-	public LaunchSamlAuthenticationResponse setRelayState(String relayState) {
-		this.relayState = relayState;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setRelayState(String relayState) {
+        this.relayState = relayState;
+        return this;
+    }
 
-	public String getSamlRequest() {
-		return samlRequest;
-	}
+    public String getSamlRequest() {
+        return samlRequest;
+    }
 
-	public LaunchSamlAuthenticationResponse setSamlRequest(String samlRequest) {
-		this.samlRequest = samlRequest;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setSamlRequest(String samlRequest) {
+        this.samlRequest = samlRequest;
+        return this;
+    }
 
-	public String getSigAlg() {
-		return sigAlg;
-	}
+    public String getSigAlg() {
+        return sigAlg;
+    }
 
-	public LaunchSamlAuthenticationResponse setSigAlg(String sigAlg) {
-		this.sigAlg = sigAlg;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setSigAlg(String sigAlg) {
+        this.sigAlg = sigAlg;
+        return this;
+    }
 
-	public String getSignature() {
-		return signature;
-	}
+    public String getSignature() {
+        return signature;
+    }
 
-	public LaunchSamlAuthenticationResponse setSignature(String signature) {
-		this.signature = signature;
-		return this;
-	}
+    public LaunchSamlAuthenticationResponse setSignature(String signature) {
+        this.signature = signature;
+        return this;
+    }
 }

@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io.
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.mvc.common;
 
@@ -41,50 +42,50 @@ import java.io.IOException;
 @Controller
 public class LogoController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LogoController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LogoController.class);
 
-	@Autowired
-	private AuthPolicyService authPolicyService;
+    @Autowired
+    private AuthPolicyService authPolicyService;
 
-	@RequestMapping(value = "/logo/{authMethodName}", method = RequestMethod.GET)
-	@ResponseBody
-	public void getLogo(@PathVariable("authMethodName") String authMethodName, HttpServletResponse response) {
+    @RequestMapping(value = "/logo/{authMethodName}", method = RequestMethod.GET)
+    @ResponseBody
+    public void getLogo(@PathVariable("authMethodName") String authMethodName, HttpServletResponse response) {
 
-		String fileName = authPolicyService.getLogo(authMethodName);
+        String fileName = authPolicyService.getLogo(authMethodName);
 
-		if (fileName == null) {
-			response.setStatus(HttpStatus.NOT_FOUND.value());
-			return;
-		}
+        if (fileName == null) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return;
+        }
 
-		File file = new File(fileName);
+        File file = new File(fileName);
 
-		HttpHeaders header = new HttpHeaders();
-		header.setContentLength(file.length());
+        HttpHeaders header = new HttpHeaders();
+        header.setContentLength(file.length());
 
-		if (fileName.endsWith(".png")) {
-			header.setContentType(MediaType.IMAGE_PNG);
-		}
-		if (fileName.endsWith(".jpg")) {
-			header.setContentType(MediaType.IMAGE_JPEG);
-		}
+        if (fileName.endsWith(".png")) {
+            header.setContentType(MediaType.IMAGE_PNG);
+        }
+        if (fileName.endsWith(".jpg")) {
+            header.setContentType(MediaType.IMAGE_JPEG);
+        }
 
-		try (FileInputStream is = new FileInputStream(file)) {
+        try (FileInputStream is = new FileInputStream(file)) {
 
-			byte[] buf = new byte[2048];
-			ServletOutputStream os = response.getOutputStream();
+            byte[] buf = new byte[2048];
+            ServletOutputStream os = response.getOutputStream();
 
-			while (is.read(buf) != -1) {
-				os.write(buf);
-			}
+            while (is.read(buf) != -1) {
+                os.write(buf);
+            }
 
-			response.flushBuffer();
-		} catch (IOException e) {
-			LOG.error("Error when accessing logo file {}: {}", fileName, e.getMessage());
-			LOG.debug("* Detailed stacktrace:", e);
+            response.flushBuffer();
+        } catch (IOException e) {
+            LOG.error("Error when accessing logo file {}: {}", fileName, e.getMessage());
+            LOG.debug("* Detailed stacktrace:", e);
 
-			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-			return;
-		}
-	}
+            response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+            return;
+        }
+    }
 }

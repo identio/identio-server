@@ -28,123 +28,123 @@ import java.util.List;
 
 public class RequestParsingInfo {
 
-	private RequestParsingStatus status;
-	private String errorStatus;
-	private String requestId;
-	private ProtocolType protocolType;
-	private String sourceApplicationName;
-	private boolean forceAuthentication;
-	private String authLevelComparison;
-	private List<AuthLevel> requestedAuthLevels;
-	private String relayState;
-	private String responseUrl;
-	private List<AuthorizationScope> requestedScopes;
-	private String responseType;
-	
-	public RequestParsingStatus getStatus() {
-		return status;
-	}
+    private RequestParsingStatus status;
+    private String errorStatus;
+    private String requestId;
+    private ProtocolType protocolType;
+    private String sourceApplicationName;
+    private boolean forceAuthentication;
+    private String authLevelComparison;
+    private List<AuthLevel> requestedAuthLevels;
+    private String relayState;
+    private String responseUrl;
+    private List<AuthorizationScope> requestedScopes;
+    private String responseType;
 
-	public RequestParsingInfo setStatus(RequestParsingStatus status) {
-		this.status = status;
-		return this;
-	}
+    public RequestParsingStatus getStatus() {
+        return status;
+    }
 
-	public String getErrorStatus() {
-		return errorStatus;
-	}
+    public RequestParsingInfo setStatus(RequestParsingStatus status) {
+        this.status = status;
+        return this;
+    }
 
-	public RequestParsingInfo setErrorStatus(String errorStatus) {
-		this.errorStatus = errorStatus;
-		return this;
-	}
+    public String getErrorStatus() {
+        return errorStatus;
+    }
 
-	public String getRequestId() {
-		return requestId;
-	}
+    public RequestParsingInfo setErrorStatus(String errorStatus) {
+        this.errorStatus = errorStatus;
+        return this;
+    }
 
-	public RequestParsingInfo setRequestId(String requestId) {
-		this.requestId = requestId;
-		return this;
-	}
+    public String getRequestId() {
+        return requestId;
+    }
 
-	public ProtocolType getProtocolType() {
-		return protocolType;
-	}
+    public RequestParsingInfo setRequestId(String requestId) {
+        this.requestId = requestId;
+        return this;
+    }
 
-	public RequestParsingInfo setProtocolType(ProtocolType protocolType) {
-		this.protocolType = protocolType;
-		return this;
-	}
+    public ProtocolType getProtocolType() {
+        return protocolType;
+    }
 
-	public String getSourceApplicationName() {
-		return sourceApplicationName;
-	}
+    public RequestParsingInfo setProtocolType(ProtocolType protocolType) {
+        this.protocolType = protocolType;
+        return this;
+    }
 
-	public RequestParsingInfo setSourceApplicationName(String sourceApplicationName) {
-		this.sourceApplicationName = sourceApplicationName;
-		return this;
-	}
+    public String getSourceApplicationName() {
+        return sourceApplicationName;
+    }
 
-	public boolean isForceAuthentication() {
-		return forceAuthentication;
-	}
+    public RequestParsingInfo setSourceApplicationName(String sourceApplicationName) {
+        this.sourceApplicationName = sourceApplicationName;
+        return this;
+    }
 
-	public RequestParsingInfo setForceAuthentication(boolean forceAuthentication) {
-		this.forceAuthentication = forceAuthentication;
-		return this;
-	}
+    public boolean isForceAuthentication() {
+        return forceAuthentication;
+    }
 
-	public String getAuthLevelComparison() {
-		return authLevelComparison;
-	}
+    public RequestParsingInfo setForceAuthentication(boolean forceAuthentication) {
+        this.forceAuthentication = forceAuthentication;
+        return this;
+    }
 
-	public RequestParsingInfo setAuthLevelComparison(String authLevelComparison) {
-		this.authLevelComparison = authLevelComparison;
-		return this;
-	}
+    public String getAuthLevelComparison() {
+        return authLevelComparison;
+    }
 
-	public List<AuthLevel> getRequestedAuthLevels() {
-		return requestedAuthLevels;
-	}
+    public RequestParsingInfo setAuthLevelComparison(String authLevelComparison) {
+        this.authLevelComparison = authLevelComparison;
+        return this;
+    }
 
-	public RequestParsingInfo setRequestedAuthLevels(List<AuthLevel> requestedAuthLevels) {
-		this.requestedAuthLevels = requestedAuthLevels;
-		return this;
-	}
+    public List<AuthLevel> getRequestedAuthLevels() {
+        return requestedAuthLevels;
+    }
 
-	public String getRelayState() {
-		return relayState;
-	}
+    public RequestParsingInfo setRequestedAuthLevels(List<AuthLevel> requestedAuthLevels) {
+        this.requestedAuthLevels = requestedAuthLevels;
+        return this;
+    }
 
-	public RequestParsingInfo setRelayState(String relayState) {
-		this.relayState = relayState;
-		return this;
-	}
+    public String getRelayState() {
+        return relayState;
+    }
 
-	public String getResponseUrl() {
-		return responseUrl;
-	}
+    public RequestParsingInfo setRelayState(String relayState) {
+        this.relayState = relayState;
+        return this;
+    }
 
-	public RequestParsingInfo setResponseUrl(String responseUrl) {
-		this.responseUrl = responseUrl;
-		return this;
-	}
+    public String getResponseUrl() {
+        return responseUrl;
+    }
 
-	public List<AuthorizationScope> getRequestedScopes() {
-		return requestedScopes;
-	}
+    public RequestParsingInfo setResponseUrl(String responseUrl) {
+        this.responseUrl = responseUrl;
+        return this;
+    }
 
-	public RequestParsingInfo setRequestedScopes(List<AuthorizationScope> requestedScopes) {
-		this.requestedScopes = requestedScopes;
-		return this;
-	}
+    public List<AuthorizationScope> getRequestedScopes() {
+        return requestedScopes;
+    }
 
-	public String getResponseType() {
-		return responseType;
-	}
+    public RequestParsingInfo setRequestedScopes(List<AuthorizationScope> requestedScopes) {
+        this.requestedScopes = requestedScopes;
+        return this;
+    }
 
-	public void setResponseType(String responseType) {
-		this.responseType = responseType;
-	}
+    public String getResponseType() {
+        return responseType;
+    }
+
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
+    }
 }

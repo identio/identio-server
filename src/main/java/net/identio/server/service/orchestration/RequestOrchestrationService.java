@@ -74,7 +74,7 @@ public class RequestOrchestrationService {
         switch (parsingInfo.getStatus()) {
 
             case FATAL_ERROR:
-               throw new ValidationException(parsingInfo.getErrorStatus());
+                throw new ValidationException(parsingInfo.getErrorStatus());
 
             case RESPONSE_ERROR:
                 try {

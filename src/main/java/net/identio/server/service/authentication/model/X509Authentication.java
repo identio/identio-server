@@ -24,38 +24,38 @@ import java.security.cert.X509Certificate;
 
 public class X509Authentication implements Authentication {
 
-	private X509Certificate[] clientAuthCert;
-	private String userCert;
-	private String sharedSecret;
+    private X509Certificate[] clientAuthCert;
+    private String userCert;
+    private String sharedSecret;
 
-	public X509Certificate[] getClientAuthCert() {
-		return clientAuthCert;
-	}
+    public X509Certificate[] getClientAuthCert() {
+        return clientAuthCert;
+    }
 
-	public void setClientAuthCert(X509Certificate[] certificates) {
-		this.clientAuthCert = certificates;
-	}
+    public void setClientAuthCert(X509Certificate[] certificates) {
+        this.clientAuthCert = certificates;
+    }
 
-	public String getUserCert() {
-		return userCert;
-	}
+    public String getUserCert() {
+        return userCert;
+    }
 
-	public void setUserCert(String userCert) {
-		this.userCert = userCert;
-	}
+    public void setUserCert(String userCert) {
+        this.userCert = userCert;
+    }
 
-	public String getSharedSecret() {
-		return sharedSecret;
-	}
+    public String getSharedSecret() {
+        return sharedSecret;
+    }
 
-	public void setSharedSecret(String sharedSecret) {
-		this.sharedSecret = sharedSecret;
-	}
+    public void setSharedSecret(String sharedSecret) {
+        this.sharedSecret = sharedSecret;
+    }
 
-	public X509Authentication(X509Certificate[] clientAuthCert,
-			String userCert, String sharedSecret) {
-		this.clientAuthCert = clientAuthCert;
-		this.userCert = userCert;
-		this.sharedSecret = sharedSecret;
-	}
+    public X509Authentication(X509Certificate[] clientAuthCert,
+                              String userCert, String sharedSecret) {
+        this.clientAuthCert = clientAuthCert;
+        this.userCert = userCert;
+        this.sharedSecret = sharedSecret;
+    }
 }

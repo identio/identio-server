@@ -167,8 +167,7 @@ public class AuthOrchestrationService {
 
                     } catch (SamlException e) {
                         throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-                    }
-                    finally {
+                    } finally {
                         transactionService.removeTransactionData(transactionData);
                     }
                 }

@@ -24,85 +24,85 @@ import net.identio.saml.Endpoint;
 
 public class SamlAuthRequestGenerationResult {
 
-	private boolean success;
-	private String errorStatus;
-	private Endpoint targetEndpoint;
-	private String serializedRequest;
-	private String relayState;
-	private String signature;
-	private String signatureAlgorithm;
-	private String requestId;
+    private boolean success;
+    private String errorStatus;
+    private Endpoint targetEndpoint;
+    private String serializedRequest;
+    private String relayState;
+    private String signature;
+    private String signatureAlgorithm;
+    private String requestId;
 
-	public boolean isSuccess() {
-		return success;
-	}
+    public boolean isSuccess() {
+        return success;
+    }
 
-	public SamlAuthRequestGenerationResult setSuccess(boolean success) {
-		this.success = success;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setSuccess(boolean success) {
+        this.success = success;
+        return this;
+    }
 
-	public String getErrorStatus() {
-		return errorStatus;
-	}
+    public String getErrorStatus() {
+        return errorStatus;
+    }
 
-	public SamlAuthRequestGenerationResult setErrorStatus(String errorStatus) {
-		this.errorStatus = errorStatus;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setErrorStatus(String errorStatus) {
+        this.errorStatus = errorStatus;
+        return this;
+    }
 
-	public Endpoint getTargetEndpoint() {
-		return targetEndpoint;
-	}
+    public Endpoint getTargetEndpoint() {
+        return targetEndpoint;
+    }
 
-	public SamlAuthRequestGenerationResult setTargetEndpoint(Endpoint targetEndpoint) {
-		this.targetEndpoint = targetEndpoint;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setTargetEndpoint(Endpoint targetEndpoint) {
+        this.targetEndpoint = targetEndpoint;
+        return this;
+    }
 
-	public String getSerializedRequest() {
-		return serializedRequest;
-	}
+    public String getSerializedRequest() {
+        return serializedRequest;
+    }
 
-	public SamlAuthRequestGenerationResult setSerializedRequest(String serializedRequest) {
-		this.serializedRequest = serializedRequest;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setSerializedRequest(String serializedRequest) {
+        this.serializedRequest = serializedRequest;
+        return this;
+    }
 
-	public String getRelayState() {
-		return relayState;
-	}
+    public String getRelayState() {
+        return relayState;
+    }
 
-	public SamlAuthRequestGenerationResult setRelayState(String relayState) {
-		this.relayState = relayState;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setRelayState(String relayState) {
+        this.relayState = relayState;
+        return this;
+    }
 
-	public String getSignature() {
-		return signature;
-	}
+    public String getSignature() {
+        return signature;
+    }
 
-	public SamlAuthRequestGenerationResult setSignature(String signature) {
-		this.signature = signature;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setSignature(String signature) {
+        this.signature = signature;
+        return this;
+    }
 
-	public String getSignatureAlgorithm() {
-		return signatureAlgorithm;
-	}
+    public String getSignatureAlgorithm() {
+        return signatureAlgorithm;
+    }
 
-	public SamlAuthRequestGenerationResult setSignatureAlgorithm(String signatureAlgorithm) {
-		this.signatureAlgorithm = signatureAlgorithm;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setSignatureAlgorithm(String signatureAlgorithm) {
+        this.signatureAlgorithm = signatureAlgorithm;
+        return this;
+    }
 
-	public String getRequestId() {
-		return requestId;
-	}
+    public String getRequestId() {
+        return requestId;
+    }
 
-	public SamlAuthRequestGenerationResult setRequestId(String requestId) {
-		this.requestId = requestId;
-		return this;
-	}
+    public SamlAuthRequestGenerationResult setRequestId(String requestId) {
+        this.requestId = requestId;
+        return this;
+    }
 
 }

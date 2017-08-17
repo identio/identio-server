@@ -27,85 +27,85 @@ import net.identio.server.model.ProtocolType;
 @JsonInclude(Include.NON_NULL)
 public class AuthSubmitResponse {
 
-	private ApiResponseStatus status;
-	private String errorStatus;
-	private String destinationUrl;
-	private String relayState;
-	private String data;
-	private ProtocolType protocolType;
-	private String challengeType;
-	private String challengeValue;
+    private ApiResponseStatus status;
+    private String errorStatus;
+    private String destinationUrl;
+    private String relayState;
+    private String data;
+    private ProtocolType protocolType;
+    private String challengeType;
+    private String challengeValue;
 
-	public ApiResponseStatus getStatus() {
-		return status;
-	}
+    public ApiResponseStatus getStatus() {
+        return status;
+    }
 
-	public AuthSubmitResponse setStatus(ApiResponseStatus status) {
-		this.status = status;
-		return this;
-	}
+    public AuthSubmitResponse setStatus(ApiResponseStatus status) {
+        this.status = status;
+        return this;
+    }
 
-	public String getErrorStatus() {
-		return errorStatus;
-	}
+    public String getErrorStatus() {
+        return errorStatus;
+    }
 
-	public AuthSubmitResponse setErrorStatus(String errorStatus) {
-		this.errorStatus = errorStatus;
-		return this;
-	}
+    public AuthSubmitResponse setErrorStatus(String errorStatus) {
+        this.errorStatus = errorStatus;
+        return this;
+    }
 
-	public String getDestinationUrl() {
-		return destinationUrl;
-	}
+    public String getDestinationUrl() {
+        return destinationUrl;
+    }
 
-	public AuthSubmitResponse setDestinationUrl(String destinationUrl) {
-		this.destinationUrl = destinationUrl;
-		return this;
-	}
+    public AuthSubmitResponse setDestinationUrl(String destinationUrl) {
+        this.destinationUrl = destinationUrl;
+        return this;
+    }
 
-	public String getRelayState() {
-		return relayState;
-	}
+    public String getRelayState() {
+        return relayState;
+    }
 
-	public AuthSubmitResponse setRelayState(String relayState) {
-		this.relayState = relayState;
-		return this;
-	}
+    public AuthSubmitResponse setRelayState(String relayState) {
+        this.relayState = relayState;
+        return this;
+    }
 
-	public String getData() {
-		return data;
-	}
+    public String getData() {
+        return data;
+    }
 
-	public AuthSubmitResponse setData(String data) {
-		this.data = data;
-		return this;
-	}
+    public AuthSubmitResponse setData(String data) {
+        this.data = data;
+        return this;
+    }
 
-	public ProtocolType getProtocolType() {
-		return protocolType;
-	}
+    public ProtocolType getProtocolType() {
+        return protocolType;
+    }
 
-	public AuthSubmitResponse setProtocolType(ProtocolType protocolType) {
-		this.protocolType = protocolType;
-		return this;
-	}
+    public AuthSubmitResponse setProtocolType(ProtocolType protocolType) {
+        this.protocolType = protocolType;
+        return this;
+    }
 
-	public String getChallengeType() {
-		return challengeType;
-	}
+    public String getChallengeType() {
+        return challengeType;
+    }
 
-	public AuthSubmitResponse setChallengeType(String challengeType) {
-		this.challengeType = challengeType;
-		return this;
-	}
+    public AuthSubmitResponse setChallengeType(String challengeType) {
+        this.challengeType = challengeType;
+        return this;
+    }
 
-	public String getChallengeValue() {
-		return challengeValue;
-	}
+    public String getChallengeValue() {
+        return challengeValue;
+    }
 
-	public AuthSubmitResponse setChallengeValue(String challengeValue) {
-		this.challengeValue = challengeValue;
-		return this;
-	}
+    public AuthSubmitResponse setChallengeValue(String challengeValue) {
+        this.challengeValue = challengeValue;
+        return this;
+    }
 
 }

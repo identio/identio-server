@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.mvc.oauth;
 
@@ -44,52 +45,52 @@ import java.util.List;
 @Controller
 public class OAuthController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(OAuthController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthController.class);
 
-	@Autowired
-	private RequestOrchestrationService validationService;
-	@Autowired
-	private TransparentAuthController transparentAuthController;
-	
-	@RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
-	public String authorizeRequest(
-			@RequestParam(value = "response_type", required = false) String responseType,
-			@RequestParam(value = "client_id", required = false) String clientId,
-			@RequestParam(value = "redirect_uri", required = false) String redirectUri,
-			@RequestParam(value = "scope", required = false) String scopes,
-			@RequestParam(value = "state", required = false) String state,
-			@CookieValue(required = false) String identioSession,
-			HttpServletRequest httpRequest,
-			HttpServletResponse httpResponse) throws ValidationException, ServerException, WebSecurityException {
+    @Autowired
+    private RequestOrchestrationService validationService;
+    @Autowired
+    private TransparentAuthController transparentAuthController;
 
-		LOG.info("Received OAuth authorization request from ClientId: {}", clientId);
-		LOG.debug("RT: {} - RU: {} - SC: {} - ST: {}", responseType, redirectUri, scopes, state);
+    @RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
+    public String authorizeRequest(
+            @RequestParam(value = "response_type", required = false) String responseType,
+            @RequestParam(value = "client_id", required = false) String clientId,
+            @RequestParam(value = "redirect_uri", required = false) String redirectUri,
+            @RequestParam(value = "scope", required = false) String scopes,
+            @RequestParam(value = "state", required = false) String state,
+            @CookieValue(required = false) String identioSession,
+            HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) throws ValidationException, ServerException, WebSecurityException {
 
-		// Scopes are separated by a space
+        LOG.info("Received OAuth authorization request from ClientId: {}", clientId);
+        LOG.debug("RT: {} - RU: {} - SC: {} - ST: {}", responseType, redirectUri, scopes, state);
 
-		List<String> scopesList = new ArrayList<>();
-		if (scopes != null) {
-			scopesList = Arrays.asList(scopes.split(" "));
-		}
+        // Scopes are separated by a space
 
-		OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopesList, state);
+        List<String> scopesList = new ArrayList<>();
+        if (scopes != null) {
+            scopesList = Arrays.asList(scopes.split(" "));
+        }
 
-		RequestValidationResult result = validationService.validateRequest(request, identioSession);
+        OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopesList, state);
 
-		switch (result.getValidationStatus()) {
-		    case RESPONSE:
-			    return "redirect:" + result.getResponseData().getUrl();
+        RequestValidationResult result = validationService.validateRequest(request, identioSession);
 
-		    case CONSENT:
-			    return "redirect:/#!/consent/";
+        switch (result.getValidationStatus()) {
+            case RESPONSE:
+                return "redirect:" + result.getResponseData().getUrl();
 
-			case ERROR:
-				return "redirect:/#!/error/" + result.getErrorStatus();
+            case CONSENT:
+                return "redirect:/#!/consent/";
 
-		    default:
-			    return transparentAuthController.checkTransparentAuthentication(
-			    		httpRequest, httpResponse, result.getSessionId(), result.getTransactionId());
-		}
-	}
+            case ERROR:
+                return "redirect:/#!/error/" + result.getErrorStatus();
+
+            default:
+                return transparentAuthController.checkTransparentAuthentication(
+                        httpRequest, httpResponse, result.getSessionId(), result.getTransactionId());
+        }
+    }
 
 }

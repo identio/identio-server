@@ -21,5 +21,5 @@
 package net.identio.server.service.authentication.model;
 
 public enum AuthenticationResultStatus {
-	SUCCESS, FAIL, CHALLENGE
+    SUCCESS, FAIL, CHALLENGE
 }

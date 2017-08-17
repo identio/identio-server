@@ -42,63 +42,63 @@ configurations {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
-    	exclude group: 'org.hibernate', module: 'hibernate-validator'
+        exclude group: 'org.hibernate', module: 'hibernate-validator'
     }
     compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
-	compile('com.github.identio:identio-saml:1.0.2')
-	compile('com.google.guava:guava:22.0')
+    compile('com.github.identio:identio-saml:1.0.2')
+    compile('com.google.guava:guava:22.0')
     compile('com.github.identio:jradius-client:-SNAPSHOT')
     compile('com.auth0:java-jwt:3.0.2')
-	compile('ch.qos.logback:logback-core:1.2.3')
-	compile('ch.qos.logback:logback-classic:1.2.3')
+    compile('ch.qos.logback:logback-core:1.2.3')
+    compile('ch.qos.logback:logback-classic:1.2.3')
     testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
     testCompile("org.apache.httpcomponents:httpclient:4.5.3")
 }
 
 eclipse {
     wtp {
-      facet {
+        facet {
             facet name: 'java', version: '1.8'
             facet name: 'jst.web', version: '3.1'
-      }
+        }
     }
     project
-    {
-   		 natures "org.springsource.ide.eclipse.gradle.core.nature"
-    }
+            {
+                natures "org.springsource.ide.eclipse.gradle.core.nature"
+            }
 }
 
 springBoot {
-  mainClass = "net.identio.server.boot.IdentioServerApplication"
+    mainClass = "net.identio.server.boot.IdentioServerApplication"
 }
 
 bootRun {
-    systemProperties = ['logging.config':'file:./config/logback.xml']
+    systemProperties = ['logging.config': 'file:./config/logback.xml']
 }
 
 /// *** UI *** ///
 
 node {
-  // Version of node to use.
-  version = '5.1.0'
+    // Version of node to use.
+    version = '5.1.0'
 
-  // Version of npm to use.
-  npmVersion = '3.9.6'
+    // Version of npm to use.
+    npmVersion = '3.9.6'
 
-  // Base URL for fetching node distributions (change if you have a mirror).
-  distBaseUrl = 'https://nodejs.org/dist'
+    // Base URL for fetching node distributions (change if you have a mirror).
+    distBaseUrl = 'https://nodejs.org/dist'
 
-  // If true, it will download node using above parameters.
-  // If false, it will try to use globally installed node.
-  download = true
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = true
 
-  // Set the work directory for unpacking node
-  workDir = file("${project.buildDir}/ui")
+    // Set the work directory for unpacking node
+    workDir = file("${project.buildDir}/ui")
 
-  // Set the work directory where node_modules should be located
-  nodeModulesDir = file("${project.projectDir}/ui")
+    // Set the work directory where node_modules should be located
+    nodeModulesDir = file("${project.projectDir}/ui")
 }
 
 grunt {
@@ -113,37 +113,37 @@ grunt {
 }
 
 task bowerInstall(type: NodeTask) {
-  script = file('ui/node_modules/bower/lib/bin/bower.js')
-  args = ['install', '--allow-root']
-  execOverrides {
-    it.ignoreExitValue = true
-    it.workingDir = file("${project.projectDir}/ui")
-  }
+    script = file('ui/node_modules/bower/lib/bin/bower.js')
+    args = ['install', '--allow-root']
+    execOverrides {
+        it.ignoreExitValue = true
+        it.workingDir = file("${project.projectDir}/ui")
+    }
 }
 
 /// *** Packaging *** ///
 
 def distributionsCopySpec = copySpec {
     into("identio-server") {
-    
-    	from 'README.md'
+
+        from 'README.md'
         from 'LICENSE'
-        
+
         into('bin') {
-           	from 'scripts/password-generator'
-           	from 'scripts/start'
-           	fileMode 0755
+            from 'scripts/password-generator'
+            from 'scripts/start'
+            fileMode 0755
         }
         into('lib') {
-           	from(jar)
-       		from(project.configurations.runtime)
-       		exclude 'spring-boot-devtools-*'
+            from(jar)
+            from(project.configurations.runtime)
+            exclude 'spring-boot-devtools-*'
         }
         into('config') {
-        	from 'sample-config'
+            from 'sample-config'
         }
         into('ui') {
-        	from 'ui/dist'
+            from 'ui/dist'
         }
     }
 }
@@ -154,20 +154,20 @@ npmInstall.mustRunAfter clean
 jar.mustRunAfter clean
 
 task releaseZip(type: Zip, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
-   description 'Build a release in zip format'
-   with distributionsCopySpec
-   archiveName = "identio-server.zip"
+    description 'Build a release in zip format'
+    with distributionsCopySpec
+    archiveName = "identio-server.zip"
 }
 
-task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) { 
-   description 'Build a release in tar.gz format'
-   compression = Compression.GZIP
-   with distributionsCopySpec
-   archiveName = "identio-server.tar.gz"
+task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
+    description 'Build a release in tar.gz format'
+    compression = Compression.GZIP
+    with distributionsCopySpec
+    archiveName = "identio-server.tar.gz"
 }
 
 task release(dependsOn: ['releaseTarGz', 'releaseZip']) {
-   description 'Build release in zip and tar.gz format'
+    description 'Build release in zip and tar.gz format'
 }
 
 task wrapper(type: Wrapper) {

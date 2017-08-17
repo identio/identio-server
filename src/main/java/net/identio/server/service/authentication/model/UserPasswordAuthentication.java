@@ -22,42 +22,42 @@ package net.identio.server.service.authentication.model;
 
 public class UserPasswordAuthentication implements Authentication {
 
-	private String userId;
-	private String password;
-	private String challengeResponse;
-	
-	public UserPasswordAuthentication(String userId, String password) {
-		this.userId = userId;
-		this.password = password;
-	}
+    private String userId;
+    private String password;
+    private String challengeResponse;
 
-	public UserPasswordAuthentication(String userId, String password, String challenge) {
-		this.userId = userId;
-		this.password = password;
-		this.setChallengeResponse(challenge);
-	}
-	
-	public String getUserId() {
-		return userId;
-	}
+    public UserPasswordAuthentication(String userId, String password) {
+        this.userId = userId;
+        this.password = password;
+    }
 
-	public void setUserId(String userId) {
-		this.userId = userId;
-	}
+    public UserPasswordAuthentication(String userId, String password, String challenge) {
+        this.userId = userId;
+        this.password = password;
+        this.setChallengeResponse(challenge);
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getUserId() {
+        return userId;
+    }
 
-	public void setPassword(String password) {
-		this.password = password;
-	}
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 
-	public String getChallengeResponse() {
-		return challengeResponse;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public void setChallengeResponse(String challengeResponse) {
-		this.challengeResponse = challengeResponse;
-	}
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getChallengeResponse() {
+        return challengeResponse;
+    }
+
+    public void setChallengeResponse(String challengeResponse) {
+        this.challengeResponse = challengeResponse;
+    }
 }

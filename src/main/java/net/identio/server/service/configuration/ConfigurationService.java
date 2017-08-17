@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.service.configuration;
 
@@ -37,107 +38,107 @@ import java.nio.file.Paths;
 @Service
 public class ConfigurationService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(ConfigurationService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ConfigurationService.class);
 
-	private IdentioConfiguration configuration;
-	private String configFile;
-	private String publicFqdn;
-	
-	@Autowired
-	public ConfigurationService(@Value("${identio.config}") String configFile, @Value("${identio.public.fqdn}") String publicFqdn) throws InitializationException {
+    private IdentioConfiguration configuration;
+    private String configFile;
+    private String publicFqdn;
 
-		if (publicFqdn == null) {
-			throw new InitializationException("No public FQDN specified");
-		}
-		
-		this.configFile = configFile;
-		this.publicFqdn = publicFqdn;
-		
-		LOG.debug("Loading configuration file: {}", configFile);
+    @Autowired
+    public ConfigurationService(@Value("${identio.config}") String configFile, @Value("${identio.public.fqdn}") String publicFqdn) throws InitializationException {
 
-		try (FileInputStream is = new FileInputStream(configFile)) {
+        if (publicFqdn == null) {
+            throw new InitializationException("No public FQDN specified");
+        }
 
-			Yaml yaml = new Yaml(new CustomClassLoaderConstructor(IdentioConfiguration.class,
-					Thread.currentThread().getContextClassLoader()));
+        this.configFile = configFile;
+        this.publicFqdn = publicFqdn;
 
-			// convert json string to object
-			configuration = (IdentioConfiguration) yaml.load(is);
+        LOG.debug("Loading configuration file: {}", configFile);
 
-			setDefaultValues();
+        try (FileInputStream is = new FileInputStream(configFile)) {
 
-		} catch (FileNotFoundException ex) {
-			throw new InitializationException("Configuration file not found", ex);
-		} catch (IOException ex) {
-			throw new InitializationException("Impossible to parse configuration file", ex);
-		}
-	}
+            Yaml yaml = new Yaml(new CustomClassLoaderConstructor(IdentioConfiguration.class,
+                    Thread.currentThread().getContextClassLoader()));
 
-	public String getPublicFqdn() {
-		return publicFqdn;
-	}
-	
-	public IdentioConfiguration getConfiguration() {
-		return configuration;
-	}
+            // convert json string to object
+            configuration = (IdentioConfiguration) yaml.load(is);
 
-	private void setDefaultValues() {
+            setDefaultValues();
 
-		String configDirectoryPath = Paths.get(configFile).getParent().toAbsolutePath().normalize().toString();
-		String home = Paths.get(configDirectoryPath).getParent().toString();
+        } catch (FileNotFoundException ex) {
+            throw new InitializationException("Configuration file not found", ex);
+        } catch (IOException ex) {
+            throw new InitializationException("Impossible to parse configuration file", ex);
+        }
+    }
 
-		// Global configuration default values
+    public String getPublicFqdn() {
+        return publicFqdn;
+    }
 
-		if (configuration.getGlobalConfiguration().getSslKeystorePassword() == null) {
-			configuration.getGlobalConfiguration().setSslKeystorePassword("password");
-		}
+    public IdentioConfiguration getConfiguration() {
+        return configuration;
+    }
 
-		if (configuration.getGlobalConfiguration().getSslKeystorePath() == null) {
-			configuration.getGlobalConfiguration()
-					.setSslKeystorePath(Paths.get(configDirectoryPath, "ssl-certificate.p12").toString());
-		}
+    private void setDefaultValues() {
 
-		if (configuration.getGlobalConfiguration().getPort() == 0) {
-			if (configuration.getGlobalConfiguration().isSecure()) {
-				configuration.getGlobalConfiguration().setPort(10443);
-			} else {
-				configuration.getGlobalConfiguration().setPort(10080);
-			}
-		}
+        String configDirectoryPath = Paths.get(configFile).getParent().toAbsolutePath().normalize().toString();
+        String home = Paths.get(configDirectoryPath).getParent().toString();
 
-		if (configuration.getGlobalConfiguration().getSignatureKeystorePath() == null) {
-			configuration.getGlobalConfiguration()
-					.setSignatureKeystorePath(Paths.get(configDirectoryPath, "default-sign-certificate.p12").toString());
-		}
+        // Global configuration default values
 
-		if (configuration.getGlobalConfiguration().getSignatureKeystorePassword() == null) {
-			configuration.getGlobalConfiguration().setSignatureKeystorePassword("password");
-		}
-		
-		if (configuration.getGlobalConfiguration().getWorkDirectory() == null) {
-			configuration.getGlobalConfiguration().setWorkDirectory(Paths.get(configDirectoryPath, "work").toString());
-		}
+        if (configuration.getGlobalConfiguration().getSslKeystorePassword() == null) {
+            configuration.getGlobalConfiguration().setSslKeystorePassword("password");
+        }
 
-		if (configuration.getGlobalConfiguration().getStaticResourcesPath() == null) {
-			configuration.getGlobalConfiguration().setStaticResourcesPath(Paths.get(home, "ui/").toString());
-		}
+        if (configuration.getGlobalConfiguration().getSslKeystorePath() == null) {
+            configuration.getGlobalConfiguration()
+                    .setSslKeystorePath(Paths.get(configDirectoryPath, "ssl-certificate.p12").toString());
+        }
 
-		// SAML IDP configuration default values
-		
-		if (configuration.getSamlIdpConfiguration().getTokenValidityLength() == 0) {
-			configuration.getSamlIdpConfiguration().setTokenValidityLength(3);
-		}
-		
-		if (configuration.getSamlIdpConfiguration().getSpMetadataDirectory() == null) {
-			configuration.getSamlIdpConfiguration()
-					.setSpMetadataDirectory(Paths.get(configDirectoryPath, "trusted-sp").toString());
-		}
+        if (configuration.getGlobalConfiguration().getPort() == 0) {
+            if (configuration.getGlobalConfiguration().isSecure()) {
+                configuration.getGlobalConfiguration().setPort(10443);
+            } else {
+                configuration.getGlobalConfiguration().setPort(10080);
+            }
+        }
 
-		// File authentication method
-		if (configuration.getAuthMethodConfiguration().getLocalAuthMethods() != null) {
-			configuration.getAuthMethodConfiguration().getLocalAuthMethods().stream()
-					.filter(x -> x.getUserFilePath() == null)
-					.forEach(x -> x.setUserFilePath(Paths.get(configDirectoryPath, "users.yml").toString()));
-		}
+        if (configuration.getGlobalConfiguration().getSignatureKeystorePath() == null) {
+            configuration.getGlobalConfiguration()
+                    .setSignatureKeystorePath(Paths.get(configDirectoryPath, "default-sign-certificate.p12").toString());
+        }
 
-	}
+        if (configuration.getGlobalConfiguration().getSignatureKeystorePassword() == null) {
+            configuration.getGlobalConfiguration().setSignatureKeystorePassword("password");
+        }
+
+        if (configuration.getGlobalConfiguration().getWorkDirectory() == null) {
+            configuration.getGlobalConfiguration().setWorkDirectory(Paths.get(configDirectoryPath, "work").toString());
+        }
+
+        if (configuration.getGlobalConfiguration().getStaticResourcesPath() == null) {
+            configuration.getGlobalConfiguration().setStaticResourcesPath(Paths.get(home, "ui/").toString());
+        }
+
+        // SAML IDP configuration default values
+
+        if (configuration.getSamlIdpConfiguration().getTokenValidityLength() == 0) {
+            configuration.getSamlIdpConfiguration().setTokenValidityLength(3);
+        }
+
+        if (configuration.getSamlIdpConfiguration().getSpMetadataDirectory() == null) {
+            configuration.getSamlIdpConfiguration()
+                    .setSpMetadataDirectory(Paths.get(configDirectoryPath, "trusted-sp").toString());
+        }
+
+        // File authentication method
+        if (configuration.getAuthMethodConfiguration().getLocalAuthMethods() != null) {
+            configuration.getAuthMethodConfiguration().getLocalAuthMethods().stream()
+                    .filter(x -> x.getUserFilePath() == null)
+                    .forEach(x -> x.setUserFilePath(Paths.get(configDirectoryPath, "users.yml").toString()));
+        }
+
+    }
 }

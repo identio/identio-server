@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io.
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.mvc.common;
 
@@ -31,18 +32,18 @@ import org.springframework.web.bind.annotation.RequestMethod;
 @Controller
 public class LogoutController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(LogoutController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(LogoutController.class);
 
-	@Autowired
-	private UserSessionService userSessionService;
+    @Autowired
+    private UserSessionService userSessionService;
 
-	@RequestMapping(value = "/logout", method = RequestMethod.GET)
-	public String logout(@CookieValue("identioSession") String sessionId) {
+    @RequestMapping(value = "/logout", method = RequestMethod.GET)
+    public String logout(@CookieValue("identioSession") String sessionId) {
 
-		LOG.info("Received logout request for session {}", sessionId);
+        LOG.info("Received logout request for session {}", sessionId);
 
-		userSessionService.removeUserSession(sessionId);
+        userSessionService.removeUserSession(sessionId);
 
-		return "redirect:/#/logout";
-	}
+        return "redirect:/#/logout";
+    }
 }

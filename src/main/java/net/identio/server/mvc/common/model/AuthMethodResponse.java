@@ -26,25 +26,25 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class AuthMethodResponse {
 
-	private String name;
-	private String type;
+    private String name;
+    private String type;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public AuthMethodResponse setName(String name) {
-		this.name = name;
-		return this;
-	}
+    public AuthMethodResponse setName(String name) {
+        this.name = name;
+        return this;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public AuthMethodResponse setType(String type) {
-		this.type = type;
-		return this;
-	}
+    public AuthMethodResponse setType(String type) {
+        this.type = type;
+        return this;
+    }
 
 }

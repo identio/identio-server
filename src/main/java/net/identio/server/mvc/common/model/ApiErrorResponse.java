@@ -26,17 +26,17 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class ApiErrorResponse {
 
-	private String errorCode;
+    private String errorCode;
 
-	public ApiErrorResponse(String errorCode) {
-		this.errorCode = errorCode;
-	}
+    public ApiErrorResponse(String errorCode) {
+        this.errorCode = errorCode;
+    }
 
-	public String getErrorCode() {
-		return errorCode;
-	}
+    public String getErrorCode() {
+        return errorCode;
+    }
 
-	public void setErrorCode(String errorCode) {
-		this.errorCode = errorCode;
-	}
+    public void setErrorCode(String errorCode) {
+        this.errorCode = errorCode;
+    }
 }

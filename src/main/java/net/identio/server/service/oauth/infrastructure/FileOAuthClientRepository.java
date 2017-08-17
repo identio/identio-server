@@ -1,3 +1,24 @@
+/*
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+
 package net.identio.server.service.oauth.infrastructure;
 
 import net.identio.server.exceptions.InitializationException;
@@ -19,49 +40,49 @@ import java.util.HashMap;
 @Service
 public class FileOAuthClientRepository implements OAuthClientRepository {
 
-	private static final Logger LOG = LoggerFactory.getLogger(FileOAuthClientRepository.class);
+    private static final Logger LOG = LoggerFactory.getLogger(FileOAuthClientRepository.class);
 
-	private HashMap<String, OAuthClient> clients;
+    private HashMap<String, OAuthClient> clients;
 
-	@Autowired
-	public FileOAuthClientRepository(ConfigurationService configurationService) throws InitializationException {
+    @Autowired
+    public FileOAuthClientRepository(ConfigurationService configurationService) throws InitializationException {
 
 
-		clients = new HashMap<>();
+        clients = new HashMap<>();
 
-		String clientFilePath = configurationService.getConfiguration().getoAuthServerConfiguration().getClientFile();
+        String clientFilePath = configurationService.getConfiguration().getoAuthServerConfiguration().getClientFile();
 
-		if (clientFilePath == null) {
-			return;
-		}
-		
-		LOG.info("Initializing File OAUth Client Repository");
+        if (clientFilePath == null) {
+            return;
+        }
 
-		try (FileInputStream is = new FileInputStream(clientFilePath)) {
+        LOG.info("Initializing File OAUth Client Repository");
 
-			Yaml yaml = new Yaml(new CustomClassLoaderConstructor(OAuthClientFile.class,
-					Thread.currentThread().getContextClassLoader()));
+        try (FileInputStream is = new FileInputStream(clientFilePath)) {
 
-			OAuthClientFile clientFile = (OAuthClientFile) yaml.load(is);
+            Yaml yaml = new Yaml(new CustomClassLoaderConstructor(OAuthClientFile.class,
+                    Thread.currentThread().getContextClassLoader()));
 
-			for (OAuthClient client : clientFile.getoAuthClients()) {
-				clients.put(client.getClientId(), client);
-			}
+            OAuthClientFile clientFile = (OAuthClientFile) yaml.load(is);
 
-		} catch (FileNotFoundException ex) {
-			throw new InitializationException("OAUth Client Repository file not found", ex);
-		} catch (IOException ex) {
-			throw new InitializationException("Impossible to parse OAUth Client Repository file", ex);
-		}
+            for (OAuthClient client : clientFile.getoAuthClients()) {
+                clients.put(client.getClientId(), client);
+            }
 
-		LOG.info("* File OAUth Client Repository initialized");
+        } catch (FileNotFoundException ex) {
+            throw new InitializationException("OAUth Client Repository file not found", ex);
+        } catch (IOException ex) {
+            throw new InitializationException("Impossible to parse OAUth Client Repository file", ex);
+        }
 
-	}
+        LOG.info("* File OAUth Client Repository initialized");
 
-	@Override
-	public OAuthClient getOAuthClientbyId(String cliendId) {
-		
-		return clients.get(cliendId);
-	}
+    }
+
+    @Override
+    public OAuthClient getOAuthClientbyId(String cliendId) {
+
+        return clients.get(cliendId);
+    }
 
 }

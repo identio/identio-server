@@ -23,69 +23,69 @@ package net.identio.server.service.oauth.model;
 import java.util.List;
 
 public class OAuthClient {
-	
-	private String name;
-	private String clientId;
-	private String clientSecret;
-	private List<String> allowedScopes;
-	private List<String> responseUri;
-	private List<String> allowedGrants;
 
-	private boolean needConsent;
+    private String name;
+    private String clientId;
+    private String clientSecret;
+    private List<String> allowedScopes;
+    private List<String> responseUri;
+    private List<String> allowedGrants;
 
-	public String getName() {
-		return name;
-	}
-	
-	public void setName(String name) {
-		this.name = name;
-	}
-	
-	public String getClientId() {
-		return clientId;
-	}
-	
-	public void setClientId(String clientId) {
-		this.clientId = clientId;
-	}
-	
-	public String getClientSecret() {
-		return clientSecret;
-	}
-	
-	public void setClientSecret(String clientSecret) {
-		this.clientSecret = clientSecret;
-	}
-	
-	public List<String> getAllowedScopes() {
-		return allowedScopes;
-	}
-	
-	public void setAllowedScopes(List<String> allowedScopes) {
-		this.allowedScopes = allowedScopes;
-	}
-	
-	public List<String> getResponseUri() {
-		return responseUri;
-	}
-	
-	public void setResponseUri(List<String> responseUri) {
-		this.responseUri = responseUri;
-	}
+    private boolean needConsent;
 
-	public List<String> getAllowedGrants() {
-		return allowedGrants;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setAllowedGrants(List<String> allowedGrants) {
-		this.allowedGrants = allowedGrants;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public boolean isNeedConsent() {
-		return needConsent;
-	}
+    public String getClientId() {
+        return clientId;
+    }
 
-	public void setNeedConsent(boolean needConsent) {
-		this.needConsent = needConsent;
-	}
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+
+    public List<String> getAllowedScopes() {
+        return allowedScopes;
+    }
+
+    public void setAllowedScopes(List<String> allowedScopes) {
+        this.allowedScopes = allowedScopes;
+    }
+
+    public List<String> getResponseUri() {
+        return responseUri;
+    }
+
+    public void setResponseUri(List<String> responseUri) {
+        this.responseUri = responseUri;
+    }
+
+    public List<String> getAllowedGrants() {
+        return allowedGrants;
+    }
+
+    public void setAllowedGrants(List<String> allowedGrants) {
+        this.allowedGrants = allowedGrants;
+    }
+
+    public boolean isNeedConsent() {
+        return needConsent;
+    }
+
+    public void setNeedConsent(boolean needConsent) {
+        this.needConsent = needConsent;
+    }
 }

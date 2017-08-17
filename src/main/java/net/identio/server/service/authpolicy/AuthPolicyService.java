@@ -1,21 +1,22 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.service.authpolicy;
 
@@ -44,233 +45,233 @@ import java.util.List;
 @Scope("singleton")
 public class AuthPolicyService {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AuthPolicyService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AuthPolicyService.class);
 
-	private AuthPolicyConfiguration authPolicyConfiguration;
-	private AuthMethodConfiguration authMethodConfiguration;
+    private AuthPolicyConfiguration authPolicyConfiguration;
+    private AuthMethodConfiguration authMethodConfiguration;
 
-	private HashMap<String, AuthLevel> authLevelByUrn = new HashMap<>();
-	private HashMap<String, AppAuthLevel> authLevelByApp = new HashMap<>();
-	private HashMap<String, AuthMethod> authMethodByName = new HashMap<>();
+    private HashMap<String, AuthLevel> authLevelByUrn = new HashMap<>();
+    private HashMap<String, AppAuthLevel> authLevelByApp = new HashMap<>();
+    private HashMap<String, AuthMethod> authMethodByName = new HashMap<>();
 
-	@Autowired
-	public AuthPolicyService(ConfigurationService configurationService) {
+    @Autowired
+    public AuthPolicyService(ConfigurationService configurationService) {
 
-		LOG.debug("Initialization of auth policy service");
+        LOG.debug("Initialization of auth policy service");
 
-		authPolicyConfiguration = configurationService.getConfiguration().getAuthPolicyConfiguration();
-		authMethodConfiguration = configurationService.getConfiguration().getAuthMethodConfiguration();
+        authPolicyConfiguration = configurationService.getConfiguration().getAuthPolicyConfiguration();
+        authMethodConfiguration = configurationService.getConfiguration().getAuthMethodConfiguration();
 
-		// Index auth levels
-		int index = 0;
-		for (AuthLevel authLevel : authPolicyConfiguration.getAuthLevels()) {
-			authLevel.setStrength(index);
-			authLevelByUrn.put(authLevel.getUrn(), authLevel);
-			index++;
-		}
+        // Index auth levels
+        int index = 0;
+        for (AuthLevel authLevel : authPolicyConfiguration.getAuthLevels()) {
+            authLevel.setStrength(index);
+            authLevelByUrn.put(authLevel.getUrn(), authLevel);
+            index++;
+        }
 
-		// Index app-specific auth levels
-		List<AppAuthLevel> appAuthLevels = authPolicyConfiguration.getApplicationSpecificAuthLevel();
+        // Index app-specific auth levels
+        List<AppAuthLevel> appAuthLevels = authPolicyConfiguration.getApplicationSpecificAuthLevel();
 
-		if (appAuthLevels != null) {
-			for (AppAuthLevel appAuthLevel : appAuthLevels) {
-				authLevelByApp.put(appAuthLevel.getAppName(), appAuthLevel);
-			}
-		}
+        if (appAuthLevels != null) {
+            for (AppAuthLevel appAuthLevel : appAuthLevels) {
+                authLevelByApp.put(appAuthLevel.getAppName(), appAuthLevel);
+            }
+        }
 
-		// Index auth methods
-		for (AuthMethod authMethod : authMethodConfiguration.getAuthMethods()) {
-			authMethodByName.put(authMethod.getName(), authMethod);
-		}
+        // Index auth methods
+        for (AuthMethod authMethod : authMethodConfiguration.getAuthMethods()) {
+            authMethodByName.put(authMethod.getName(), authMethod);
+        }
 
-	}
+    }
 
-	public ArrayList<AuthLevel> determineTargetAuthLevel(RequestParsingInfo parsingInfo) {
+    public ArrayList<AuthLevel> determineTargetAuthLevel(RequestParsingInfo parsingInfo) {
 
-		LOG.debug("Determining authentication strategy for request");
+        LOG.debug("Determining authentication strategy for request");
 
-		// Determine the authent level to be applied
-		// If the request is signed, we can trust the requested authentication
-		// level.
-		// Otherwise, we apply the auth level specified in the configuration for
-		// this application
-		// If none is specified, we apply the default authent level
-		List<AuthLevel> requestedAuthLevels = new ArrayList<>();
-		String requestedComparison;
+        // Determine the authent level to be applied
+        // If the request is signed, we can trust the requested authentication
+        // level.
+        // Otherwise, we apply the auth level specified in the configuration for
+        // this application
+        // If none is specified, we apply the default authent level
+        List<AuthLevel> requestedAuthLevels = new ArrayList<>();
+        String requestedComparison;
 
-		ArrayList<AuthLevel> targetAuthLevels = new ArrayList<>();
+        ArrayList<AuthLevel> targetAuthLevels = new ArrayList<>();
 
-		if (parsingInfo.getRequestedAuthLevels() != null) {
+        if (parsingInfo.getRequestedAuthLevels() != null) {
 
-			requestedAuthLevels = parsingInfo.getRequestedAuthLevels();
-			requestedComparison = parsingInfo.getAuthLevelComparison();
+            requestedAuthLevels = parsingInfo.getRequestedAuthLevels();
+            requestedComparison = parsingInfo.getAuthLevelComparison();
 
-			LOG.debug("* Request specify an auth level. Applying requested auth level");
-		} else {
-			// Request doesn't specify a minimum auth level
-			// , we check if we have a specific auth level
-			// for this application
-			AppAuthLevel appAuthLevel = authLevelByApp.get(parsingInfo.getSourceApplicationName());
+            LOG.debug("* Request specify an auth level. Applying requested auth level");
+        } else {
+            // Request doesn't specify a minimum auth level
+            // , we check if we have a specific auth level
+            // for this application
+            AppAuthLevel appAuthLevel = authLevelByApp.get(parsingInfo.getSourceApplicationName());
 
-			if (appAuthLevel != null) {
+            if (appAuthLevel != null) {
 
-				AuthLevel selectedAuthLevel = appAuthLevel.getAuthLevel();
-				requestedAuthLevels.add(selectedAuthLevel);
-				requestedComparison = appAuthLevel.getComparison();
+                AuthLevel selectedAuthLevel = appAuthLevel.getAuthLevel();
+                requestedAuthLevels.add(selectedAuthLevel);
+                requestedComparison = appAuthLevel.getComparison();
 
-				LOG.debug("* Request does not specify an auth level. Applying app-specific auth level: {} - {}",
-						requestedComparison, selectedAuthLevel.getName());
-			} else {
+                LOG.debug("* Request does not specify an auth level. Applying app-specific auth level: {} - {}",
+                        requestedComparison, selectedAuthLevel.getName());
+            } else {
 
-				AuthLevel selectedAuthLevel = authPolicyConfiguration.getDefaultAuthLevel().getAuthLevel();
+                AuthLevel selectedAuthLevel = authPolicyConfiguration.getDefaultAuthLevel().getAuthLevel();
 
-				requestedAuthLevels.add(selectedAuthLevel);
-				requestedComparison = authPolicyConfiguration.getDefaultAuthLevel().getComparison();
+                requestedAuthLevels.add(selectedAuthLevel);
+                requestedComparison = authPolicyConfiguration.getDefaultAuthLevel().getComparison();
 
-				LOG.debug("* Request does not specify an auth level. Applying default auth level: {} - {}",
-						requestedComparison, selectedAuthLevel.getName());
-			}
-		}
+                LOG.debug("* Request does not specify an auth level. Applying default auth level: {} - {}",
+                        requestedComparison, selectedAuthLevel.getName());
+            }
+        }
 
-		// Determine the target auth levels
-		for (AuthLevel authLevel : authPolicyConfiguration.getAuthLevels()) {
-			int strength = authLevel.getStrength();
+        // Determine the target auth levels
+        for (AuthLevel authLevel : authPolicyConfiguration.getAuthLevels()) {
+            int strength = authLevel.getStrength();
 
-			for (AuthLevel requestedAuthLevel : requestedAuthLevels) {
+            for (AuthLevel requestedAuthLevel : requestedAuthLevels) {
 
-				int requestedStrength = requestedAuthLevel.getStrength();
+                int requestedStrength = requestedAuthLevel.getStrength();
 
-				if (SamlConstants.COMPARISON_EXACT.equals(requestedComparison) && strength == requestedStrength
-						|| SamlConstants.COMPARISON_MINIMUM.equals(requestedComparison)
-								&& strength >= requestedStrength
-						|| SamlConstants.COMPARISON_MAXIMUM.equals(requestedComparison)
-								&& strength <= requestedStrength
-						|| SamlConstants.COMPARISON_BETTER.equals(requestedComparison)
-								&& strength > requestedStrength) {
-					targetAuthLevels.add(authLevel);
-				}
+                if (SamlConstants.COMPARISON_EXACT.equals(requestedComparison) && strength == requestedStrength
+                        || SamlConstants.COMPARISON_MINIMUM.equals(requestedComparison)
+                        && strength >= requestedStrength
+                        || SamlConstants.COMPARISON_MAXIMUM.equals(requestedComparison)
+                        && strength <= requestedStrength
+                        || SamlConstants.COMPARISON_BETTER.equals(requestedComparison)
+                        && strength > requestedStrength) {
+                    targetAuthLevels.add(authLevel);
+                }
 
-			}
-		}
+            }
+        }
 
-		// Save the required auth levels
-		return targetAuthLevels;
-	}
+        // Save the required auth levels
+        return targetAuthLevels;
+    }
 
-	public HashSet<AuthMethod> determineTargetAuthMethods(ArrayList<AuthLevel> targetAuthLevels) {
+    public HashSet<AuthMethod> determineTargetAuthMethods(ArrayList<AuthLevel> targetAuthLevels) {
 
-		HashSet<AuthMethod> nextAuthMethods = new HashSet<>();
+        HashSet<AuthMethod> nextAuthMethods = new HashSet<>();
 
-		for (AuthMethod authMethod : authMethodConfiguration.getAuthMethods()) {
+        for (AuthMethod authMethod : authMethodConfiguration.getAuthMethods()) {
 
-			if (authMethod instanceof SamlAuthMethod) {
+            if (authMethod instanceof SamlAuthMethod) {
 
-				// Check if the authentication level is supported
-				HashMap<AuthLevel, String> outMap = ((SamlAuthMethod) authMethod).getSamlAuthMap().getOut();
+                // Check if the authentication level is supported
+                HashMap<AuthLevel, String> outMap = ((SamlAuthMethod) authMethod).getSamlAuthMap().getOut();
 
-				for (AuthLevel targetAuthLevel : targetAuthLevels) {
-					if (outMap.containsKey(targetAuthLevel)) {
-						nextAuthMethods.add(authMethod);
-						break;
-					}
-				}
-				continue;
-			}
+                for (AuthLevel targetAuthLevel : targetAuthLevels) {
+                    if (outMap.containsKey(targetAuthLevel)) {
+                        nextAuthMethods.add(authMethod);
+                        break;
+                    }
+                }
+                continue;
+            }
 
-			if (targetAuthLevels.contains(authMethod.getAuthLevel())) {
-				nextAuthMethods.add(authMethod);
-			}
-		}
+            if (targetAuthLevels.contains(authMethod.getAuthLevel())) {
+                nextAuthMethods.add(authMethod);
+            }
+        }
 
-		return nextAuthMethods;
-	}
+        return nextAuthMethods;
+    }
 
-	public AuthPolicyDecision checkPreviousAuthSessions(UserSession userSession,
-														ArrayList<AuthLevel> targetAuthLevels) {
+    public AuthPolicyDecision checkPreviousAuthSessions(UserSession userSession,
+                                                        ArrayList<AuthLevel> targetAuthLevels) {
 
-		LOG.debug("Check previous authentication sessions");
+        LOG.debug("Check previous authentication sessions");
 
-		// We check if the user is already authentified with this auth level
-		for (AuthSession authSession : userSession.getAuthSessions()) {
-			for (AuthLevel authLevel : targetAuthLevels) {
+        // We check if the user is already authentified with this auth level
+        for (AuthSession authSession : userSession.getAuthSessions()) {
+            for (AuthLevel authLevel : targetAuthLevels) {
 
-				if (authSession.getAuthLevel().equals(authLevel)) {
+                if (authSession.getAuthLevel().equals(authLevel)) {
 
-					LOG.debug("* Found compliant auth session");
+                    LOG.debug("* Found compliant auth session");
 
-					return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.OK)
-							.setValidatedAuthSession(authSession);
-				}
-			}
-		}
+                    return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.OK)
+                            .setValidatedAuthSession(authSession);
+                }
+            }
+        }
 
-		LOG.debug("* No compliant auth session found. Asking for an explicit authentication");
-		return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
-	}
+        LOG.debug("* No compliant auth session found. Asking for an explicit authentication");
+        return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
+    }
 
-	public void checkAllowedAuthMethods(HashSet<AuthMethod> targetAuthMethods, AuthMethod submittedAuthMethod)
-					throws UnknownAuthMethodException, AuthMethodNotAllowedException {
+    public void checkAllowedAuthMethods(HashSet<AuthMethod> targetAuthMethods, AuthMethod submittedAuthMethod)
+            throws UnknownAuthMethodException, AuthMethodNotAllowedException {
 
-		if (submittedAuthMethod == null) {
-			throw new UnknownAuthMethodException("Unknown authentication method");
-		}
+        if (submittedAuthMethod == null) {
+            throw new UnknownAuthMethodException("Unknown authentication method");
+        }
 
-		if (!targetAuthMethods.contains(submittedAuthMethod)) {
-				throw new AuthMethodNotAllowedException("Authentication method " + submittedAuthMethod.getName()
-						+ " is not allowed for this transaction");
-		}
-	}
+        if (!targetAuthMethods.contains(submittedAuthMethod)) {
+            throw new AuthMethodNotAllowedException("Authentication method " + submittedAuthMethod.getName()
+                    + " is not allowed for this transaction");
+        }
+    }
 
-	public AuthPolicyDecision checkAuthPolicyCompliance(UserSession userSession, AuthenticationResult result,
-			ArrayList<AuthLevel> targetAuthLevels) {
+    public AuthPolicyDecision checkAuthPolicyCompliance(UserSession userSession, AuthenticationResult result,
+                                                        ArrayList<AuthLevel> targetAuthLevels) {
 
-		// Check that the authlevel matches
-		if (targetAuthLevels.contains(result.getAuthLevel())) {
+        // Check that the authlevel matches
+        if (targetAuthLevels.contains(result.getAuthLevel())) {
 
-			AuthSession authSession = updateUserSession(userSession, result, result.getAuthLevel());
-			return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.OK)
-			.setValidatedAuthSession(authSession);
+            AuthSession authSession = updateUserSession(userSession, result, result.getAuthLevel());
+            return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.OK)
+                    .setValidatedAuthSession(authSession);
 
-		} else {
-			return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
-		}
-	}
+        } else {
+            return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
+        }
+    }
 
-	public AuthLevel getAuthLevelByUrn(String urn) throws UnknownAuthLevelException {
+    public AuthLevel getAuthLevelByUrn(String urn) throws UnknownAuthLevelException {
 
-		AuthLevel authLevel = authLevelByUrn.get(urn);
+        AuthLevel authLevel = authLevelByUrn.get(urn);
 
-		if (authLevel == null) {
-			LOG.error("Unknown authentication level requested: {}", urn);
-			throw new UnknownAuthLevelException("Unknown authentication level requested: " + urn);
-		}
+        if (authLevel == null) {
+            LOG.error("Unknown authentication level requested: {}", urn);
+            throw new UnknownAuthLevelException("Unknown authentication level requested: " + urn);
+        }
 
-		return authLevel;
-	}
+        return authLevel;
+    }
 
-	public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {
+    public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {
 
-		AuthMethod authMethod = authMethodByName.get(name);
+        AuthMethod authMethod = authMethodByName.get(name);
 
-		if (authMethod == null) {
-			throw new UnknownAuthMethodException("Unknown authentication method requested: " + name);
-		}
+        if (authMethod == null) {
+            throw new UnknownAuthMethodException("Unknown authentication method requested: " + name);
+        }
 
-		return authMethod;
-	}
+        return authMethod;
+    }
 
-	public String getLogo(String authMethodName) {
+    public String getLogo(String authMethodName) {
 
-		try {
-			return getAuthMethodByName(authMethodName).getLogoFileName();
-		} catch (UnknownAuthMethodException e) {
-			return null;
-		}
-	}
+        try {
+            return getAuthMethodByName(authMethodName).getLogoFileName();
+        } catch (UnknownAuthMethodException e) {
+            return null;
+        }
+    }
 
-	private AuthSession updateUserSession(UserSession userSession, AuthenticationResult result,
-			AuthLevel authLevel) {
+    private AuthSession updateUserSession(UserSession userSession, AuthenticationResult result,
+                                          AuthLevel authLevel) {
 
-		return userSession.addAuthSession(result.getUserId(), result.getAuthMethod(), authLevel);
-	}
+        return userSession.addAuthSession(result.getUserId(), result.getAuthMethod(), authLevel);
+    }
 }

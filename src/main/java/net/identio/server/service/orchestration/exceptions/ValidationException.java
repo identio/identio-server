@@ -22,13 +22,13 @@ package net.identio.server.service.orchestration.exceptions;
 
 public class ValidationException extends Exception {
 
-	private static final long serialVersionUID = 974071100448457158L;
+    private static final long serialVersionUID = 974071100448457158L;
 
-	public ValidationException(String s) {
-		super(s);
-	}
+    public ValidationException(String s) {
+        super(s);
+    }
 
-	public ValidationException(String s, Throwable e) {
-		super(s, e);
-	}
+    public ValidationException(String s, Throwable e) {
+        super(s, e);
+    }
 }

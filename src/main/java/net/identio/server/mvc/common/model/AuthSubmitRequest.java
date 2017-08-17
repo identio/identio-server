@@ -26,45 +26,45 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 public class AuthSubmitRequest {
 
-	private String method;
-	private String login;
-	private String password;
-	private String challengeResponse;
+    private String method;
+    private String login;
+    private String password;
+    private String challengeResponse;
 
-	public String getMethod() {
-		return method;
-	}
+    public String getMethod() {
+        return method;
+    }
 
-	public AuthSubmitRequest setMethod(String method) {
-		this.method = method;
-		return this;
-	}
+    public AuthSubmitRequest setMethod(String method) {
+        this.method = method;
+        return this;
+    }
 
-	public String getLogin() {
-		return login;
-	}
+    public String getLogin() {
+        return login;
+    }
 
-	public AuthSubmitRequest setLogin(String login) {
-		this.login = login;
-		return this;
-	}
+    public AuthSubmitRequest setLogin(String login) {
+        this.login = login;
+        return this;
+    }
 
-	public String getPassword() {
-		return password;
-	}
+    public String getPassword() {
+        return password;
+    }
 
-	public AuthSubmitRequest setPassword(String password) {
-		this.password = password;
-		return this;
-	}
+    public AuthSubmitRequest setPassword(String password) {
+        this.password = password;
+        return this;
+    }
 
-	public String getChallengeResponse() {
-		return challengeResponse;
-	}
+    public String getChallengeResponse() {
+        return challengeResponse;
+    }
 
-	public AuthSubmitRequest setChallengeResponse(String challengeResponse) {
-		this.challengeResponse = challengeResponse;
-		return this;
-	}
+    public AuthSubmitRequest setChallengeResponse(String challengeResponse) {
+        this.challengeResponse = challengeResponse;
+        return this;
+    }
 
 }

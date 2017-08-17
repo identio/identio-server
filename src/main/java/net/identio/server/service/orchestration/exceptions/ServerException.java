@@ -22,13 +22,13 @@ package net.identio.server.service.orchestration.exceptions;
 
 public class ServerException extends Exception {
 
-	private static final long serialVersionUID = 3342749474880290649L;
+    private static final long serialVersionUID = 3342749474880290649L;
 
-	public ServerException(String s) {
-		super(s);
-	}
+    public ServerException(String s) {
+        super(s);
+    }
 
-	public ServerException(String s, Throwable e) {
-		super(s, e);
-	}
+    public ServerException(String s, Throwable e) {
+        super(s, e);
+    }
 }
