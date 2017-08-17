@@ -20,7 +20,6 @@
  */
 package net.identio.server.service.authentication.radius;
 
-import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;

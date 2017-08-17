@@ -21,7 +21,6 @@
 package net.identio.server.mvc.common;
 
 import net.identio.server.service.orchestration.exceptions.ServerException;
-import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.authentication.model.X509Authentication;
 import net.identio.server.mvc.saml.ResponderController;

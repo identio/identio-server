@@ -35,8 +35,6 @@ import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.transaction.model.TransactionState;
 import net.identio.server.service.usersession.UserSessionService;
 import net.identio.server.service.orchestration.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -45,8 +43,6 @@ import java.util.HashSet;
 
 @Service
 public class RequestOrchestrationService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(RequestOrchestrationService.class);
 
     @Autowired
     private TransactionService transactionService;

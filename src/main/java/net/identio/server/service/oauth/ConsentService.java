@@ -21,7 +21,6 @@
 
 package net.identio.server.service.oauth;
 
-import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.transaction.model.TransactionData;
@@ -37,8 +36,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class ConsentService {
-
-    private static final Logger LOG = LoggerFactory.getLogger(ConsentService.class);
 
     @Autowired
     private TransactionService transactionService;

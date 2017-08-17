@@ -57,6 +57,8 @@ public class ProxyAuthOrchestrationService {
                                                            String authMethodName)
             throws ValidationException, WebSecurityException, ServerException {
 
+        LOG.debug("Start generation of a SAML request");
+
         TransactionData transactionData = transactionService.getTransaction(sessionId, transactionId);
 
         // Check that we are in the correct transaction state

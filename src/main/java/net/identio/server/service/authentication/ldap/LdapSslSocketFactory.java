@@ -27,7 +27,6 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.*;
 
 public class LdapSslSocketFactory extends SSLSocketFactory {

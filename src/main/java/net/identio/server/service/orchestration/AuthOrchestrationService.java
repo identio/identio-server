@@ -27,7 +27,6 @@ import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authentication.model.AuthenticationResultStatus;
-import net.identio.server.service.authentication.saml.SamlAuthenticationProvider;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
@@ -39,7 +38,6 @@ import net.identio.server.service.saml.SamlService;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.transaction.model.TransactionState;
-import net.identio.server.service.usersession.UserSessionService;
 import net.identio.server.service.orchestration.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,9 +54,6 @@ public class AuthOrchestrationService {
     private static final Logger LOG = LoggerFactory.getLogger(AuthOrchestrationService.class);
 
     @Autowired
-    private UserSessionService userSessionService;
-
-    @Autowired
     private SamlService samlService;
 
     @Autowired
@@ -72,9 +67,6 @@ public class AuthOrchestrationService {
 
     @Autowired
     private AuthenticationService authenticationService;
-
-    @Autowired
-    private SamlAuthenticationProvider samlAuthenticationProvider;
 
     public AuthenticationValidationResult handleTransparentAuthentication(Authentication authentication, String sessionId,
                                                                           String transactionId)
@@ -129,7 +121,7 @@ public class AuthOrchestrationService {
         validationResult.setProtocolType(transactionData.getProtocolType());
 
         // Try to map the auth method name to a known method
-        AuthMethod authMethod = null;
+        AuthMethod authMethod;
 
         try {
 
