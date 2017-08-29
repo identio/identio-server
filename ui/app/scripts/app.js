@@ -64,7 +64,6 @@
 					'auth.method.unknown': 'The authentication method is unknown',
 				  'auth.method.not.allowed': 'The authentication method is not allowed',
 				  'invalid.transaction': 'The transaction identifier is invalid or expired',
-          'invalid.request': 'The received request is invalid'
           })
 			    .translations('fr', {
 
@@ -92,7 +91,6 @@
      			'auth.method.unknown': 'La m&eacute;thode d&rsquo;authentification est inconnue',
      		  'auth.method.not.allowed': 'La m&eacute;thode d&rsquo;authentification est invalide',
      		  'invalid.transaction': 'L&rsquo;identifiant de transaction est invalide ou expir&eacute;',
-          'invalid.request': 'La requ&ecirc;te re&ccedil;ue est invalide'
 			    })
 			    .registerAvailableLanguageKeys(['en', 'fr'], {
 			    	'en_US': 'en',

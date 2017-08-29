@@ -10,7 +10,7 @@ angular.module('identioUiApp')
     return {
         replace: true,
         scope: {},
-        template: '<form action="{{formData.destinationUrl}}" method="POST">'+
+        template: '<form action="{{formData.url}}" method="POST">'+
                       '<input type="hidden" name="SAMLResponse" value="{{ formData.data }}" />'+
                       '<input type="hidden" name="RelayState" value="{{ formData.relayState }}" />'+
                   '</form>',

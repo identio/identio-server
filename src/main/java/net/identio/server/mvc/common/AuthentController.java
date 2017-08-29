@@ -76,9 +76,7 @@ public class AuthentController {
             case RESPONSE:
 
                 response.setStatus(ApiResponseStatus.RESPONSE)
-                        .setDestinationUrl(result.getResponseData().getUrl())
-                        .setRelayState(result.getResponseData().getRelayState())
-                        .setData(result.getResponseData().getData())
+                        .setResponseData(result.getResponseData())
                         .setProtocolType(result.getProtocolType());
                 break;
 

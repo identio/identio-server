@@ -100,14 +100,14 @@
 
 			if (data.status === 'RESPONSE') {
 
-				data.destinationUrl = $sce
-						.trustAsResourceUrl(data.destinationUrl);
+				data.responseData.url = $sce
+						.trustAsResourceUrl(data.responseData.url);
 
 				if (data.protocolType === 'SAML') {
-					$rootScope.$broadcast('saml.submit.response', data);
+					$rootScope.$broadcast('saml.submit.response', data.responseData);
 				}
 				if (data.protocolType === 'OAUTH') {
-					$rootScope.$broadcast('oauth.submit.response', data);
+					$rootScope.$broadcast('oauth.submit.response', data.responseData);
 				}
 
 				return;

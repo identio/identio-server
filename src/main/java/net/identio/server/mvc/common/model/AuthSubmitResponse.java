@@ -23,15 +23,14 @@ package net.identio.server.mvc.common.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import net.identio.server.model.ProtocolType;
+import net.identio.server.service.orchestration.model.ResponseData;
 
 @JsonInclude(Include.NON_NULL)
 public class AuthSubmitResponse {
 
     private ApiResponseStatus status;
     private String errorStatus;
-    private String destinationUrl;
-    private String relayState;
-    private String data;
+    private ResponseData responseData;
     private ProtocolType protocolType;
     private String challengeType;
     private String challengeValue;
@@ -54,30 +53,12 @@ public class AuthSubmitResponse {
         return this;
     }
 
-    public String getDestinationUrl() {
-        return destinationUrl;
+    public ResponseData getResponseData() {
+        return responseData;
     }
 
-    public AuthSubmitResponse setDestinationUrl(String destinationUrl) {
-        this.destinationUrl = destinationUrl;
-        return this;
-    }
-
-    public String getRelayState() {
-        return relayState;
-    }
-
-    public AuthSubmitResponse setRelayState(String relayState) {
-        this.relayState = relayState;
-        return this;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public AuthSubmitResponse setData(String data) {
-        this.data = data;
+    public AuthSubmitResponse setResponseData(ResponseData responseData) {
+        this.responseData = responseData;
         return this;
     }
 
