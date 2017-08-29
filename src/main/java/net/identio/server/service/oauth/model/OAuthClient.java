@@ -30,8 +30,7 @@ public class OAuthClient {
     private List<String> allowedScopes;
     private List<String> responseUri;
     private List<String> allowedGrants;
-
-    private boolean needConsent;
+    private boolean consentNeeded;
 
     public String getName() {
         return name;
@@ -81,11 +80,11 @@ public class OAuthClient {
         this.allowedGrants = allowedGrants;
     }
 
-    public boolean isNeedConsent() {
-        return needConsent;
+    public boolean isConsentNeeded() {
+        return consentNeeded;
     }
 
-    public void setNeedConsent(boolean needConsent) {
-        this.needConsent = needConsent;
+    public void setConsentNeeded(boolean consentNeeded) {
+        this.consentNeeded = consentNeeded;
     }
 }

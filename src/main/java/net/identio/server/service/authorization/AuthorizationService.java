@@ -29,8 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 @Service
@@ -59,9 +59,9 @@ public class AuthorizationService {
 
     }
 
-    public List<AuthorizationScope> getScopes(List<String> scopeNames) throws UnknownScopeException, NoScopeProvidedException {
+    public LinkedHashMap<String, AuthorizationScope> getScopes(List<String> scopeNames) throws UnknownScopeException, NoScopeProvidedException {
 
-        List<AuthorizationScope> scopeList = new ArrayList<>();
+        LinkedHashMap<String, AuthorizationScope> result = new LinkedHashMap<>();
 
         if (scopeNames.isEmpty()) {
             throw new NoScopeProvidedException("Scope list is empty");
@@ -69,12 +69,12 @@ public class AuthorizationService {
 
         for (String scopeName : scopeNames) {
             if (scopes.containsKey(scopeName)) {
-                scopeList.add(scopes.get(scopeName));
+                result.put(scopeName, scopes.get(scopeName));
             } else {
                 throw new UnknownScopeException("Unknown scope: " + scopeName);
             }
         }
-        return scopeList;
+        return result;
     }
 
 }

@@ -25,6 +25,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import net.identio.server.boot.IdentioServerApplication;
+import net.identio.server.model.AuthorizationScope;
 import net.identio.server.mvc.common.model.ApiResponseStatus;
 import net.identio.server.mvc.common.model.AuthMethodResponse;
 import net.identio.server.mvc.common.model.AuthSubmitRequest;
@@ -32,6 +33,7 @@ import net.identio.server.mvc.common.model.AuthSubmitResponse;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
+import org.apache.http.auth.AUTH;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,9 @@ import java.io.FileInputStream;
 import java.security.*;
 import java.security.interfaces.RSAKey;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -132,8 +136,16 @@ public class OAuthImplicitFullCinematicTest {
         ConsentContext consentContext = consentContextEntity.getBody();
 
         assertEquals("Test Client", consentContext.getAudience());
-        assertEquals(Arrays.asList("scope.test.1", "scope.test.2"), consentContext.getRequestedScopes());
-        assertEquals("/logo/app/test", consentContext.getAudienceLogo());
+
+        List<AuthorizationScope> requestedScopes = consentContext.getRequestedScopes();
+        requestedScopes.sort(Comparator.comparing(AuthorizationScope::getName));
+
+        assertTrue(consentContext.getRequestedScopes().size() == 2);
+
+        assertEquals("scope.test.1", consentContext.getRequestedScopes().get(0).getName());
+        assertEquals("Accéder à scope test 1", consentContext.getRequestedScopes().get(0).getDescription().get("fr"));
+        assertEquals("Access scope test 1", consentContext.getRequestedScopes().get(0).getDescription().get("en"));
+        assertEquals("scope.test.2", consentContext.getRequestedScopes().get(1).getName());
 
         // Send the consent
         ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Arrays.asList("scope.test.1", "scope.test.2"));
@@ -147,12 +159,10 @@ public class OAuthImplicitFullCinematicTest {
         ConsentResponse consentResponse = consentResponseEntity.getBody();
 
         assertEquals(true, consentResponse.isSuccess());
-        assertTrue(consentResponse.getResponse().matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
+        assertTrue(consentResponse.getResponseData().getUrl()
+                .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
 
         // Parse and validate JWT
-        Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
-        Matcher matcher = pattern.matcher(authSubmitResponse.getDestinationUrl());
-
         Algorithm algorithm = null;
         try {
             algorithm = Algorithm.RSA256(getPublicSigningKey());
@@ -167,12 +177,14 @@ public class OAuthImplicitFullCinematicTest {
                 .withClaim("scope", "scope.test.1 scope.test.2")
                 .build();
 
+        Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
+        Matcher matcher = pattern.matcher(consentResponse.getResponseData().getUrl());
+
         if (matcher.find()) {
             verifier.verify(matcher.group(1));
         } else {
             fail();
         }
-
     }
 
     private RSAKey getPublicSigningKey() throws Exception {

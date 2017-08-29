@@ -75,32 +75,10 @@ public class AuthOrchestrationService {
         LOG.debug("Check for transparent authentication");
 
         TransactionData transactionData = transactionService.getTransaction(sessionId, transactionId);
-        UserSession userSession = transactionData.getUserSession();
 
-        AuthenticationResult result = authenticationService.validateTransparent(authentication, transactionData);
+        AuthenticationResult authResult = authenticationService.validateTransparent(authentication, transactionData);
 
-        if (result != null && result.getStatus() == AuthenticationResultStatus.SUCCESS) {
-
-            AuthPolicyDecision decision = authPolicyService.checkAuthPolicyCompliance(userSession, result,
-                    transactionData.getTargetAuthLevels());
-
-            if (decision.getStatus() == AuthPolicyDecisionStatus.OK) {
-
-                try {
-
-                    return new AuthenticationValidationResult().setValidationStatus(ValidationStatus.RESPONSE)
-                            .setResponseData(generateSuccessResponse(decision,
-                                    transactionData.getRequestParsingInfo(), userSession));
-
-                } catch (SamlException e) {
-                    throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-                } finally {
-                    transactionService.removeTransactionData(transactionData);
-                }
-            }
-        }
-
-        return new AuthenticationValidationResult().setValidationStatus(ValidationStatus.AUTH);
+        return decideResponse(authResult, transactionData);
     }
 
     public AuthenticationValidationResult handleExplicitAuthentication(String transactionId, String sessionId,
@@ -141,44 +119,7 @@ public class AuthOrchestrationService {
         AuthenticationResult authResult = authenticationService.validateExplicit(authMethod, authentication,
                 transactionData);
 
-        switch (authResult.getStatus()) {
-
-            case SUCCESS:
-
-                AuthPolicyDecision decision = authPolicyService.checkAuthPolicyCompliance(
-                        transactionData.getUserSession(), authResult, transactionData.getTargetAuthLevels());
-
-                if (decision.getStatus() == AuthPolicyDecisionStatus.OK) {
-
-                    try {
-                        validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                                .setResponseData(generateSuccessResponse(
-                                        decision,
-                                        transactionData.getRequestParsingInfo(),
-                                        transactionData.getUserSession()));
-
-                    } catch (SamlException e) {
-                        throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-                    } finally {
-                        transactionService.removeTransactionData(transactionData);
-                    }
-                }
-                break;
-
-            case FAIL:
-                validationResult.setValidationStatus(ValidationStatus.ERROR)
-                        .setErrorStatus(authResult.getErrorStatus());
-                validationResult.setErrorStatus(authResult.getErrorStatus());
-                break;
-
-            case CHALLENGE:
-                validationResult.setValidationStatus(ValidationStatus.CHALLENGE);
-                validationResult.setChallengeType(authResult.getChallengeType());
-                validationResult.setChallengeValue(authResult.getChallengeValue());
-                break;
-        }
-
-        return validationResult;
+        return decideResponse(authResult, transactionData);
     }
 
     public List<AuthMethod> getAuthMethods(String transactionId, String sessionId) throws WebSecurityException {
@@ -204,5 +145,58 @@ public class AuthOrchestrationService {
         } else {
             return oauthService.generateSuccessResponse(parsingInfo, userSession);
         }
+    }
+
+    private AuthenticationValidationResult decideResponse(AuthenticationResult authResult, TransactionData transactionData) throws ServerException {
+
+        AuthenticationValidationResult validationResult = new AuthenticationValidationResult();
+        validationResult.setProtocolType(transactionData.getProtocolType());
+
+        switch (authResult.getStatus()) {
+
+            case SUCCESS:
+
+                AuthPolicyDecision decision = authPolicyService.checkAuthPolicyCompliance(
+                        transactionData.getUserSession(), authResult, transactionData.getTargetAuthLevels());
+
+                if (decision.getStatus() == AuthPolicyDecisionStatus.OK) {
+
+                    if (transactionData.getRequestParsingInfo().isConsentNeeded()) {
+                        validationResult.setValidationStatus(ValidationStatus.CONSENT);
+                        transactionData.setState(TransactionState.CONSENT);
+
+                    } else {
+
+                        try {
+                            validationResult.setValidationStatus(ValidationStatus.RESPONSE)
+                                    .setResponseData(generateSuccessResponse(
+                                            decision,
+                                            transactionData.getRequestParsingInfo(),
+                                            transactionData.getUserSession()));
+
+                        } catch (SamlException e) {
+                            throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
+                        } finally {
+                            transactionService.removeTransactionData(transactionData);
+                        }
+                    }
+
+                }
+                break;
+
+            case FAIL:
+                validationResult.setValidationStatus(ValidationStatus.ERROR)
+                        .setErrorStatus(authResult.getErrorStatus());
+                validationResult.setErrorStatus(authResult.getErrorStatus());
+                break;
+
+            case CHALLENGE:
+                validationResult.setValidationStatus(ValidationStatus.CHALLENGE);
+                validationResult.setChallengeType(authResult.getChallengeType());
+                validationResult.setChallengeValue(authResult.getChallengeValue());
+                break;
+        }
+
+        return validationResult;
     }
 }

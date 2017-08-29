@@ -20,11 +20,16 @@
  */
 package net.identio.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.HashMap;
+
 public class AuthorizationScope {
 
     private String name;
     private AuthLevel authLevel;
     private int expirationTime;
+    private HashMap<String, String> description;
 
     public String getName() {
         return name;
@@ -50,9 +55,19 @@ public class AuthorizationScope {
         this.expirationTime = expirationTime;
     }
 
+    public HashMap<String, String> getDescription() {
+        return description;
+    }
+
+    public void setDescription(HashMap<String, String> description) {
+        this.description = description;
+    }
+
+    @JsonIgnore
     public AuthorizationScope getPublicCopy() {
         AuthorizationScope response = new AuthorizationScope();
         response.setName(this.name);
+        response.setDescription(this.description);
 
         return response;
     }

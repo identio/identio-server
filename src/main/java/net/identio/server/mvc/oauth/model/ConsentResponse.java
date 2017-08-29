@@ -21,24 +21,28 @@
 
 package net.identio.server.mvc.oauth.model;
 
+import net.identio.server.service.orchestration.model.ResponseData;
+
 public class ConsentResponse {
 
     private boolean success;
-    private String response;
+    private ResponseData response;
 
     public boolean isSuccess() {
         return success;
     }
 
-    public void setSuccess(boolean success) {
+    public ConsentResponse setSuccess(boolean success) {
         this.success = success;
+        return this;
     }
 
-    public String getResponse() {
+    public ResponseData getResponseData() {
         return response;
     }
 
-    public void setResponse(String response) {
+    public ConsentResponse setResponseData(ResponseData response) {
         this.response = response;
+        return this;
     }
 }

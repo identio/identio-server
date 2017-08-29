@@ -50,9 +50,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAKey;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class OAuthService {
@@ -135,7 +133,7 @@ public class OAuthService {
         }
 
         // Validate scope value
-        List<AuthorizationScope> scopes;
+        LinkedHashMap<String, AuthorizationScope> scopes;
         try {
             scopes = authorizationService.getScopes(request.getScopes());
         } catch (UnknownScopeException | NoScopeProvidedException e) {
@@ -149,7 +147,7 @@ public class OAuthService {
         }
 
         result.setStatus(RequestParsingStatus.OK).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
-                .setRequestedScopes(scopes).setResponseType(request.getResponseType());
+                .setRequestedScopes(scopes).setResponseType(request.getResponseType()).setConsentNeeded(client.isConsentNeeded());
 
         return result;
     }
@@ -160,24 +158,22 @@ public class OAuthService {
 
         responseBuilder.append(result.getResponseUrl()).append("#expires_in=");
 
-        // Determine expiration time of the authorization
+        // Determine expiration time of the authorization and scope string
         int expirationTime = -1;
-        for (AuthorizationScope scope : result.getRequestedScopes()) {
+        StringBuilder scopeBuilder = new StringBuilder();
+
+        for (AuthorizationScope scope : result.getRequestedScopes().values()) {
 
             int scopeExpirationTime = scope.getExpirationTime() != 0 ? scope.getExpirationTime() : 3600;
 
             if (expirationTime == -1 || scopeExpirationTime < expirationTime) {
                 expirationTime = scopeExpirationTime;
             }
+
+            scopeBuilder.append(scope.getName()).append(' ');
         }
 
         responseBuilder.append(expirationTime);
-
-        // Calculate scope string
-        StringBuilder scopeBuilder = new StringBuilder();
-        for (AuthorizationScope scope : result.getRequestedScopes()) {
-            scopeBuilder.append(scope.getName()).append(' ');
-        }
 
         scopeBuilder.deleteCharAt(scopeBuilder.length() - 1); // delete last comma
 

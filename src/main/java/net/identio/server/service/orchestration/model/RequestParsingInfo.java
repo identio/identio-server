@@ -24,6 +24,7 @@ import net.identio.server.model.AuthLevel;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.model.ProtocolType;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class RequestParsingInfo {
@@ -38,8 +39,9 @@ public class RequestParsingInfo {
     private List<AuthLevel> requestedAuthLevels;
     private String relayState;
     private String responseUrl;
-    private List<AuthorizationScope> requestedScopes;
+    private LinkedHashMap<String, AuthorizationScope> requestedScopes;
     private String responseType;
+    private boolean consentNeeded;
 
     public RequestParsingStatus getStatus() {
         return status;
@@ -131,11 +133,11 @@ public class RequestParsingInfo {
         return this;
     }
 
-    public List<AuthorizationScope> getRequestedScopes() {
+    public LinkedHashMap<String, AuthorizationScope> getRequestedScopes() {
         return requestedScopes;
     }
 
-    public RequestParsingInfo setRequestedScopes(List<AuthorizationScope> requestedScopes) {
+    public RequestParsingInfo setRequestedScopes(LinkedHashMap<String, AuthorizationScope> requestedScopes) {
         this.requestedScopes = requestedScopes;
         return this;
     }
@@ -144,7 +146,17 @@ public class RequestParsingInfo {
         return responseType;
     }
 
-    public void setResponseType(String responseType) {
+    public RequestParsingInfo setResponseType(String responseType) {
         this.responseType = responseType;
+        return this;
+    }
+
+    public boolean isConsentNeeded() {
+        return consentNeeded;
+    }
+
+    public RequestParsingInfo setConsentNeeded(boolean consentNeeded) {
+        this.consentNeeded = consentNeeded;
+        return this;
     }
 }

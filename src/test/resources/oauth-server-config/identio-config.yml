@@ -18,6 +18,9 @@ authorizationConfiguration:
     - name: scope.test.1
       authLevel: *medium
       expirationTime: 2400
+      description:
+        fr: Accéder à scope test 1
+        en: Access scope test 1
     - name: scope.test.2
       authLevel: *strong
       expirationTime: 3600

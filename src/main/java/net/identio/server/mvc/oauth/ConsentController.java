@@ -20,7 +20,6 @@
  */
 package net.identio.server.mvc.oauth;
 
-import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
@@ -38,7 +37,7 @@ public class ConsentController {
     @RequestMapping(value = "/api/authz/consent", method = RequestMethod.GET)
     public ConsentContext getConsentContext(@RequestHeader(value = "X-Transaction-ID") String transactionId,
                                             @CookieValue("identioSession") String sessionId)
-            throws ValidationException, WebSecurityException {
+            throws WebSecurityException {
 
 
         return consentService.getConsentContext(transactionId, sessionId);
@@ -47,9 +46,9 @@ public class ConsentController {
     @RequestMapping(value = "/api/authz/consent", method = RequestMethod.POST)
     public ConsentResponse receiveConsent(@RequestBody ConsentRequest consentRequest,
                                           @RequestHeader(value = "X-Transaction-ID") String transactionId,
-                                          @CookieValue("identioSession") String sessionId) {
+                                          @CookieValue("identioSession") String sessionId) throws WebSecurityException {
 
-        return new ConsentResponse();
+        return consentService.validateConsent(consentRequest, transactionId, sessionId);
     }
 
 }

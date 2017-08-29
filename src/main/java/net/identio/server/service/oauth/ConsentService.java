@@ -21,11 +21,16 @@
 
 package net.identio.server.service.oauth;
 
+import net.identio.server.mvc.oauth.model.ConsentRequest;
+import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
+import net.identio.server.service.orchestration.model.OrchestrationErrorStatus;
+import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.service.transaction.TransactionService;
+import net.identio.server.service.transaction.model.TransactionState;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,20 +45,53 @@ public class ConsentService {
     @Autowired
     private TransactionService transactionService;
 
+    @Autowired
+    private OAuthService oAuthService;
+
     public ConsentContext getConsentContext(String transactionId, String sessionId)
             throws WebSecurityException {
 
-        TransactionData transactionData = transactionService.getTransaction(sessionId, transactionId);
+        TransactionData transactionData = getTransactionData(transactionId, sessionId);
 
         List<AuthorizationScope> authorizedScopes = transactionData
                 .getRequestParsingInfo()
-                .getRequestedScopes().stream()
+                .getRequestedScopes().values().stream()
                 .map(AuthorizationScope::getPublicCopy)
                 .collect(Collectors.toList());
 
         return new ConsentContext().setRequestedScopes(authorizedScopes)
-                .setAudience(transactionData.getRequestParsingInfo().getSourceApplicationName())
-                .setAudienceLogo("");
+                .setAudience(transactionData.getRequestParsingInfo().getSourceApplicationName());
 
+    }
+
+    public ConsentResponse validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException {
+
+        TransactionData transactionData = getTransactionData(transactionId, sessionId);
+
+        // Check that each validated scope is in the requested scopes
+        for (String scopeName : consentRequest.getApprovedScopes()) {
+            if (!transactionData.getRequestParsingInfo().getRequestedScopes().containsKey(scopeName)) {
+                throw new WebSecurityException(OrchestrationErrorStatus.INVALID_SCOPE);
+            }
+        }
+
+        return new ConsentResponse().setSuccess(true)
+                .setResponseData(
+                        oAuthService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
+                        transactionData.getUserSession())
+                );
+    }
+
+    private TransactionData getTransactionData(String transactionId, String sessionId) throws WebSecurityException {
+
+        TransactionData transactionData = transactionService.getTransaction(sessionId, transactionId);
+
+        // Check that we are in the correct transaction state
+        if (transactionData.getState() != TransactionState.CONSENT) {
+            transactionService.removeTransactionData(transactionData);
+            throw new WebSecurityException(OrchestrationErrorStatus.INVALID_TRANSACTION);
+        }
+
+        return transactionData;
     }
 }

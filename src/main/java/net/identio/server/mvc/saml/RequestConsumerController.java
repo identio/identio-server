@@ -87,15 +87,6 @@ public class RequestConsumerController {
 
     }
 
-    /**
-     * Receives a request through HTTP redirect binding
-     *
-     * @throws ServerException
-     * @throws NoAuthMethodFoundException
-     * @throws UnknownAuthLevelException
-     * @throws SamlException
-     * @throws ValidationException
-     */
     @RequestMapping(value = "/SAML2/SSO/Redirect", method = RequestMethod.GET)
     public String samlConsumerRedirect(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
                                        @RequestParam("SAMLRequest") String usSamlRequest,

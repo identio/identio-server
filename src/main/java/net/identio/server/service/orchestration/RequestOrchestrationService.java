@@ -86,6 +86,8 @@ public class RequestOrchestrationService {
         UserSession userSession = userSessionService.getUserSession(sessionId);
         transactionData.setUserSession(userSession);
         transactionData.setProtocolType(parsingInfo.getProtocolType());
+        transactionData.setRequestParsingInfo(parsingInfo);
+
 
         validationResult.setTransactionId(transactionData.getTransactionId());
         validationResult.setSessionId(userSession.getId());
@@ -94,32 +96,31 @@ public class RequestOrchestrationService {
         ArrayList<AuthLevel> targetAuthLevels = authPolicyService.determineTargetAuthLevel(parsingInfo);
         HashSet<AuthMethod> targetAuthMethods = authPolicyService.determineTargetAuthMethods(targetAuthLevels);
 
+        transactionData.setTargetAuthLevels(targetAuthLevels);
+        transactionData.setTargetAuthMethods(targetAuthMethods);
+
         // Check if previous authentications match
         AuthPolicyDecision decision = authPolicyService.checkPreviousAuthSessions(userSession, targetAuthLevels);
 
         if (decision.getStatus() == AuthPolicyDecisionStatus.OK) {
 
-            try {
+            if (transactionData.getRequestParsingInfo().isConsentNeeded()) {
+                validationResult.setValidationStatus(ValidationStatus.CONSENT);
+                transactionData.setState(TransactionState.CONSENT);
 
-                validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                        .setResponseData(generateSuccessResponse(decision, parsingInfo, userSession));
-
-            } catch (SamlException e) {
-                throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-            } finally {
-                transactionService.removeTransactionData(transactionData);
+            } else {
+                try {
+                    validationResult.setValidationStatus(ValidationStatus.RESPONSE)
+                            .setResponseData(generateSuccessResponse(decision, parsingInfo, userSession));
+                } catch (SamlException e) {
+                    throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
+                } finally {
+                    transactionService.removeTransactionData(transactionData);
+                }
             }
-
-
         } else {
-
-            validationResult.setValidationStatus(ValidationStatus.AUTH);
-
-            // Save data that will need later in the transaction
             transactionData.setState(TransactionState.AUTH);
-            transactionData.setRequestParsingInfo(parsingInfo);
-            transactionData.setTargetAuthLevels(targetAuthLevels);
-            transactionData.setTargetAuthMethods(targetAuthMethods);
+            validationResult.setValidationStatus(ValidationStatus.AUTH);
         }
 
         return validationResult;
