@@ -36,7 +36,11 @@
 				}).state('logout', {
 					url : '/logout',
 					templateUrl : 'views/logout.html',
-				});
+				}).state('consent', {
+         	url : '/consent',
+          templateUrl : 'views/consent.html',
+          controller: 'ConsentController as consent'
+       	});
 
 				// ** I18N
 				$translateProvider.translations('en', {
@@ -53,7 +57,11 @@
 					SUBMIT: 'Submit',
 					SUBMIT_IN_PROGRESS: 'Submit in progress...',
 					SAML_SECTION_HEADER: 'Alternatively you can login with:',
-          ERROR: "An error occured",
+          ERROR: 'An error occured',
+          CONSENT_TITLE: 'Authorize application',
+          CONSENT_MESSAGE: '{{applicationName}} would like permission to access your account',
+          AUTHORIZE: 'Authorize',
+          AUTHORIZE_IN_PROGRESS: 'Please wait...',
 
 					// Errors
 					'invalid.credentials': 'Invalid username or password',
@@ -69,8 +77,6 @@
 
 			    // UI
 					IDENTIO_SIGN_IN: 'Identifiez-vous sur Ident.io',
-										'unknown.client': 'L&rsquo;application client est inconnue',
-
 					AUTHENTICATION_METHOD: 'Moyen d&rsquo;authentification',
 					USERNAME: 'Identifiant',
 					PASSWORD: 'Mot de passe',
@@ -80,7 +86,11 @@
 					SUBMIT: 'Connexion',
 					SUBMIT_IN_PROGRESS: 'Connexion en cours...',
 					SAML_SECTION_HEADER: 'Alternativement, vous pouvez vous identifier sur:',
-          ERROR: "Une erreur s&rsquo;est produite",
+          ERROR: 'Une erreur s&rsquo;est produite',
+          CONSENT_TITLE: 'Autorization d&rsquo;une application',
+          CONSENT_MESSAGE: 'souhaite obtenir la permission d&rsquo;acc&eacute;der &agrave; votre compte',
+          AUTHORIZE: 'Autoriser',
+          AUTHORIZE_IN_PROGRESS: 'Patientez...',
 
 					// Errors
 					'invalid.credentials': 'Identifiant ou mot de passe invalide',

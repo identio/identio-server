@@ -27,7 +27,6 @@ public class ConsentRequest {
 
     private List<String> approvedScopes;
 
-
     public List<String> getApprovedScopes() {
         return approvedScopes;
     }

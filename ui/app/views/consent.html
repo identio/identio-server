@@ -1,0 +1,40 @@
+<!-- Title -->
+<div class="row header">
+  <img src="/images/logo.png" class="main-logo"/>
+</div>
+<div class="row">
+  <p class="main-title" translate="{{'CONSENT_TITLE' | translate}}"></p>
+
+</div>
+
+<div class="row">
+
+  <!-- Main form -->
+  <div class="box">
+
+    <div class="full-length">
+      <p><span>{{consent.audience}} </span><span translate="CONSENT_MESSAGE"></span></p>
+    </div>
+
+    <form class="consent-form" ng-submit="consent.submit()">
+
+      <ul>
+        <li ng-repeat="scope in consent.scopes">{{scope.description}}</li>
+      </ul>
+
+      <button class="btn btn-primary"
+              ng-disabled="consent.submitInProgress == true" type="submit"
+              aria-expanded="false">
+        <span ng-show="consent.submitInProgress == false" translate='AUTHORIZE'></span>
+        <span ng-show="consent.submitInProgress == true" translate='AUTHORIZE_IN_PROGRESS'></span>
+      </button>
+    </form>
+  </div>
+
+</div>
+
+<!-- SAML requester and responder -->
+<div saml-requester event="saml.submit.request"></div>
+<div saml-responder event="saml.submit.response"></div>
+<div oauth-responder event="oauth.submit.response"></div>
+

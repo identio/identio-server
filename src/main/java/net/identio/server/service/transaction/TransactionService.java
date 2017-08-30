@@ -95,17 +95,15 @@ public class TransactionService {
         TransactionData transactionData = fetchTransaction(transactionId);
 
         if (transactionData.getTransactionId() == null) {
-            String message = "Could not find a valid transaction";
-            LOG.error(message);
-            throw new WebSecurityException(message);
+            LOG.error("Could not find a valid transaction");
+            throw new WebSecurityException("invalid.transaction");
         }
 
         if (!sessionId.equals(transactionData.getUserSession().getId())) {
             removeTransactionData(transactionData);
 
-            String message = "Session ID in transaction doesn't match browser session ID. Possible session fixation attack ?";
-            LOG.error(message);
-            throw new WebSecurityException(message);
+            LOG.error("Session ID in transaction doesn't match browser session ID. Possible session fixation attack ?");
+            throw new WebSecurityException("invalid.transaction");
         }
 
         LOG.debug("Security verification OK");
