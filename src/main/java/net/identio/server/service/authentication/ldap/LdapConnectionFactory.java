@@ -90,7 +90,7 @@ public class LdapConnectionFactory extends BasePooledObjectFactory<InitialLdapCo
 
         String currentUrl = ldapAuthMethod.getLdapUrl()[currentUrlIndexTs];
 
-        Hashtable<String, String> env = new Hashtable<String, String>();
+        Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
         env.put(Context.PROVIDER_URL, currentUrl);
 
@@ -107,7 +107,7 @@ public class LdapConnectionFactory extends BasePooledObjectFactory<InitialLdapCo
             env.put(Context.SECURITY_CREDENTIALS, password);
         }
 
-        InitialLdapContext ctx = null;
+        InitialLdapContext ctx;
 
         try {
             ctx = new InitialLdapContext(env, null);
@@ -136,7 +136,7 @@ public class LdapConnectionFactory extends BasePooledObjectFactory<InitialLdapCo
 
     @Override
     public PooledObject<InitialLdapContext> wrap(InitialLdapContext ctx) {
-        return new DefaultPooledObject<InitialLdapContext>(ctx);
+        return new DefaultPooledObject<>(ctx);
     }
 
     @Override

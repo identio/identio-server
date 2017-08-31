@@ -75,7 +75,7 @@ public class AuthMethodConfiguration {
     public List<AuthMethod> getAuthMethods() {
 
         if (authMethods == null) {
-            authMethods = new ArrayList<AuthMethod>();
+            authMethods = new ArrayList<>();
 
             if (ldapAuthMethods != null)
                 authMethods.addAll(ldapAuthMethods);

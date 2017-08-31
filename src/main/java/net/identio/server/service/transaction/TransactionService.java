@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -46,7 +47,7 @@ public class TransactionService {
 
         transactionCache = CacheBuilder.newBuilder().maximumSize(100000).expireAfterAccess(10, TimeUnit.MINUTES)
                 .build(new CacheLoader<String, TransactionData>() {
-                    public TransactionData load(String o) {
+                    public TransactionData load(@Nonnull String o) {
                         return new TransactionData();
                     }
                 });

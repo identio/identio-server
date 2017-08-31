@@ -54,9 +54,9 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(LdapAuthenticationProvider.class);
 
-    private HashMap<String, GenericObjectPool<InitialLdapContext>> pools = new HashMap<String, GenericObjectPool<InitialLdapContext>>();
+    private HashMap<String, GenericObjectPool<InitialLdapContext>> pools = new HashMap<>();
 
-    private HashMap<String, LdapAuthMethod> ldapAuthMethodsMap = new HashMap<String, LdapAuthMethod>();
+    private HashMap<String, LdapAuthMethod> ldapAuthMethodsMap = new HashMap<>();
 
     @Autowired
     public LdapAuthenticationProvider(ConfigurationService configurationService,

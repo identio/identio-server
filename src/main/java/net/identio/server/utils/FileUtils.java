@@ -32,7 +32,7 @@ public class FileUtils {
     public static String getFileHash(String filename) throws NoSuchAlgorithmException, IOException {
 
         MessageDigest md = MessageDigest.getInstance("MD5");
-        String result = null;
+        String result;
 
         md.reset();
 

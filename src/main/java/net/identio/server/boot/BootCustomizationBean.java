@@ -65,32 +65,29 @@ public class BootCustomizationBean {
 
         factory.setSessionTimeout(5, TimeUnit.MINUTES);
 
-        factory.addConnectorCustomizers(new TomcatConnectorCustomizer() {
-            @Override
-            public void customize(Connector connector) {
+        factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector -> {
 
-                AbstractHttp11Protocol<?> httpProtocol = (AbstractHttp11Protocol<?>) connector.getProtocolHandler();
-                httpProtocol.setCompression("on");
-                httpProtocol.setMaxThreads(150);
+            AbstractHttp11Protocol<?> httpProtocol = (AbstractHttp11Protocol<?>) connector.getProtocolHandler();
+            httpProtocol.setCompression("on");
+            httpProtocol.setMaxThreads(150);
 
-                if (configurationService.getConfiguration().getGlobalConfiguration().isSecure()) {
+            if (configurationService.getConfiguration().getGlobalConfiguration().isSecure()) {
 
-                    connector.setSecure(true);
-                    connector.setScheme("https");
-                    connector.setAttribute("keystoreFile", "file:///"
-                            + configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePath());
-                    connector.setAttribute("keystorePass",
-                            configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePassword());
-                    connector.setAttribute("keystoreType", "PKCS12");
-                    connector.setAttribute("keyAlias", "1");
-                    connector.setAttribute("sslProtocol", "TLSv1.2");
-                    connector.setAttribute("sslEnabledProtocols", "+TLSv1.1,+TLSv1.2");
-                    connector.setAttribute("SSLEnabled", true);
-                    connector.setAttribute("ciphers",
-                            "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA");
-                    connector.setAttribute("server", "Ident.io Server");
-                    configureTlsClientAuth(connector);
-                }
+                connector.setSecure(true);
+                connector.setScheme("https");
+                connector.setAttribute("keystoreFile", "file:///"
+                        + configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePath());
+                connector.setAttribute("keystorePass",
+                        configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePassword());
+                connector.setAttribute("keystoreType", "PKCS12");
+                connector.setAttribute("keyAlias", "1");
+                connector.setAttribute("sslProtocol", "TLSv1.2");
+                connector.setAttribute("sslEnabledProtocols", "+TLSv1.1,+TLSv1.2");
+                connector.setAttribute("SSLEnabled", true);
+                connector.setAttribute("ciphers",
+                        "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA384,TLS_ECDH_RSA_WITH_AES_256_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDH_RSA_WITH_AES_128_CBC_SHA,TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA");
+                connector.setAttribute("server", "Ident.io Server");
+                configureTlsClientAuth(connector);
             }
         });
         return factory;
@@ -129,10 +126,7 @@ public class BootCustomizationBean {
             } catch (KeyStoreException | NoSuchAlgorithmException e) {
                 LOG.error("Impossible to create temporary key store. Client authentication certs NOT loaded");
                 LOG.debug("* Detailed Stacktrace:", e);
-            } catch (CertificateException e) {
-                LOG.error("Error when parsing client authentication certificate");
-                LOG.debug("* Detailed Stacktrace:", e);
-            } catch (IOException e) {
+            } catch (CertificateException | IOException e) {
                 LOG.error("Error when parsing client authentication certificate");
                 LOG.debug("* Detailed Stacktrace:", e);
             }

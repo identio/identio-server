@@ -29,13 +29,10 @@ import net.identio.server.service.authorization.exceptions.UnknownScopeException
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.orchestration.model.OrchestrationErrorStatus;
-import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.transaction.model.TransactionState;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

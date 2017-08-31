@@ -48,7 +48,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(LocalAuthenticationProvider.class);
 
-    private HashMap<String, LocalAuthMethod> fileAuthMethodsMap = new HashMap<String, LocalAuthMethod>();
+    private HashMap<String, LocalAuthMethod> fileAuthMethodsMap = new HashMap<>();
 
     private HashMap<LocalAuthMethod, HashMap<String, User>> globalUsersMap;
 

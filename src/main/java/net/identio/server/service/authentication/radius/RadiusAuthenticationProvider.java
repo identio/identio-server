@@ -53,7 +53,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(RadiusAuthenticationProvider.class);
 
-    private HashMap<String, RadiusAuthMethod> radiusAuthMethodsMap = new HashMap<String, RadiusAuthMethod>();
+    private HashMap<String, RadiusAuthMethod> radiusAuthMethodsMap = new HashMap<>();
 
     private int currentHostIndex;
 

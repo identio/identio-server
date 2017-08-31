@@ -44,7 +44,7 @@ public class StaticResourceConfiguration extends WebMvcConfigurerAdapter {
         // Spring resource mapping is picky about the format of the path we
         // provide it.. The trailing file separator IS important...
         if (!resourceLocation.endsWith(File.separator)) {
-            resourceLocation = new StringBuilder(resourceLocation).append(File.separator).toString();
+            resourceLocation = resourceLocation + File.separator;
         }
 
         registry.addResourceHandler("/**").addResourceLocations(resourceLocation);

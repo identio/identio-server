@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,7 @@ public class UserSessionService {
                 .expireAfterAccess(configurationService.getConfiguration().getSessionConfiguration().getDuration(),
                         TimeUnit.MINUTES)
                 .build(new CacheLoader<String, UserSession>() {
-                    public UserSession load(String o) {
+                    public UserSession load(@Nonnull String o) {
                         return new UserSession();
                     }
                 });

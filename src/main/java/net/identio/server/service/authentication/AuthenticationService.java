@@ -56,7 +56,7 @@ public class AuthenticationService {
 
         LOG.info("Registering transparent method {}", authMethod.getName());
 
-        if (transparentAuthenticationProviders.containsKey(authMethod.getName())) {
+        if (transparentAuthenticationProviders.containsKey(authMethod)) {
             String message = "Authentication method name already in use";
             LOG.error(message);
             throw new IllegalArgumentException(message);

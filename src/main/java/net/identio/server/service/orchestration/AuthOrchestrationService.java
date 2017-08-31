@@ -26,7 +26,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationResult;
-import net.identio.server.service.authentication.model.AuthenticationResultStatus;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;

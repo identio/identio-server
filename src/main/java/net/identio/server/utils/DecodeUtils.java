@@ -35,16 +35,6 @@ public class DecodeUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(DecodeUtils.class);
 
-    /**
-     * Utility method to Base64-decode and eventually inflate a string
-     *
-     * @param value      Value to decode
-     * @param isDeflated Indicates if the string should be inflated
-     * @return
-     * @throws Base64DecodingException
-     * @throws DataFormatException
-     * @throws Exception
-     */
     public static byte[] decode(String data, boolean inflate)
             throws IOException, Base64DecodingException, DataFormatException {
 
@@ -69,19 +59,11 @@ public class DecodeUtils {
         return decodedBytes;
     }
 
-    /**
-     * Utility method to Base64-encode and eventually deflate data
-     *
-     * @param value   Value to encode
-     * @param deflate Indicates if the string should be deflated
-     * @return Encoded string
-     * @throws IOException
-     */
     public static String encode(byte[] data, boolean deflate) throws IOException {
 
         LOG.debug("Encoding data in base 64 with deflate = {}", deflate);
 
-        String encodedString = null;
+        String encodedString;
 
         byte[] deflatedData = deflate ? deflate(data, true) : data;
 
@@ -93,16 +75,6 @@ public class DecodeUtils {
         return encodedString;
     }
 
-    /**
-     * Utility method to inflate a compressed string
-     *
-     * @param bytes  Bytes to decode
-     * @param nowrap Should wrapping be used
-     * @return Decoded bytes
-     * @throws IOException
-     * @throws DataFormatException
-     * @throws Exception
-     */
     private static byte[] inflate(byte[] data, boolean nowrap) throws IOException, DataFormatException {
 
         LOG.debug("Inflating string with nowrap = {}...", nowrap);
@@ -124,20 +96,10 @@ public class DecodeUtils {
             return out.toByteArray();
 
         } finally {
-            if (decompressor != null)
                 decompressor.end();
         }
     }
 
-    /**
-     * Utility method to deflate an uncompressed string
-     *
-     * @param bytes  Bytes to decode
-     * @param nowrap Should wrapping be used
-     * @return Decoded bytes
-     * @throws IOException
-     * @throws Exception
-     */
     private static byte[] deflate(byte[] data, boolean nowrap) throws IOException {
 
         LOG.debug("Deflating string with nowrap = {}...", nowrap);
@@ -159,7 +121,6 @@ public class DecodeUtils {
 
             return outputStream.toByteArray();
         } finally {
-            if (deflater != null)
                 deflater.end();
         }
     }

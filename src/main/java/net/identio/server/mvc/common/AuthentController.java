@@ -132,7 +132,7 @@ public class AuthentController {
 
         LOG.debug("Received authmethods list");
 
-        List<AuthMethodResponse> list = new ArrayList<AuthMethodResponse>();
+        List<AuthMethodResponse> list = new ArrayList<>();
 
         for (AuthMethod authMethod : authOrchestrationService.getAuthMethods(transactionId, sessionId)) {
             list.add(new AuthMethodResponse().setName(authMethod.getName()).setType(authMethod.getType()));

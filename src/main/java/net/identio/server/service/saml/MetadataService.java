@@ -193,8 +193,8 @@ public class MetadataService {
         spValidators.remove(issuer);
     }
 
-    private void checkUpdatedMetadata(String filename) throws NoSuchAlgorithmException, IOException, TechnicalException,
-            UnsignedSAMLObjectException, UntrustedSignerException, InvalidSignatureException {
+    private void checkUpdatedMetadata(String filename)
+            throws NoSuchAlgorithmException, IOException, TechnicalException {
 
         LOG.debug("Check update of SAML SP metadata: {}", filename);
 
@@ -250,8 +250,7 @@ public class MetadataService {
                 checkUpdatedMetadata(filename);
             }
 
-        } catch (NoSuchAlgorithmException | TechnicalException | UnsignedSAMLObjectException | UntrustedSignerException
-                | InvalidSignatureException | IOException e) {
+        } catch (NoSuchAlgorithmException | TechnicalException | IOException e) {
             LOG.error("An error occured when refreshing SP metadatas: {}", e.getMessage());
             LOG.debug("* Detailed exception:", e);
         }

@@ -21,7 +21,6 @@
 package net.identio.server.mvc.saml;
 
 import net.identio.saml.SamlConstants;
-import net.identio.server.exceptions.*;
 import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.mvc.common.TransparentAuthController;
 import net.identio.server.service.orchestration.RequestOrchestrationService;
@@ -96,8 +95,8 @@ public class RequestConsumerController {
                                        @CookieValue(required = false) String identioSession) throws ServerException, ValidationException, WebSecurityException {
 
         String signedInfo = null;
-        String decodedSamlRequest = null;
-        String decodedRelayState = null;
+        String decodedSamlRequest;
+        String decodedRelayState;
 
         LOG.debug("Received request on /SAML2/SSO/Redirect");
         LOG.debug("* SAMLRequest: {}", usSamlRequest);

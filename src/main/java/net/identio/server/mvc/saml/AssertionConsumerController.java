@@ -75,10 +75,9 @@ public class AssertionConsumerController {
 
         if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
 
-            String responseView = responderController.displayResponderPage(
+            return responderController.displayResponderPage(
                     result.getResponseData().getUrl(), result.getResponseData().getData(),
                     result.getResponseData().getRelayState(), identioSession, httpResponse);
-            return responseView;
 
         } else {
             LOG.debug("Displaying authentication page");
