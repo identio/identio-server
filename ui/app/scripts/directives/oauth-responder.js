@@ -12,7 +12,7 @@ angular.module('identioUiApp')
         scope: {},
         link: function($scope, element, $attrs) {
             $scope.$on($attrs.event, function(event, data) {
-            	$window.location.href = data.destinationUrl;
+            	$window.location.href = data.url;
              });
         }
     };

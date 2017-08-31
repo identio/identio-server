@@ -25,17 +25,7 @@ import net.identio.server.service.orchestration.model.ResponseData;
 
 public class ConsentResponse {
 
-    private boolean success;
     private ResponseData response;
-
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public ConsentResponse setSuccess(boolean success) {
-        this.success = success;
-        return this;
-    }
 
     public ResponseData getResponseData() {
         return response;

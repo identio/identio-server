@@ -37,7 +37,7 @@
 					url : '/logout',
 					templateUrl : 'views/logout.html',
 				}).state('consent', {
-         	url : '/consent',
+         	url : '/consent/:transactionId',
           templateUrl : 'views/consent.html',
           controller: 'ConsentController as consent'
        	});
@@ -87,7 +87,7 @@
 					SUBMIT_IN_PROGRESS: 'Connexion en cours...',
 					SAML_SECTION_HEADER: 'Alternativement, vous pouvez vous identifier sur:',
           ERROR: 'Une erreur s&rsquo;est produite',
-          CONSENT_TITLE: 'Autorization d&rsquo;une application',
+          CONSENT_TITLE: 'Autorisation d&rsquo;une application',
           CONSENT_MESSAGE: 'souhaite obtenir la permission d&rsquo;acc&eacute;der &agrave; votre compte',
           AUTHORIZE: 'Autoriser',
           AUTHORIZE_IN_PROGRESS: 'Patientez...',

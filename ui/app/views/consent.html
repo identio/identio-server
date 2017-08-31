@@ -18,9 +18,15 @@
 
     <form class="consent-form" ng-submit="consent.submit()">
 
-      <ul>
-        <li ng-repeat="scope in consent.scopes">{{scope.description}}</li>
-      </ul>
+      <label ng-repeat="scope in consent.scopes">
+        <input
+          type="checkbox"
+          name="{{scope.name}}"
+          value="{{scope.name}}"
+          ng-checked="{{scope.selected}}"
+        ng-model="scope.selected">
+        {{scope.description}}
+      </label>
 
       <button class="btn btn-primary"
               ng-disabled="consent.submitInProgress == true" type="submit"
@@ -34,7 +40,5 @@
 </div>
 
 <!-- SAML requester and responder -->
-<div saml-requester event="saml.submit.request"></div>
-<div saml-responder event="saml.submit.response"></div>
 <div oauth-responder event="oauth.submit.response"></div>
 

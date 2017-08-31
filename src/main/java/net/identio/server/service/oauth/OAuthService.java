@@ -152,17 +152,24 @@ public class OAuthService {
         return result;
     }
 
-    public ResponseData generateSuccessResponse(RequestParsingInfo result, UserSession userSession) {
+    public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession) {
+
+        return generateSuccessResponse(requestParsingInfo, userSession, requestParsingInfo.getRequestedScopes());
+    }
+
+    public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession,
+                                                LinkedHashMap<String, AuthorizationScope> approvedScopes) {
 
         StringBuilder responseBuilder = new StringBuilder();
 
-        responseBuilder.append(result.getResponseUrl()).append("#expires_in=");
+        responseBuilder.append(requestParsingInfo.getResponseUrl()).append("#expires_in=");
 
         // Determine expiration time of the authorization and scope string
         int expirationTime = -1;
+
         StringBuilder scopeBuilder = new StringBuilder();
 
-        for (AuthorizationScope scope : result.getRequestedScopes().values()) {
+        for (AuthorizationScope scope : approvedScopes.values()) {
 
             int scopeExpirationTime = scope.getExpirationTime() != 0 ? scope.getExpirationTime() : 3600;
 
@@ -177,32 +184,41 @@ public class OAuthService {
 
         scopeBuilder.deleteCharAt(scopeBuilder.length() - 1); // delete last comma
 
-        if (result.getResponseType().equals(OAuthResponseType.TOKEN)) {
+        if (requestParsingInfo.getResponseType().equals(OAuthResponseType.TOKEN)) {
             responseBuilder.append("&token_type=Bearer&access_token=");
 
             DateTime now = new DateTime(DateTimeZone.UTC);
 
             String accessToken = JWT.create().withIssuer(configurationService.getPublicFqdn())
                     .withExpiresAt(now.plusSeconds(expirationTime).toDate()).withIssuedAt(now.toDate())
-                    .withSubject(userSession.getUserId()).withAudience(result.getSourceApplicationName())
+                    .withSubject(userSession.getUserId()).withAudience(requestParsingInfo.getSourceApplicationName())
                     .withJWTId(UUID.randomUUID().toString()).withClaim("scope", scopeBuilder.toString())
                     .sign(Algorithm.RSA256(signingKey));
 
             responseBuilder.append(accessToken);
         }
 
-        if (result.getRelayState() != null) {
-            responseBuilder.append("&state=").append(result.getRelayState());
+        if (requestParsingInfo.getRelayState() != null) {
+            responseBuilder.append("&state=").append(requestParsingInfo.getRelayState());
         }
 
         return new ResponseData().setUrl(responseBuilder.toString());
+
     }
 
     public ResponseData generateErrorResponse(RequestParsingInfo result) {
 
+        return generateErrorResponse(result, true);
+    }
+
+    public ResponseData generateErrorResponse(RequestParsingInfo result, boolean consentResult) {
+
+        // Determine the type of error to send
+        String errorStatus = consentResult ? result.getErrorStatus() : OAuthErrors.ACCESS_DENIED;
+
         StringBuilder responseBuilder = new StringBuilder();
 
-        responseBuilder.append(result.getResponseUrl()).append("#error=").append(result.getErrorStatus());
+        responseBuilder.append(result.getResponseUrl()).append("#error=").append(errorStatus);
 
         if (result.getRelayState() != null) {
             responseBuilder.append("&state=").append(result.getRelayState());
@@ -252,5 +268,4 @@ public class OAuthService {
         return true;
 
     }
-
 }

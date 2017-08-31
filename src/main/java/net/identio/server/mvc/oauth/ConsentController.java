@@ -20,12 +20,14 @@
  */
 package net.identio.server.mvc.oauth;
 
+import net.identio.server.mvc.common.model.ApiErrorResponse;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.oauth.ConsentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -51,4 +53,9 @@ public class ConsentController {
         return consentService.validateConsent(consentRequest, transactionId, sessionId);
     }
 
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(WebSecurityException.class)
+    public ApiErrorResponse handleWebSecurityException(WebSecurityException e) {
+        return new ApiErrorResponse(e.getMessage());
+    }
 }

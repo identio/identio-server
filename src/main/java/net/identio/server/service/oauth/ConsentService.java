@@ -23,6 +23,9 @@ package net.identio.server.service.oauth;
 
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
+import net.identio.server.service.authorization.AuthorizationService;
+import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
+import net.identio.server.service.authorization.exceptions.UnknownScopeException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.orchestration.model.OrchestrationErrorStatus;
@@ -48,6 +51,9 @@ public class ConsentService {
     @Autowired
     private OAuthService oAuthService;
 
+    @Autowired
+    private AuthorizationService authorizationService;
+
     public ConsentContext getConsentContext(String transactionId, String sessionId)
             throws WebSecurityException {
 
@@ -61,25 +67,42 @@ public class ConsentService {
 
         return new ConsentContext().setRequestedScopes(authorizedScopes)
                 .setAudience(transactionData.getRequestParsingInfo().getSourceApplicationName());
-
     }
 
     public ConsentResponse validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException {
 
         TransactionData transactionData = getTransactionData(transactionId, sessionId);
 
-        // Check that each validated scope is in the requested scopes
-        for (String scopeName : consentRequest.getApprovedScopes()) {
-            if (!transactionData.getRequestParsingInfo().getRequestedScopes().containsKey(scopeName)) {
+        ConsentResponse response = new ConsentResponse();
+
+        if (consentRequest == null || consentRequest.getApprovedScopes() == null || consentRequest.getApprovedScopes().size() == 0) {
+
+            response.setResponseData(
+                    oAuthService.generateErrorResponse(transactionData.getRequestParsingInfo(), false)
+            );
+        } else {
+            // Check that each validated scope is in the requested scopes
+            for (String scopeName : consentRequest.getApprovedScopes()) {
+                if (!transactionData.getRequestParsingInfo().getRequestedScopes().containsKey(scopeName)) {
+                    transactionService.removeTransactionData(transactionData);
+                    throw new WebSecurityException(OrchestrationErrorStatus.INVALID_SCOPE);
+                }
+            }
+
+            try {
+                response.setResponseData(
+                        oAuthService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
+                                transactionData.getUserSession(), authorizationService.getScopes(consentRequest.getApprovedScopes()))
+                );
+            } catch (UnknownScopeException | NoScopeProvidedException e) {
+                transactionService.removeTransactionData(transactionData);
                 throw new WebSecurityException(OrchestrationErrorStatus.INVALID_SCOPE);
             }
         }
 
-        return new ConsentResponse().setSuccess(true)
-                .setResponseData(
-                        oAuthService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
-                        transactionData.getUserSession())
-                );
+        transactionService.removeTransactionData(transactionData);
+
+        return response;
     }
 
     private TransactionData getTransactionData(String transactionId, String sessionId) throws WebSecurityException {

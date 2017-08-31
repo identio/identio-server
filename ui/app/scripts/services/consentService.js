@@ -26,10 +26,10 @@
 			});
 		}
 
-		function submitConsent(transactionId, validatedScopes) {
+		function submitConsent(transactionId, approvedScopes) {
 
 			var data = {
-				validatedScopes : validatedScopes
+				approvedScopes : approvedScopes
 			};
 
 			return $http({

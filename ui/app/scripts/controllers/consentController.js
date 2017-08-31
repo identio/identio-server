@@ -25,8 +25,7 @@
 		// Request the list of authentication methods
 		function init() {
 
-     var context = ConsentService.getConsentContext($stateParams.transactionId)
-     .then(consentContextHandler, errorHandler);
+     ConsentService.getConsentContext($stateParams.transactionId).then(consentContextHandler, errorHandler);
 		}
 
     function consentContextHandler(response) {
@@ -35,27 +34,40 @@
       vm.scopes = [];
       for (var i = 0; i < response.data.requestedScopes.length; i++) {
 
-        var test = {};
-        test.audience = response.data.requestedScopes[i].name;
-        test.description = response.data.requestedScopes[i].description[$translate.use()];
+        var scope = {};
+        scope.name = response.data.requestedScopes[i].name;
+        scope.description = response.data.requestedScopes[i].description[$translate.use()];
+        scope.selected = true;
 
-        vm.scopes.push(test);
+        vm.scopes.push(scope);
       }
     }
 
 
 		// Submit consent
 		function submit() {
+
 			vm.submitInProgress = true;
 
+      var approvedScopes = [];
 
+      for (var i = 0; i < vm.scopes.length; i++) {
+        if (vm.scopes[i].selected) approvedScopes.push(vm.scopes[i].name);
+      }
 
-
+      ConsentService.submitConsent($stateParams.transactionId, approvedScopes).then(consentSubmitSuccessHandler, errorHandler);
 		}
 
 		function consentSubmitSuccessHandler(response) {
 
+			vm.submitInProgress = false;
 
+      var data = response.data;
+
+     	data.responseData.url = $sce
+               						.trustAsResourceUrl(data.responseData.url);
+
+      $rootScope.$broadcast('oauth.submit.response', data.responseData);
 
 		}
 

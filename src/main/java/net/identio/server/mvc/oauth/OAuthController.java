@@ -82,7 +82,7 @@ public class OAuthController {
                 return "redirect:" + result.getResponseData().getUrl();
 
             case CONSENT:
-                return "redirect:/#!/consent/";
+                return "redirect:/#!/consent/" + result.getTransactionId();
 
             case ERROR:
                 return "redirect:/#!/error/" + result.getErrorStatus();
