@@ -134,7 +134,7 @@ public class OAuthRequests {
 
         ConsentContext consentContext = consentContextEntity.getBody();
 
-        assertEquals("Test Client 2", consentContext.getAudience());
+        assertEquals("Test Client", consentContext.getAudience());
 
         List<AuthorizationScope> requestedScopes = consentContext.getRequestedScopes();
         requestedScopes.sort(Comparator.comparing(AuthorizationScope::getName));
