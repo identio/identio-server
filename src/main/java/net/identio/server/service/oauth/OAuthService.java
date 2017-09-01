@@ -251,9 +251,9 @@ public class OAuthService {
 
     private boolean checkClientAuthorization(OAuthClient client, String responseType, List<String> requestedScopes) {
 
-        if (!responseType.equals(OAuthResponseType.TOKEN) && client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
-                || !responseType.equals(OAuthResponseType.CODE)
-                && client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
+        if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
+                || responseType.equals(OAuthResponseType.CODE)
+                && !client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
 
             LOG.error("Client not authorized to use the response type: {}", responseType);
             return false;
