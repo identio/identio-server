@@ -189,7 +189,7 @@ public class OAuthService {
 
             DateTime now = new DateTime(DateTimeZone.UTC);
 
-            String accessToken = JWT.create().withIssuer(configurationService.getPublicFqdn())
+            String accessToken = JWT.create().withIssuer(configurationService.getConfiguration().getGlobalConfiguration().getPublicFqdn())
                     .withExpiresAt(now.plusSeconds(expirationTime).toDate()).withIssuedAt(now.toDate())
                     .withSubject(userSession.getUserId()).withAudience(requestParsingInfo.getSourceApplicationName())
                     .withJWTId(UUID.randomUUID().toString()).withClaim("scope", scopeBuilder.toString())

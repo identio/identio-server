@@ -1,5 +1,6 @@
 globalConfiguration:
   publicFqdn: https://localhost
+  staticResourcesPath: ui/app
 
 authPolicyConfiguration:
   authLevels:
@@ -27,9 +28,6 @@ authorizationConfiguration:
     - name: scope.test.2
       authLevel: *strong
       expirationTime: 3600
-
-globalConfiguration:
-  staticResourcesPath: ui/app
 
 oAuthServerConfiguration:
   clientFile: src/test/resources/oauth-server-config/oauth-clients.yml
