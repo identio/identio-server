@@ -21,10 +21,7 @@
 package net.identio.server.service.saml;
 
 import net.identio.saml.*;
-import net.identio.saml.exceptions.InvalidSignatureException;
 import net.identio.saml.exceptions.TechnicalException;
-import net.identio.saml.exceptions.UnsignedSAMLObjectException;
-import net.identio.saml.exceptions.UntrustedSignerException;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.IdentioConfiguration;
 import net.identio.server.service.configuration.ConfigurationService;
