@@ -10,3 +10,15 @@ oAuthClients:
     allowedGrants:
       - implicit
     consentNeeded: true
+  - name: Test Client 2
+    clientId: test2
+    clientSecret: test2
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - implicit
+      - code
+    consentNeeded: true

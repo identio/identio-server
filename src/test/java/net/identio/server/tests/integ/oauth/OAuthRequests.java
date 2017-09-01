@@ -48,7 +48,7 @@ import java.util.regex.Pattern;
 import static org.junit.Assert.*;
 import static org.junit.Assert.fail;
 
-class ImplicitRequests {
+public class OAuthRequests {
 
     private static final String AUTHENTICATION_URL = "/#!/auth/";
 
@@ -58,15 +58,16 @@ class ImplicitRequests {
     private HttpHeaders headers;
     private String responseUrl;
 
-    ImplicitRequests(int port, TestRestTemplate restTemplate) {
+    public OAuthRequests(int port, TestRestTemplate restTemplate) {
         this.port = port;
         this.restTemplate = restTemplate;
     }
 
-    void authorizeRequest() {
+    public void authorizeRequest(String clientId, String responseType) {
 
         ResponseEntity<String> initialRequestResponse = restTemplate.exchange(
-                "/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&response_type=token&scope=scope.test.1 scope.test.2&state=1234",
+                "/oauth/authorize?client_id=" + clientId + "&redirect_uri=http://example.com/cb&response_type="
+                        + responseType + "&scope=scope.test.1 scope.test.2&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<>(null, new HttpHeaders()),
                 String.class);
@@ -89,7 +90,7 @@ class ImplicitRequests {
         headers.add("X-Transaction-ID", transactionId);
     }
 
-    void getAuthMethods() {
+    public void getAuthMethods() {
 
         ResponseEntity<AuthMethodResponse[]> authMethodResponse = restTemplate.exchange(
                 "/api/auth/methods",
@@ -104,7 +105,7 @@ class ImplicitRequests {
 
     }
 
-    void authenticateLocal() {
+    public void authenticateLocal() {
 
         AuthSubmitRequest authenticationSubmit = new AuthSubmitRequest().setLogin("johndoe").setPassword("password")
                 .setMethod("Local");
@@ -122,7 +123,7 @@ class ImplicitRequests {
         assertEquals(ApiResponseStatus.CONSENT, authSubmitResponse.getStatus());
     }
 
-    void getConsentContext() {
+    public void getConsentContext() {
 
         // Get information for consent screen
         ResponseEntity<ConsentContext> consentContextEntity = restTemplate.exchange(
@@ -133,7 +134,7 @@ class ImplicitRequests {
 
         ConsentContext consentContext = consentContextEntity.getBody();
 
-        assertEquals("Test Client", consentContext.getAudience());
+        assertEquals("Test Client 2", consentContext.getAudience());
 
         List<AuthorizationScope> requestedScopes = consentContext.getRequestedScopes();
         requestedScopes.sort(Comparator.comparing(AuthorizationScope::getName));
@@ -146,7 +147,7 @@ class ImplicitRequests {
         assertEquals("scope.test.2", consentContext.getRequestedScopes().get(1).getName());
     }
 
-    void consent() {
+    public void consent(String responseType) {
 
         // Send the consent
         ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Collections.singletonList("scope.test.1"));
@@ -160,11 +161,17 @@ class ImplicitRequests {
         ConsentResponse consentResponse = consentResponseEntity.getBody();
         this.responseUrl = consentResponse.getResponseData().getUrl();
 
-        assertTrue(this.responseUrl
-                .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
+        if ("token".equals(responseType)) {
+            assertTrue(this.responseUrl
+                    .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
+        }
+        if ("code".equals(responseType)) {
+            assertTrue(this.responseUrl
+                    .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&code=.*&state=1234"));
+        }
     }
 
-    void validateResponse() {
+    public void validateResponse() {
         // Parse and validate JWT
         Algorithm algorithm = null;
         try {

@@ -36,7 +36,7 @@ import org.springframework.test.context.junit4.SpringRunner;
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
-public class OAuthImplicitFullCinematicTest {
+public class OAuthAuthorizationCodeFullCinematicTest {
 
     @LocalServerPort
     private int port;
@@ -49,7 +49,7 @@ public class OAuthImplicitFullCinematicTest {
 
         OAuthRequests requests = new OAuthRequests(port, restTemplate);
 
-        requests.authorizeRequest("test", "token");
+        requests.authorizeRequest("test2","code");
 
         requests.getAuthMethods();
 
@@ -57,8 +57,8 @@ public class OAuthImplicitFullCinematicTest {
 
         requests.getConsentContext();
 
-        requests.consent("token");
+        requests.consent("code");
 
-        requests.validateResponse();
+
     }
 }
