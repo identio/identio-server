@@ -1,3 +1,6 @@
+globalConfiguration:
+  publicFqdn: http://<your_hostname>:10080
+
 authPolicyConfiguration:
   authLevels:
     - &low

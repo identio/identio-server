@@ -39,7 +39,6 @@ import static org.junit.Assert.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
-        "identio.public.fqdn: http://localhost:443",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
 public class InitialRequestTests {
 

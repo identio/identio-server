@@ -56,7 +56,6 @@ import static org.junit.Assert.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
-        "identio.public.fqdn: https://localhost",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
 public class OAuthImplicitFullCinematicTest {
 

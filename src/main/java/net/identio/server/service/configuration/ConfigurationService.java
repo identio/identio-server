@@ -42,17 +42,11 @@ public class ConfigurationService {
 
     private IdentioConfiguration configuration;
     private String configFile;
-    private String publicFqdn;
 
     @Autowired
-    public ConfigurationService(@Value("${identio.config}") String configFile, @Value("${identio.public.fqdn}") String publicFqdn) throws InitializationException {
-
-        if (publicFqdn == null) {
-            throw new InitializationException("No public FQDN specified");
-        }
+    public ConfigurationService(@Value("${identio.config}") String configFile) throws InitializationException {
 
         this.configFile = configFile;
-        this.publicFqdn = publicFqdn;
 
         LOG.debug("Loading configuration file: {}", configFile);
 
@@ -71,10 +65,6 @@ public class ConfigurationService {
         } catch (IOException ex) {
             throw new InitializationException("Impossible to parse configuration file", ex);
         }
-    }
-
-    public String getPublicFqdn() {
-        return publicFqdn;
     }
 
     public IdentioConfiguration getConfiguration() {

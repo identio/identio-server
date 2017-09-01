@@ -85,14 +85,14 @@ public class MetadataService {
 
         // Determine idp endpoint configuration
         ArrayList<Endpoint> idpEndpoints = new ArrayList<>();
-        String idpPostUrl = configurationService.getPublicFqdn() + "/SAML2/SSO/POST";
-        String idpRedirectUrl = configurationService.getPublicFqdn() + "/SAML2/SSO/Redirect";
+        String idpPostUrl = config.getGlobalConfiguration().getPublicFqdn() + "/SAML2/SSO/POST";
+        String idpRedirectUrl = config.getGlobalConfiguration().getPublicFqdn() + "/SAML2/SSO/Redirect";
         idpEndpoints.add(new Endpoint(1, SamlConstants.BINDING_HTTP_REDIRECT, idpRedirectUrl, true));
         idpEndpoints.add(new Endpoint(2, SamlConstants.BINDING_HTTP_POST, idpPostUrl, false));
 
         // Determine sp endpoint configuration
         ArrayList<Endpoint> spEndpoints = new ArrayList<>();
-        String spPostUrl = configurationService.getPublicFqdn() + "/SAML2/ACS/POST";
+        String spPostUrl = config.getGlobalConfiguration().getPublicFqdn() + "/SAML2/ACS/POST";
         spEndpoints.add(new Endpoint(1, SamlConstants.BINDING_HTTP_POST, spPostUrl, true));
 
         // Extract certificate from provided P12
@@ -131,7 +131,7 @@ public class MetadataService {
                 .setWantAssertionsSigned(false).setSigningCertificates(certs);
 
         idpMetadata = MetadataBuilder.getInstance()
-                .setEntityID(configurationService.getPublicFqdn() + "/SAML2")
+                .setEntityID(config.getGlobalConfiguration().getPublicFqdn() + "/SAML2")
                 .setOrganizationName(config.getSamlIdpConfiguration().getOrganizationName())
                 .setOrganizationDisplayName(config.getSamlIdpConfiguration().getOrganizationDisplayName())
                 .setOrganizationURL(config.getSamlIdpConfiguration().getOrganizationUrl())

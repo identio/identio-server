@@ -1,3 +1,6 @@
+globalConfiguration:
+  publicFqdn: https://localhost
+
 authPolicyConfiguration:
   authLevels:
     - &low

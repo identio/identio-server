@@ -22,6 +22,7 @@ package net.identio.server.model;
 
 public class GlobalConfiguration {
 
+    private String publicFqdn;
     private int port;
     private boolean secure;
     private String sslKeystorePath;
@@ -30,6 +31,14 @@ public class GlobalConfiguration {
     private String signatureKeystorePassword;
     private String workDirectory;
     private String staticResourcesPath;
+
+    public String getPublicFqdn() {
+        return publicFqdn;
+    }
+
+    public void setPublicFqdn(String publicFqdn) {
+        this.publicFqdn = publicFqdn;
+    }
 
     public int getPort() {
         return port;
