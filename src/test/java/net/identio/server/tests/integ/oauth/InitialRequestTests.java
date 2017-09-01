@@ -47,7 +47,7 @@ public class InitialRequestTests {
     private int port;
 
     @Autowired
-    private TestRestTemplate restTemplate = new TestRestTemplate();
+    private TestRestTemplate restTemplate;
 
     private static final String AUTHORIZE_URL = "/oauth/authorize";
     private static final String AUTHENTICATION_URL = "/#!/auth/";
@@ -61,7 +61,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithoutParameters() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort(AUTHORIZE_URL),
+                AUTHORIZE_URL,
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -74,7 +74,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithoutClientId() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -87,7 +87,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithInvalidClientId() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=invalid&response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?client_id=invalid&response_type=token&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -100,7 +100,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithoutResponseType() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -113,7 +113,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithInvalidResponseType() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&response_type=invalid&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?client_id=test&response_type=invalid&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -126,7 +126,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithUnauthorizedResponseType() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&response_type=code&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?client_id=test&response_type=code&redirect_uri=http://example.com/cb&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -139,7 +139,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithoutRedirectUri() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&response_type=token&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?client_id=test&response_type=token&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -152,7 +152,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithUnknownUri() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://evil.com/cb&response_type=token&scope=scope.test.1&state=1234"),
+                "/oauth/authorize?client_id=test&redirect_uri=http://evil.com/cb&response_type=token&scope=scope.test.1&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -165,7 +165,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithoutScope() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&state=1234"),
+                "/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);
@@ -178,7 +178,7 @@ public class InitialRequestTests {
     public void oAuthAuthorizeRequestWithInvalidScope() {
 
         ResponseEntity<String> response = restTemplate.exchange(
-                getUrlWithPort("/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&scope=invalid&state=1234"),
+                "/oauth/authorize?client_id=test&http://example.com/cb&response_type=token&scope=invalid&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<String>(null, new HttpHeaders()),
                 String.class);

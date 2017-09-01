@@ -33,7 +33,6 @@ import net.identio.server.mvc.common.model.AuthSubmitResponse;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
-import org.apache.http.auth.AUTH;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,10 +46,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.FileInputStream;
 import java.security.*;
 import java.security.interfaces.RSAKey;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,14 +64,15 @@ public class OAuthImplicitFullCinematicTest {
     private int port;
 
     @Autowired
-    private TestRestTemplate restTemplate = new TestRestTemplate();
+    private TestRestTemplate restTemplate;
 
     private static final String AUTHENTICATION_URL = "/#!/auth/";
 
     @Test
     public void oAuthAuthorizeValidRequest() {
 
-        ResponseEntity<String> initialRequestResponse = restTemplate.exchange(getUrlWithPort("/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&response_type=token&scope=scope.test.1 scope.test.2&state=1234"),
+        ResponseEntity<String> initialRequestResponse = restTemplate.exchange(
+                "/oauth/authorize?client_id=test&redirect_uri=http://example.com/cb&response_type=token&scope=scope.test.1 scope.test.2&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<>(null, new HttpHeaders()),
                 String.class);
@@ -100,7 +97,7 @@ public class OAuthImplicitFullCinematicTest {
         headers.add("X-Transaction-ID", transactionId);
 
         ResponseEntity<AuthMethodResponse[]> authMethodResponse = restTemplate.exchange(
-                getUrlWithPort("/api/auth/methods"),
+                "/api/auth/methods",
                 HttpMethod.GET,
                 new HttpEntity<>(null, headers),
                 AuthMethodResponse[].class);
@@ -115,7 +112,7 @@ public class OAuthImplicitFullCinematicTest {
                 .setMethod("Local");
 
         ResponseEntity<AuthSubmitResponse> authSubmitResponseEntity = restTemplate.exchange(
-                getUrlWithPort("/api/auth/submit/password"),
+                "/api/auth/submit/password",
                 HttpMethod.POST,
                 new HttpEntity<>(authenticationSubmit, headers),
                 AuthSubmitResponse.class);
@@ -128,7 +125,7 @@ public class OAuthImplicitFullCinematicTest {
 
         // Get information for consent screen
         ResponseEntity<ConsentContext> consentContextEntity = restTemplate.exchange(
-                getUrlWithPort("/api/authz/consent"),
+                "/api/authz/consent",
                 HttpMethod.GET,
                 new HttpEntity<>(null, headers),
                 ConsentContext.class);
@@ -148,17 +145,16 @@ public class OAuthImplicitFullCinematicTest {
         assertEquals("scope.test.2", consentContext.getRequestedScopes().get(1).getName());
 
         // Send the consent
-        ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Arrays.asList("scope.test.1", "scope.test.2"));
+        ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Collections.singletonList("scope.test.1"));
 
         ResponseEntity<ConsentResponse> consentResponseEntity = restTemplate.exchange(
-                getUrlWithPort("/api/authz/consent"),
+                "/api/authz/consent",
                 HttpMethod.POST,
                 new HttpEntity<>(consentRequest, headers),
                 ConsentResponse.class);
 
         ConsentResponse consentResponse = consentResponseEntity.getBody();
 
-        assertEquals(true, consentResponse.isSuccess());
         assertTrue(consentResponse.getResponseData().getUrl()
                 .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
 
@@ -174,7 +170,7 @@ public class OAuthImplicitFullCinematicTest {
                 .withIssuer("https://localhost")
                 .withSubject("johndoe")
                 .withAudience("Test Client")
-                .withClaim("scope", "scope.test.1 scope.test.2")
+                .withClaim("scope", "scope.test.1")
                 .build();
 
         Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
