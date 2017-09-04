@@ -33,7 +33,7 @@ public class RequestParsingInfo {
     private String errorStatus;
     private String requestId;
     private ProtocolType protocolType;
-    private String sourceApplicationName;
+    private String sourceApplication;
     private boolean forceAuthentication;
     private String authLevelComparison;
     private List<AuthLevel> requestedAuthLevels;
@@ -79,12 +79,12 @@ public class RequestParsingInfo {
         return this;
     }
 
-    public String getSourceApplicationName() {
-        return sourceApplicationName;
+    public String getSourceApplication() {
+        return sourceApplication;
     }
 
-    public RequestParsingInfo setSourceApplicationName(String sourceApplicationName) {
-        this.sourceApplicationName = sourceApplicationName;
+    public RequestParsingInfo setSourceApplication(String sourceApplication) {
+        this.sourceApplication = sourceApplication;
         return this;
     }
 

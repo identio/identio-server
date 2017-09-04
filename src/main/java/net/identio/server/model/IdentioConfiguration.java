@@ -20,6 +20,8 @@
  */
 package net.identio.server.model;
 
+import java.util.List;
+
 public class IdentioConfiguration {
 
     private GlobalConfiguration globalConfiguration = new GlobalConfiguration();
@@ -29,6 +31,7 @@ public class IdentioConfiguration {
     private AuthMethodConfiguration authMethodConfiguration = new AuthMethodConfiguration();
     private OAuthServerConfiguration oAuthServerConfiguration = new OAuthServerConfiguration();
     private AuthorizationConfiguration authorizationConfiguration = new AuthorizationConfiguration();
+    private DataSourcesConfiguration dataSourcesConfiguration = new DataSourcesConfiguration();
 
     public GlobalConfiguration getGlobalConfiguration() {
         return globalConfiguration;
@@ -84,5 +87,13 @@ public class IdentioConfiguration {
 
     public void setAuthorizationConfiguration(AuthorizationConfiguration authorizationConfiguration) {
         this.authorizationConfiguration = authorizationConfiguration;
+    }
+
+    public DataSourcesConfiguration getDataSourcesConfiguration() {
+        return dataSourcesConfiguration;
+    }
+
+    public void setDataSourcesConfiguration(DataSourcesConfiguration dataSourcesConfiguration) {
+        this.dataSourcesConfiguration = dataSourcesConfiguration;
     }
 }

@@ -111,7 +111,7 @@ public class AuthPolicyService {
             // Request doesn't specify a minimum auth level
             // , we check if we have a specific auth level
             // for this application
-            AppAuthLevel appAuthLevel = authLevelByApp.get(parsingInfo.getSourceApplicationName());
+            AppAuthLevel appAuthLevel = authLevelByApp.get(parsingInfo.getSourceApplication());
 
             if (appAuthLevel != null) {
 

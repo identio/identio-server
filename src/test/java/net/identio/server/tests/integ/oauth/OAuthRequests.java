@@ -57,17 +57,21 @@ public class OAuthRequests {
 
     private HttpHeaders headers;
     private String responseUrl;
+    private String responseType;
+    private String clientId;
 
-    public OAuthRequests(int port, TestRestTemplate restTemplate) {
+    public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId) {
         this.port = port;
         this.restTemplate = restTemplate;
+        this.responseType = responseType;
+        this.clientId = clientId;
     }
 
-    public void authorizeRequest(String clientId, String responseType) {
+    public void authorizeRequest() {
 
         ResponseEntity<String> initialRequestResponse = restTemplate.exchange(
-                "/oauth/authorize?client_id=" + clientId + "&redirect_uri=http://example.com/cb&response_type="
-                        + responseType + "&scope=scope.test.1 scope.test.2&state=1234",
+                "/oauth/authorize?client_id=" + this.clientId + "&redirect_uri=http://example.com/cb&response_type="
+                        + this.responseType + "&scope=scope.test.1 scope.test.2&state=1234",
                 HttpMethod.GET,
                 new HttpEntity<>(null, new HttpHeaders()),
                 String.class);
@@ -134,7 +138,7 @@ public class OAuthRequests {
 
         ConsentContext consentContext = consentContextEntity.getBody();
 
-        assertEquals("Test Client", consentContext.getAudience());
+        assertEquals(this.clientId, consentContext.getAudience());
 
         List<AuthorizationScope> requestedScopes = consentContext.getRequestedScopes();
         requestedScopes.sort(Comparator.comparing(AuthorizationScope::getName));
@@ -147,7 +151,7 @@ public class OAuthRequests {
         assertEquals("scope.test.2", consentContext.getRequestedScopes().get(1).getName());
     }
 
-    public void consent(String responseType) {
+    public void consent() {
 
         // Send the consent
         ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Collections.singletonList("scope.test.1"));
@@ -161,13 +165,13 @@ public class OAuthRequests {
         ConsentResponse consentResponse = consentResponseEntity.getBody();
         this.responseUrl = consentResponse.getResponseData().getUrl();
 
-        if ("token".equals(responseType)) {
+        if ("token".equals(this.responseType)) {
             assertTrue(this.responseUrl
                     .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
         }
-        if ("code".equals(responseType)) {
+        if ("code".equals(this.responseType)) {
             assertTrue(this.responseUrl
-                    .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&code=.*&state=1234"));
+                    .matches("^http://example.com/cb?code=.*&state=1234"));
         }
     }
 
@@ -183,8 +187,8 @@ public class OAuthRequests {
         JWTVerifier verifier = JWT.require(algorithm)
                 .withIssuer("https://localhost")
                 .withSubject("johndoe")
-                .withAudience("Test Client")
                 .withClaim("scope", "scope.test.1")
+                .withClaim("client_id", clientId)
                 .build();
 
         Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");

@@ -63,7 +63,7 @@ public class ConsentService {
                 .collect(Collectors.toList());
 
         return new ConsentContext().setRequestedScopes(authorizedScopes)
-                .setAudience(transactionData.getRequestParsingInfo().getSourceApplicationName());
+                .setAudience(transactionData.getRequestParsingInfo().getSourceApplication());
     }
 
     public ConsentResponse validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException {

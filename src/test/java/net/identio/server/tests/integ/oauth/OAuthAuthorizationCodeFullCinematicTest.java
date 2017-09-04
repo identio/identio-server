@@ -47,9 +47,9 @@ public class OAuthAuthorizationCodeFullCinematicTest {
     @Test
     public void oAuthAuthorizeValidRequest() {
 
-        OAuthRequests requests = new OAuthRequests(port, restTemplate);
+        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2");
 
-        requests.authorizeRequest("test2","code");
+        requests.authorizeRequest();
 
         requests.getAuthMethods();
 
@@ -57,7 +57,7 @@ public class OAuthAuthorizationCodeFullCinematicTest {
 
         requests.getConsentContext();
 
-        requests.consent("code");
+        requests.consent();
 
 
     }

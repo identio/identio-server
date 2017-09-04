@@ -2,6 +2,12 @@ globalConfiguration:
   publicFqdn: https://localhost
   staticResourcesPath: ui/app
 
+dataSourcesConfiguration:
+  dataSources:
+    - &localDs
+      name: Local
+      type: in-memory
+
 authPolicyConfiguration:
   authLevels:
     - &low
@@ -31,6 +37,7 @@ authorizationConfiguration:
 
 oAuthServerConfiguration:
   clientFile: src/test/resources/oauth-server-config/oauth-clients.yml
+  dataSource: *localDs
 
 samlIdpConfiguration:
   allowUnsecureRequests: true
@@ -52,3 +59,5 @@ authMethodConfiguration:
   - &local
       name: Local
       authLevel: *medium
+
+

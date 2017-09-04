@@ -47,9 +47,9 @@ public class OAuthImplicitFullCinematicTest {
     @Test
     public void oAuthAuthorizeValidRequest() {
 
-        OAuthRequests requests = new OAuthRequests(port, restTemplate);
+        OAuthRequests requests = new OAuthRequests(port, restTemplate, "token", "test");
 
-        requests.authorizeRequest("test", "token");
+        requests.authorizeRequest();
 
         requests.getAuthMethods();
 
@@ -57,7 +57,7 @@ public class OAuthImplicitFullCinematicTest {
 
         requests.getConsentContext();
 
-        requests.consent("token");
+        requests.consent();
 
         requests.validateResponse();
     }

@@ -23,6 +23,7 @@ package net.identio.server.model;
 public class OAuthServerConfiguration {
 
     private String clientFile;
+    private DataSource dataSource;
 
     public String getClientFile() {
         return clientFile;
@@ -32,4 +33,11 @@ public class OAuthServerConfiguration {
         this.clientFile = clientFile;
     }
 
+    public DataSource getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
 }

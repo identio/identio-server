@@ -125,7 +125,7 @@ public class SamlService {
                     .setErrorStatus(SamlConstants.STATUS_UNSUPPORTED_BINDING);
         }
 
-        result.setRequestId(requestId).setSourceApplicationName(requestIssuer).setAuthLevelComparison(comparison)
+        result.setRequestId(requestId).setSourceApplication(requestIssuer).setAuthLevelComparison(comparison)
                 .setForceAuthentication(forceAuthn).setProtocolType(ProtocolType.SAML)
                 .setRelayState(request.getRelayState()).setResponseUrl(destinationEndpoint.getLocation());
 
@@ -295,7 +295,7 @@ public class SamlService {
 
         LOG.debug("Generating a new SAML Response");
 
-        String spEntityID = requestParsingInfo.getSourceApplicationName();
+        String spEntityID = requestParsingInfo.getSourceApplication();
         String requestID = requestParsingInfo.getRequestId();
         String userId = userSession.getUserId();
         AuthSession authSession = decision.getValidatedAuthSession();

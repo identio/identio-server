@@ -28,6 +28,7 @@ import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
 import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
 import net.identio.server.service.oauth.model.OAuthClient;
 import net.identio.server.service.oauth.model.OAuthErrors;
 import net.identio.server.service.oauth.model.OAuthGrants;
@@ -51,17 +52,23 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAKey;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OAuthService {
 
     private static final Logger LOG = LoggerFactory.getLogger(OAuthService.class);
+    private static final int AT_DEFAULT_EXPIRATION_TIME = 3600;
+    private static final int CODE_DEFAULT_EXPIRATION_TIME = 60;
 
     @Autowired
     private OAuthClientRepository clientRepository;
 
     @Autowired
     private AuthorizationService authorizationService;
+
+    @Autowired
+    private AuthorizationCodeRepository authorizationCodeRepository;
 
     private ConfigurationService configurationService;
 
@@ -146,7 +153,7 @@ public class OAuthService {
             return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.UNAUTHORIZED_CLIENT).setResponseUrl(redirectUri);
         }
 
-        result.setStatus(RequestParsingStatus.OK).setSourceApplicationName(client.getName()).setResponseUrl(redirectUri)
+        result.setStatus(RequestParsingStatus.OK).setSourceApplication(client.getClientId()).setResponseUrl(redirectUri)
                 .setRequestedScopes(scopes).setResponseType(request.getResponseType()).setConsentNeeded(client.isConsentNeeded());
 
         return result;
@@ -160,50 +167,54 @@ public class OAuthService {
     public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession,
                                                 LinkedHashMap<String, AuthorizationScope> approvedScopes) {
 
-        StringBuilder responseBuilder = new StringBuilder();
-
-        responseBuilder.append(requestParsingInfo.getResponseUrl()).append("#expires_in=");
+        ResponseData responseData = new ResponseData();
 
         // Determine expiration time of the authorization and scope string
-        int expirationTime = -1;
+        int expirationTime = getMinExpirationTime(approvedScopes.values());
 
-        StringBuilder scopeBuilder = new StringBuilder();
+        String scopeString = getScopeString(approvedScopes.values());
 
-        for (AuthorizationScope scope : approvedScopes.values()) {
+        DateTime now = new DateTime(DateTimeZone.UTC);
 
-            int scopeExpirationTime = scope.getExpirationTime() != 0 ? scope.getExpirationTime() : 3600;
-
-            if (expirationTime == -1 || scopeExpirationTime < expirationTime) {
-                expirationTime = scopeExpirationTime;
-            }
-
-            scopeBuilder.append(scope.getName()).append(' ');
-        }
-
-        responseBuilder.append(expirationTime);
-
-        scopeBuilder.deleteCharAt(scopeBuilder.length() - 1); // delete last comma
+        String accessToken = JWT.create()
+                .withIssuer(configurationService.getConfiguration().getGlobalConfiguration().getPublicFqdn())
+                .withExpiresAt(now.plusSeconds(expirationTime).toDate())
+                .withIssuedAt(now.toDate())
+                .withSubject(userSession.getUserId())
+                .withJWTId(UUID.randomUUID().toString())
+                .withClaim("scope", scopeString)
+                .withClaim("client_id", requestParsingInfo.getSourceApplication())
+                .sign(Algorithm.RSA256(signingKey));
 
         if (requestParsingInfo.getResponseType().equals(OAuthResponseType.TOKEN)) {
+
+            StringBuilder responseBuilder = new StringBuilder();
+
+            responseBuilder.append(requestParsingInfo.getResponseUrl()).append("#expires_in=");
+            responseBuilder.append(expirationTime);
+
             responseBuilder.append("&token_type=Bearer&access_token=");
-
-            DateTime now = new DateTime(DateTimeZone.UTC);
-
-            String accessToken = JWT.create().withIssuer(configurationService.getConfiguration().getGlobalConfiguration().getPublicFqdn())
-                    .withExpiresAt(now.plusSeconds(expirationTime).toDate()).withIssuedAt(now.toDate())
-                    .withSubject(userSession.getUserId()).withAudience(requestParsingInfo.getSourceApplicationName())
-                    .withJWTId(UUID.randomUUID().toString()).withClaim("scope", scopeBuilder.toString())
-                    .sign(Algorithm.RSA256(signingKey));
-
             responseBuilder.append(accessToken);
+
+            if (requestParsingInfo.getRelayState() != null) {
+                responseBuilder.append("&state=").append(requestParsingInfo.getRelayState());
+            }
+
+            responseData.setUrl(responseBuilder.toString());
         }
 
-        if (requestParsingInfo.getRelayState() != null) {
-            responseBuilder.append("&state=").append(requestParsingInfo.getRelayState());
+        if (requestParsingInfo.getResponseType().equals(OAuthResponseType.CODE)) {
+
+            // Generate code
+            String code = UUID.randomUUID().toString();
+
+            // Store code + infos
+            authorizationCodeRepository.save(code, requestParsingInfo.getSourceApplication(),
+                    requestParsingInfo.getResponseUrl(), now.plusSeconds(CODE_DEFAULT_EXPIRATION_TIME));
+            // return code url
         }
 
-        return new ResponseData().setUrl(responseBuilder.toString());
-
+        return responseData;
     }
 
     public ResponseData generateErrorResponse(RequestParsingInfo result) {
@@ -266,6 +277,31 @@ public class OAuthService {
         }
 
         return true;
-
     }
+
+    private int getMinExpirationTime(Collection<AuthorizationScope> scopes) {
+
+        // Determine expiration time of the authorization and scope string
+        int expirationTime = -1;
+
+        for (AuthorizationScope scope : scopes) {
+
+            int scopeExpirationTime = scope.getExpirationTime() != 0 ? scope.getExpirationTime() : AT_DEFAULT_EXPIRATION_TIME;
+
+            if (expirationTime == -1 || scopeExpirationTime < expirationTime) {
+                expirationTime = scopeExpirationTime;
+            }
+
+        }
+
+        return expirationTime;
+    }
+
+    private String getScopeString(Collection<AuthorizationScope> scopes) {
+
+        return scopes.stream()
+                .map(AuthorizationScope::getName)
+                .collect(Collectors.joining(" "));
+    }
+
 }
