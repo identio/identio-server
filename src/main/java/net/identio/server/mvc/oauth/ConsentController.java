@@ -21,6 +21,7 @@
 package net.identio.server.mvc.oauth;
 
 import net.identio.server.mvc.common.model.ApiErrorResponse;
+import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
@@ -48,7 +49,7 @@ public class ConsentController {
     @RequestMapping(value = "/api/authz/consent", method = RequestMethod.POST)
     public ConsentResponse receiveConsent(@RequestBody ConsentRequest consentRequest,
                                           @RequestHeader(value = "X-Transaction-ID") String transactionId,
-                                          @CookieValue("identioSession") String sessionId) throws WebSecurityException {
+                                          @CookieValue("identioSession") String sessionId) throws WebSecurityException, ServerException {
 
         return consentService.validateConsent(consentRequest, transactionId, sessionId);
     }
@@ -56,6 +57,12 @@ public class ConsentController {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(WebSecurityException.class)
     public ApiErrorResponse handleWebSecurityException(WebSecurityException e) {
+        return new ApiErrorResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(WebSecurityException.class)
+    public ApiErrorResponse handleServerException(ServerException e) {
         return new ApiErrorResponse(e.getMessage());
     }
 }
