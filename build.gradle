@@ -45,6 +45,7 @@ dependencies {
         exclude group: 'org.hibernate', module: 'hibernate-validator'
     }
     compile("com.zaxxer:HikariCP:2.6.0")
+    compile("org.liquibase:liquibase-core")
     compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
@@ -56,6 +57,7 @@ dependencies {
     compile('ch.qos.logback:logback-classic:1.2.3')
     testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
     testCompile("org.apache.httpcomponents:httpclient:4.5.3")
+    testRuntime("com.h2database:h2:1.4.196")
 }
 
 eclipse {

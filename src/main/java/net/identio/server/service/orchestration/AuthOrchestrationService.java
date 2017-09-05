@@ -30,6 +30,7 @@ import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
 import net.identio.server.service.oauth.OAuthService;
+import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -137,7 +138,7 @@ public class AuthOrchestrationService {
     }
 
     private ResponseData generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo parsingInfo,
-                                                 UserSession userSession) throws SamlException {
+                                                 UserSession userSession) throws SamlException, OAuthException {
 
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateSuccessResponse(decision, parsingInfo, userSession);
@@ -173,7 +174,7 @@ public class AuthOrchestrationService {
                                             transactionData.getRequestParsingInfo(),
                                             transactionData.getUserSession()));
 
-                        } catch (SamlException e) {
+                        } catch (SamlException | OAuthException e) {
                             throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
                         } finally {
                             transactionService.removeTransactionData(transactionData);

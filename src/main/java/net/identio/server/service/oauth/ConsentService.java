@@ -26,11 +26,13 @@ import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
+import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.orchestration.model.OrchestrationErrorStatus;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.mvc.oauth.model.ConsentContext;
+import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.transaction.model.TransactionState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +68,7 @@ public class ConsentService {
                 .setAudience(transactionData.getRequestParsingInfo().getSourceApplication());
     }
 
-    public ConsentResponse validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException {
+    public ConsentResponse validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException, ServerException {
 
         TransactionData transactionData = getTransactionData(transactionId, sessionId);
 
@@ -92,9 +94,13 @@ public class ConsentService {
                                 transactionData.getUserSession(), authorizationService.getScopes(consentRequest.getApprovedScopes()))
                 );
             } catch (UnknownScopeException | NoScopeProvidedException e) {
-                transactionService.removeTransactionData(transactionData);
                 throw new WebSecurityException(OrchestrationErrorStatus.INVALID_SCOPE);
+            } catch (OAuthException e) {
+                throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
+            } finally {
+                transactionService.removeTransactionData(transactionData);
             }
+
         }
 
         transactionService.removeTransactionData(transactionData);

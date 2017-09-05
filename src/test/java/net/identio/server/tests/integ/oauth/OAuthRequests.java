@@ -171,7 +171,7 @@ public class OAuthRequests {
         }
         if ("code".equals(this.responseType)) {
             assertTrue(this.responseUrl
-                    .matches("^http://example.com/cb?code=.*&state=1234"));
+                    .matches("^http://example.com/cb\\?code=.*&state=1234"));
         }
     }
 

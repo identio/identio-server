@@ -29,13 +29,12 @@ import net.identio.server.service.authorization.exceptions.NoScopeProvidedExcept
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
-import net.identio.server.service.oauth.model.OAuthClient;
-import net.identio.server.service.oauth.model.OAuthErrors;
-import net.identio.server.service.oauth.model.OAuthGrants;
-import net.identio.server.service.oauth.model.OAuthResponseType;
+import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
+import net.identio.server.service.oauth.exceptions.OAuthException;
+import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -159,13 +158,13 @@ public class OAuthService {
         return result;
     }
 
-    public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession) {
+    public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession) throws OAuthException {
 
         return generateSuccessResponse(requestParsingInfo, userSession, requestParsingInfo.getRequestedScopes());
     }
 
     public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession,
-                                                LinkedHashMap<String, AuthorizationScope> approvedScopes) {
+                                                LinkedHashMap<String, AuthorizationScope> approvedScopes) throws OAuthException {
 
         ResponseData responseData = new ResponseData();
 
@@ -186,15 +185,14 @@ public class OAuthService {
                 .withClaim("client_id", requestParsingInfo.getSourceApplication())
                 .sign(Algorithm.RSA256(signingKey));
 
+        StringBuilder responseBuilder = new StringBuilder();
+        responseBuilder.append(requestParsingInfo.getResponseUrl());
+
         if (requestParsingInfo.getResponseType().equals(OAuthResponseType.TOKEN)) {
 
-            StringBuilder responseBuilder = new StringBuilder();
+            responseBuilder.append("#expires_in=").append(expirationTime);
 
-            responseBuilder.append(requestParsingInfo.getResponseUrl()).append("#expires_in=");
-            responseBuilder.append(expirationTime);
-
-            responseBuilder.append("&token_type=Bearer&access_token=");
-            responseBuilder.append(accessToken);
+            responseBuilder.append("&token_type=Bearer&access_token=").append(accessToken);
 
             if (requestParsingInfo.getRelayState() != null) {
                 responseBuilder.append("&state=").append(requestParsingInfo.getRelayState());
@@ -208,10 +206,18 @@ public class OAuthService {
             // Generate code
             String code = UUID.randomUUID().toString();
 
-            // Store code + infos
-            authorizationCodeRepository.save(code, requestParsingInfo.getSourceApplication(),
-                    requestParsingInfo.getResponseUrl(), now.plusSeconds(CODE_DEFAULT_EXPIRATION_TIME));
-            // return code url
+            responseBuilder.append("?code=").append(code);
+
+            responseBuilder.append("&state=").append(requestParsingInfo.getRelayState());
+
+            // Store code
+            try {
+                authorizationCodeRepository.save(new AuthorizationCode().setCode(code).setClientId(requestParsingInfo.getSourceApplication())
+                        .setRedirectUrl(requestParsingInfo.getResponseUrl()).setExpirationTime(now.plusSeconds(CODE_DEFAULT_EXPIRATION_TIME)));
+            } catch (AuthorizationCodeCreationException e) {
+                throw new OAuthException(e.getMessage(), e);
+            }
+            responseData.setUrl(responseBuilder.toString());
         }
 
         return responseData;

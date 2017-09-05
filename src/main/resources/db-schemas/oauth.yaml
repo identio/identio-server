@@ -1,0 +1,36 @@
+databaseChangeLog:
+
+  - changeSet:
+      id: 1
+      author: ltanguy
+      changes:
+        - createTable:
+            tableName: authorization_code
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: client_id
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: redirect_uri
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expiration_time
+                  type: timestamp
+                  constraints:
+                    nullable: false

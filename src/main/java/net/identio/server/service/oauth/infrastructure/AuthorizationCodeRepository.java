@@ -1,8 +1,9 @@
 package net.identio.server.service.oauth.infrastructure;
 
-import org.joda.time.DateTime;
+import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationException;
+import net.identio.server.service.oauth.model.AuthorizationCode;
 
 public interface AuthorizationCodeRepository {
 
-    boolean save(String code, String clientId, String redirectUrl, DateTime expirationTime);
+    void save(AuthorizationCode code) throws AuthorizationCodeCreationException;
 }

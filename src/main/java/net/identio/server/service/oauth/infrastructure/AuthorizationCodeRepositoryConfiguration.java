@@ -1,5 +1,6 @@
 package net.identio.server.service.oauth.infrastructure;
 
+import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.DataSource;
 import net.identio.server.service.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +14,7 @@ public class AuthorizationCodeRepositoryConfiguration {
     private ConfigurationService configurationService;
 
     @Bean
-    public AuthorizationCodeRepository getAuthorizationCodeRepository() {
+    public AuthorizationCodeRepository getAuthorizationCodeRepository() throws InitializationException {
 
         DataSource ds = configurationService.getConfiguration().getoAuthServerConfiguration().getDataSource();
 
@@ -25,4 +26,5 @@ public class AuthorizationCodeRepositoryConfiguration {
 
         return new InMemoryAuthorizationCodeRepository();
     }
+
 }
