@@ -46,7 +46,7 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
     private void initDataSource(DataSource dataSourceConfiguration) {
         this.ds = new HikariDataSource();
 
-        this.ds.setMaximumPoolSize(100);
+        this.ds.setMaximumPoolSize(10);
         this.ds.setDriverClassName(dataSourceConfiguration.getDriver());
         this.ds.setJdbcUrl(dataSourceConfiguration.getUrl());
         this.ds.setUsername(dataSourceConfiguration.getUsername());
