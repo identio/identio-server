@@ -20,6 +20,8 @@
  */
 package net.identio.server.mvc.oauth;
 
+import net.identio.server.service.oauth.OAuthService;
+import net.identio.server.service.oauth.model.ValidateTokenResult;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -31,10 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -49,8 +48,12 @@ public class OAuthController {
 
     @Autowired
     private RequestOrchestrationService validationService;
+
     @Autowired
     private TransparentAuthController transparentAuthController;
+
+    @Autowired
+    private OAuthService oAuthService;
 
     @RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
     public String authorizeRequest(
@@ -93,4 +96,15 @@ public class OAuthController {
         }
     }
 
+    @RequestMapping(value = "/oauth/token", method = RequestMethod.POST)
+    public String accessTokenRequest(
+            @RequestParam(value = "grant_type", required = false) String grantType,
+            @RequestParam(value = "code", required = false) String code,
+            @RequestParam(value = "redirect_uri", required = false) String redirectUri,
+            @RequestHeader(value = "Authorization", required = false) String authorization) throws ValidationException, ServerException, WebSecurityException {
+
+        ValidateTokenResult result = oAuthService.validateTokenRequest(grantType, code, redirectUri, authorization);
+
+        return null;
+    }
 }

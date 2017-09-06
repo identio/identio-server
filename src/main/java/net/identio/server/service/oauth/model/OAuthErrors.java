@@ -32,4 +32,6 @@ public class OAuthErrors {
     public static final String INVALID_SCOPE = "invalid_scope";
     public static final String UNAUTHORIZED_CLIENT = "unauthorized_client";
     public static final String ACCESS_DENIED = "access_denied";
+    public static final String INVALID_CLIENT = "invalid_client";
+    public static final String INVALID_GRANT = "invalid_grant";
 }

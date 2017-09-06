@@ -35,6 +35,8 @@ import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationException;
+import net.identio.server.utils.DecodeUtils;
+import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.slf4j.Logger;
@@ -52,6 +54,7 @@ import java.security.cert.CertificateException;
 import java.security.interfaces.RSAKey;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.DataFormatException;
 
 @Service
 public class OAuthService {
@@ -270,7 +273,7 @@ public class OAuthService {
 
         if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
                 || responseType.equals(OAuthResponseType.CODE)
-                && !client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
+                && !client.getAllowedGrants().contains(OAuthGrants.CODE)) {
 
             LOG.error("Client not authorized to use the response type: {}", responseType);
             return false;
@@ -309,5 +312,57 @@ public class OAuthService {
                 .map(AuthorizationScope::getName)
                 .collect(Collectors.joining(" "));
     }
+
+    public ValidateTokenResult validateTokenRequest(String grantType, String code, String redirectUri, String authorization) {
+
+        // Check grant type
+        if (OAuthGrants.AUTHORIZATION_CODE.equals(grantType)) {
+            return new ValidateTokenResult().setStatus(ValidateTokenStatus.FAIL).setErrorStatus(OAuthErrors.INVALID_GRANT);
+        }
+
+        // Fetch and verify client identity
+        OAuthClient client;
+        Result<OAuthClient> oAuthClientResult = extractClientFromAuthorization(authorization);
+
+        if (oAuthClientResult.isSuccess()) {
+            client = oAuthClientResult.get();
+        } else {
+            return new ValidateTokenResult().setStatus(ValidateTokenStatus.UNAUTHORIZED)
+                    .setErrorStatus(OAuthErrors.INVALID_CLIENT);
+        }
+
+        return new ValidateTokenResult().setStatus(ValidateTokenStatus.OK);
+    }
+
+    private Result<OAuthClient> extractClientFromAuthorization(String authorization) {
+
+        if (authorization != null && authorization.startsWith("Basic ")) {
+
+            try {
+                String filteredAuthorization = new String(DecodeUtils.decode(authorization.substring(6), false));
+
+                String[] credentials = filteredAuthorization.split(":");
+                String clientId = credentials[0];
+                String clientSecret = credentials[1];
+
+                OAuthClient client = clientRepository.getOAuthClientbyId(clientId);
+
+                if (client == null) {
+                    return new Result<>(null, "Unknown client");
+                }
+
+                if (client != null && client.getClientId().equals(clientSecret)) {
+                    return new Result<>(client);
+                }
+
+            } catch (IOException | Base64DecodingException | DataFormatException e) {
+                return new Result<>(null, "Invalid authorization");
+            }
+        }
+
+        return new Result<>(null, "invalid client");
+
+    }
+
 
 }
