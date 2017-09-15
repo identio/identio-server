@@ -11,11 +11,15 @@ import liquibase.resource.ClassLoaderResourceAccessor;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.DataSource;
 import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationException;
+import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
+import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.AuthorizationCode;
+import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.*;
+import java.util.Optional;
 
 
 public class JdbcAuthorizationCodeRepository implements AuthorizationCodeRepository {
@@ -69,9 +73,53 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
             creationStatement.executeUpdate();
 
         } catch (SQLException e) {
+            LOG.error("Error when inserting authorization code {} in database", code.getCode(), e.getMessage());
+            throw new AuthorizationCodeCreationException(e);
+        }
+    }
+
+    @Override
+    public Optional<AuthorizationCode> getAuthorizationCodeByValue(String code) throws AuthorizationCodeFetchException {
+
+        try (Connection connection = this.ds.getConnection()) {
+
+            PreparedStatement creationStatement = connection.prepareStatement("SELECT * FROM authorization_code WHERE code = ?;");
+
+            creationStatement.setString(1, code);
+
+            ResultSet rs = creationStatement.executeQuery();
+
+            // Fetch
+            if (!rs.first()) {
+                return Optional.empty();
+            } else {
+                return Optional.of(new AuthorizationCode().setCode(code)
+                        .setRedirectUrl(rs.getString("redirect_uri"))
+                        .setClientId(rs.getString("client_id"))
+                        .setExpirationTime(new DateTime(rs.getTimestamp("expiration_time"))));
+            }
+
+        } catch (SQLException e) {
+            LOG.error("Error when fetching authorization code {} in database: {}", code, e.getMessage());
+            throw new AuthorizationCodeFetchException(e);
+        }
+    }
+
+    @Override
+    public void delete(AuthorizationCode code) throws AuthorizationCodeDeleteException {
+
+        try (Connection connection = this.ds.getConnection()) {
+
+            PreparedStatement creationStatement = connection.prepareStatement("DELETE FROM authorization_code WHERE code = ?;");
+
+            creationStatement.setString(1, code.getCode());
+
+            creationStatement.executeUpdate();
+
+        } catch (SQLException e) {
             String message = "Error when inserting authorization code in database";
-            LOG.error("Error when inserting authorization code in database: {}", e.getMessage());
-            throw new AuthorizationCodeCreationException(message, e);
+            LOG.error("Error when inserting authorization code {} in database: {}", code.getCode(), e.getMessage());
+            throw new AuthorizationCodeDeleteException(e);
         }
     }
 }

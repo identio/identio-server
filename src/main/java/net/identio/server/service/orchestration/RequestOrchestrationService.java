@@ -22,12 +22,13 @@
 package net.identio.server.service.orchestration;
 
 import net.identio.server.exceptions.SamlException;
+import net.identio.server.service.oauth.OAuthResponseService;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.model.*;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
-import net.identio.server.service.oauth.OAuthService;
+import net.identio.server.service.oauth.OAuthRequestService;
 import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.saml.SamlService;
@@ -52,7 +53,10 @@ public class RequestOrchestrationService {
     private SamlService samlService;
 
     @Autowired
-    private OAuthService oauthService;
+    private OAuthRequestService oAuthRequestService;
+
+    @Autowired
+    private OAuthResponseService oAuthResponseService;
 
     @Autowired
     private UserSessionService userSessionService;
@@ -132,7 +136,7 @@ public class RequestOrchestrationService {
         if (request instanceof SamlInboundRequest) {
             return samlService.validateAuthentRequest((SamlInboundRequest) request);
         } else {
-            return oauthService.validateAuthentRequest((OAuthInboundRequest) request);
+            return oAuthRequestService.validateAuthentRequest((OAuthInboundRequest) request);
         }
     }
 
@@ -141,7 +145,7 @@ public class RequestOrchestrationService {
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateErrorResponse(parsingInfo);
         } else {
-            return oauthService.generateErrorResponse(parsingInfo);
+            return oAuthResponseService.generateErrorResponse(parsingInfo);
         }
     }
 
@@ -151,7 +155,7 @@ public class RequestOrchestrationService {
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateSuccessResponse(decision, parsingInfo, userSession);
         } else {
-            return oauthService.generateSuccessResponse(parsingInfo, userSession);
+            return oAuthResponseService.generateSuccessResponse(parsingInfo, userSession);
         }
     }
 }

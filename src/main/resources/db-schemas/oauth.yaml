@@ -27,10 +27,15 @@ databaseChangeLog:
               - column:
                   name: redirect_uri
                   type: varchar(100)
-                  constraints:
-                    nullable: false
               - column:
                   name: expiration_time
                   type: timestamp
                   constraints:
                     nullable: false
+        - createIndex:
+            indexName: idx_code
+            tableName: authorization_code
+            columns:
+              - column:
+                  name: code
+                  type: varchar(50)

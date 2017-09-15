@@ -48,7 +48,7 @@ public class ConsentService {
     private TransactionService transactionService;
 
     @Autowired
-    private OAuthService oAuthService;
+    private OAuthResponseService oAuthResponseService;
 
     @Autowired
     private AuthorizationService authorizationService;
@@ -77,7 +77,7 @@ public class ConsentService {
         if (consentRequest == null || consentRequest.getApprovedScopes() == null || consentRequest.getApprovedScopes().size() == 0) {
 
             response.setResponseData(
-                    oAuthService.generateErrorResponse(transactionData.getRequestParsingInfo(), false)
+                    oAuthResponseService.generateErrorResponse(transactionData.getRequestParsingInfo(), false)
             );
         } else {
             // Check that each validated scope is in the requested scopes
@@ -90,7 +90,7 @@ public class ConsentService {
 
             try {
                 response.setResponseData(
-                        oAuthService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
+                        oAuthResponseService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
                                 transactionData.getUserSession(), authorizationService.getScopes(consentRequest.getApprovedScopes()))
                 );
             } catch (UnknownScopeException | NoScopeProvidedException e) {

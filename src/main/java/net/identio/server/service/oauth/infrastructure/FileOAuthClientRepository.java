@@ -24,7 +24,6 @@ package net.identio.server.service.oauth.infrastructure;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.service.oauth.model.OAuthClient;
 import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.oauth.OAuthClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -20,7 +20,8 @@
  */
 package net.identio.server.mvc.oauth;
 
-import net.identio.server.service.oauth.OAuthService;
+import net.identio.server.service.oauth.OAuthTokenService;
+import net.identio.server.service.oauth.model.AuthorizationRequest;
 import net.identio.server.service.oauth.model.ValidateTokenResult;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
@@ -53,7 +54,7 @@ public class OAuthController {
     private TransparentAuthController transparentAuthController;
 
     @Autowired
-    private OAuthService oAuthService;
+    private OAuthTokenService oAuthTokenService;
 
     @RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
     public String authorizeRequest(
@@ -103,7 +104,8 @@ public class OAuthController {
             @RequestParam(value = "redirect_uri", required = false) String redirectUri,
             @RequestHeader(value = "Authorization", required = false) String authorization) throws ValidationException, ServerException, WebSecurityException {
 
-        ValidateTokenResult result = oAuthService.validateTokenRequest(grantType, code, redirectUri, authorization);
+        ValidateTokenResult result = oAuthTokenService.validateTokenRequest(
+                new AuthorizationRequest().setGrantType(grantType).setCode(code).setRedirectUri(redirectUri), authorization);
 
         return null;
     }

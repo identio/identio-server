@@ -29,7 +29,8 @@ import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
-import net.identio.server.service.oauth.OAuthService;
+import net.identio.server.service.oauth.OAuthRequestService;
+import net.identio.server.service.oauth.OAuthResponseService;
 import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
@@ -57,7 +58,7 @@ public class AuthOrchestrationService {
     private SamlService samlService;
 
     @Autowired
-    private OAuthService oauthService;
+    private OAuthResponseService oAuthResponseService;
 
     @Autowired
     private AuthPolicyService authPolicyService;
@@ -143,7 +144,7 @@ public class AuthOrchestrationService {
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateSuccessResponse(decision, parsingInfo, userSession);
         } else {
-            return oauthService.generateSuccessResponse(parsingInfo, userSession);
+            return oAuthResponseService.generateSuccessResponse(parsingInfo, userSession);
         }
     }
 
