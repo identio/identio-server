@@ -4,6 +4,7 @@ public class ValidateTokenResult {
 
     private ValidateTokenStatus status;
     private String errorStatus;
+    private AccessTokenResponse response;
 
     public ValidateTokenStatus getStatus() {
         return status;
@@ -20,6 +21,15 @@ public class ValidateTokenResult {
 
     public ValidateTokenResult setErrorStatus(String errorStatus) {
         this.errorStatus = errorStatus;
+        return this;
+    }
+
+    public AccessTokenResponse getResponse() {
+        return response;
+    }
+
+    public ValidateTokenResult setResponse(AccessTokenResponse response) {
+        this.response = response;
         return this;
     }
 }

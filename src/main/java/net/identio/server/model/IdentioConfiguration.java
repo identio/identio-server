@@ -20,8 +20,6 @@
  */
 package net.identio.server.model;
 
-import java.util.List;
-
 public class IdentioConfiguration {
 
     private GlobalConfiguration globalConfiguration = new GlobalConfiguration();

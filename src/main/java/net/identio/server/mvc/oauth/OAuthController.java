@@ -38,9 +38,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 @Controller
 public class OAuthController {
@@ -70,14 +67,7 @@ public class OAuthController {
         LOG.info("Received OAuth authorization request from ClientId: {}", clientId);
         LOG.debug("RT: {} - RU: {} - SC: {} - ST: {}", responseType, redirectUri, scopes, state);
 
-        // Scopes are separated by a space
-
-        List<String> scopesList = new ArrayList<>();
-        if (scopes != null) {
-            scopesList = Arrays.asList(scopes.split(" "));
-        }
-
-        OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopesList, state);
+        OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopes, state);
 
         RequestValidationResult result = validationService.validateRequest(request, identioSession);
 

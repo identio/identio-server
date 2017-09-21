@@ -14,7 +14,6 @@ import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationExce
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.AuthorizationCode;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,9 +34,10 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
     }
 
     private void initDataBase() throws InitializationException {
-        Liquibase liquibase = null;
+
         try (Connection connection = this.ds.getConnection()) {
-            liquibase = new Liquibase("db-schemas/oauth.yaml",
+
+            Liquibase liquibase = new Liquibase("db-schemas/oauth.yaml",
                     new ClassLoaderResourceAccessor(),
                     DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection)));
             liquibase.update(new Contexts(), new LabelExpression());
@@ -62,18 +62,20 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
 
         try (Connection connection = this.ds.getConnection()) {
 
-            PreparedStatement creationStatement = connection.prepareStatement("INSERT INTO authorization_code (code, client_id, redirect_uri, expiration_time) " +
-                    "VALUES (?, ?, ?, ?);");
+            PreparedStatement creationStatement = connection.prepareStatement("INSERT INTO authorization_code (code, client_id, redirect_uri, expiration_time, scope, user_id) " +
+                    "VALUES (?, ?, ?, ?, ?, ?);");
 
             creationStatement.setString(1, code.getCode());
             creationStatement.setString(2, code.getClientId());
             creationStatement.setString(3, code.getRedirectUrl());
-            creationStatement.setTimestamp(4, new Timestamp(code.getExpirationTime().toDate().getTime()));
+            creationStatement.setLong(4, code.getExpirationTime());
+            creationStatement.setString(5, code.getScope());
+            creationStatement.setString(6, code.getUserId());
 
             creationStatement.executeUpdate();
 
         } catch (SQLException e) {
-            LOG.error("Error when inserting authorization code {} in database", code.getCode(), e.getMessage());
+            LOG.error("Error when inserting authorization code {} in database: {}", code.getCode(), e.getMessage());
             throw new AuthorizationCodeCreationException(e);
         }
     }
@@ -93,10 +95,14 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
             if (!rs.first()) {
                 return Optional.empty();
             } else {
-                return Optional.of(new AuthorizationCode().setCode(code)
+                return Optional.of(
+                        new AuthorizationCode().setCode(code)
                         .setRedirectUrl(rs.getString("redirect_uri"))
                         .setClientId(rs.getString("client_id"))
-                        .setExpirationTime(new DateTime(rs.getTimestamp("expiration_time"))));
+                        .setExpirationTime(rs.getLong("expiration_time"))
+                        .setScope(rs.getString("scope"))
+                        .setUserId(rs.getString("user_id"))
+                );
             }
 
         } catch (SQLException e) {
@@ -117,7 +123,6 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
             creationStatement.executeUpdate();
 
         } catch (SQLException e) {
-            String message = "Error when inserting authorization code in database";
             LOG.error("Error when inserting authorization code {} in database: {}", code.getCode(), e.getMessage());
             throw new AuthorizationCodeDeleteException(e);
         }

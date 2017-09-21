@@ -29,7 +29,17 @@ databaseChangeLog:
                   type: varchar(100)
               - column:
                   name: expiration_time
-                  type: timestamp
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scope
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: varchar(200)
                   constraints:
                     nullable: false
         - createIndex:

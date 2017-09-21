@@ -61,7 +61,7 @@ public class ConsentController {
     }
 
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(WebSecurityException.class)
+    @ExceptionHandler(ServerException.class)
     public ApiErrorResponse handleServerException(ServerException e) {
         return new ApiErrorResponse(e.getMessage());
     }

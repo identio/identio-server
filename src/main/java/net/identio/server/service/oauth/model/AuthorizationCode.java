@@ -1,13 +1,13 @@
 package net.identio.server.service.oauth.model;
 
-import org.joda.time.DateTime;
-
 public class AuthorizationCode {
 
     private String code;
     private String clientId;
     private String redirectUrl;
-    private DateTime expirationTime;
+    private long expirationTime;
+    private String scope;
+    private String userId;
 
     public String getCode() {
         return code;
@@ -36,12 +36,31 @@ public class AuthorizationCode {
         return this;
     }
 
-    public DateTime getExpirationTime() {
+    public long getExpirationTime() {
         return expirationTime;
     }
 
-    public AuthorizationCode setExpirationTime(DateTime expirationTime) {
+    public AuthorizationCode setExpirationTime(long expirationTime) {
         this.expirationTime = expirationTime;
         return this;
     }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public AuthorizationCode setScope(String scope) {
+        this.scope = scope;
+        return this;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public AuthorizationCode setUserId(String userId) {
+        this.userId = userId;
+        return this;
+    }
 }
+

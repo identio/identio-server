@@ -83,14 +83,14 @@ public class OAuthRequestService {
         // Validate scope value
         LinkedHashMap<String, AuthorizationScope> scopes;
         try {
-            scopes = authorizationService.getScopes(request.getScopes());
+            scopes = authorizationService.deserializeScope(request.getScope());
         } catch (UnknownScopeException | NoScopeProvidedException e) {
             return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.INVALID_SCOPE).setResponseUrl(redirectUri);
         }
 
         // Validate client authorization regarding allowed scopes and response
         // types
-        if (!checkClientAuthorization(client, request.getResponseType(), request.getScopes())) {
+        if (!checkClientAuthorization(client, request.getResponseType(), scopes.values())) {
             return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.UNAUTHORIZED_CLIENT).setResponseUrl(redirectUri);
         }
 
@@ -114,15 +114,14 @@ public class OAuthRequestService {
     private boolean checkRedirectUri(OAuthClient client, String redirectUri) {
 
         if (!client.getResponseUri().contains(redirectUri)) {
-            String message = "Unknown redirectUri: " + redirectUri;
-            LOG.error(message);
+            LOG.error("Unknown redirectUri: {}", redirectUri);
             return false;
         }
 
         return true;
     }
 
-    private boolean checkClientAuthorization(OAuthClient client, String responseType, List<String> requestedScopes) {
+    private boolean checkClientAuthorization(OAuthClient client, String responseType, Collection<AuthorizationScope> requestedScopes) {
 
         if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
                 || responseType.equals(OAuthResponseType.CODE)
@@ -132,10 +131,12 @@ public class OAuthRequestService {
             return false;
         }
 
-        if (!client.getAllowedScopes().containsAll(requestedScopes)) {
+        for (AuthorizationScope scope : requestedScopes) {
+            if (!client.getAllowedScopes().contains(scope.getName())) {
 
-            LOG.error("Client not authorized to use the requested scope");
-            return false;
+                LOG.error("Client not authorized to use the requested scope");
+                return false;
+            }
         }
 
         return true;

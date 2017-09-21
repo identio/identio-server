@@ -1,7 +1,10 @@
 package net.identio.server.service.oauth;
 
+import net.identio.server.model.AuthorizationScope;
 import net.identio.server.model.Result;
-import net.identio.server.mvc.oauth.model.ConsentContext;
+import net.identio.server.service.authorization.AuthorizationService;
+import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
+import net.identio.server.service.authorization.exceptions.UnknownScopeException;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
 import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
@@ -17,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.Optional;
 import java.util.zip.DataFormatException;
 
@@ -36,6 +40,9 @@ public class OAuthTokenService {
 
     @Autowired
     private OAuthResponseService oAuthResponseService;
+
+    @Autowired
+    private AuthorizationService authorizationService;
 
     public ValidateTokenResult validateTokenRequest(AuthorizationRequest request, String authorization) {
 
@@ -78,9 +85,14 @@ public class OAuthTokenService {
                 !redirectUriMatchesInitialRequest(code.get(), request.getRedirectUri()))
             return new ValidateTokenResult().setStatus(ValidateTokenStatus.FAIL).setErrorStatus(OAuthErrors.INVALID_GRANT);
 
-        // Everything's ok, generate AT
-        ConsentContext consentContext = null;
-        String accessToken = oAuthResponseService.generateAccessToken();
+        // Everything's ok, generate response
+        LinkedHashMap<String, AuthorizationScope> scopes = null;
+        try {
+             scopes = authorizationService.deserializeScope(code.get().getScope());
+        } catch (UnknownScopeException | NoScopeProvidedException e) {
+            return new ValidateTokenResult().setStatus(ValidateTokenStatus.FAIL).setErrorStatus(OAuthErrors.INVALID_GRANT);
+        }
+        AccessTokenResponse accessTokenResponse = oAuthResponseService.generateTokenResponse(scopes.values(), code.get().getClientId(), code.get().getUserId());
 
         // Delete authorization code from repository
         try {
@@ -89,7 +101,7 @@ public class OAuthTokenService {
             return new ValidateTokenResult().setStatus(ValidateTokenStatus.SERVER_ERROR);
         }
 
-        return new ValidateTokenResult().setStatus(ValidateTokenStatus.OK);
+        return new ValidateTokenResult().setStatus(ValidateTokenStatus.OK).setResponse(accessTokenResponse);
     }
 
     private boolean redirectUriMatchesInitialRequest(AuthorizationCode code, String redirectUri) {
@@ -101,7 +113,7 @@ public class OAuthTokenService {
     }
 
     private boolean codeExistsAndIsValid(Optional<AuthorizationCode> code) {
-        return code.isPresent() && code.get().getExpirationTime().isAfterNow();
+        return code.isPresent() && code.get().getExpirationTime() > System.currentTimeMillis() / 1000;
     }
 
     private boolean isGrantAuthorizedForClient(OAuthClient client) {

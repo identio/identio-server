@@ -21,23 +21,21 @@
 
 package net.identio.server.model;
 
-import java.util.List;
-
 public class OAuthInboundRequest implements InboundRequest {
 
     private String clientId;
     private String responseType;
     private String redirectUri;
-    private List<String> scopes;
+    private String scope;
     private String state;
 
-    public OAuthInboundRequest(String clientId, String responseType, String redirectUri, List<String> scopes,
+    public OAuthInboundRequest(String clientId, String responseType, String redirectUri, String scope,
                                String state) {
 
         this.clientId = clientId;
         this.responseType = responseType;
         this.redirectUri = redirectUri;
-        this.scopes = scopes;
+        this.scope = scope;
         this.state = state;
     }
 
@@ -65,12 +63,12 @@ public class OAuthInboundRequest implements InboundRequest {
         this.redirectUri = redirectUri;
     }
 
-    public List<String> getScopes() {
-        return scopes;
+    public String getScope() {
+        return scope;
     }
 
-    public void setScopes(List<String> scopes) {
-        this.scopes = scopes;
+    public void setScope(String scope) {
+        this.scope = scope;
     }
 
     public String getState() {

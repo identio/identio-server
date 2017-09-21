@@ -91,7 +91,7 @@ public class ConsentService {
             try {
                 response.setResponseData(
                         oAuthResponseService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
-                                transactionData.getUserSession(), authorizationService.getScopes(consentRequest.getApprovedScopes()))
+                                transactionData.getUserSession(), authorizationService.deserializeScope(consentRequest.getApprovedScopes()))
                 );
             } catch (UnknownScopeException | NoScopeProvidedException e) {
                 throw new WebSecurityException(OrchestrationErrorStatus.INVALID_SCOPE);

@@ -29,9 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class AuthorizationService {
@@ -59,15 +58,21 @@ public class AuthorizationService {
 
     }
 
-    public LinkedHashMap<String, AuthorizationScope> getScopes(List<String> scopeNames) throws UnknownScopeException, NoScopeProvidedException {
+    public LinkedHashMap<String, AuthorizationScope> deserializeScope(String scope) throws UnknownScopeException, NoScopeProvidedException {
+
+        List<String> scopeNames = Arrays.asList(scope.split(" "));
+        return deserializeScope(scopeNames);
+    }
+
+    public LinkedHashMap<String, AuthorizationScope> deserializeScope(List<String> scope) throws UnknownScopeException, NoScopeProvidedException {
 
         LinkedHashMap<String, AuthorizationScope> result = new LinkedHashMap<>();
 
-        if (scopeNames.isEmpty()) {
+        if (scope.isEmpty()) {
             throw new NoScopeProvidedException("Scope list is empty");
         }
 
-        for (String scopeName : scopeNames) {
+        for (String scopeName : scope) {
             if (scopes.containsKey(scopeName)) {
                 result.put(scopeName, scopes.get(scopeName));
             } else {
@@ -77,4 +82,10 @@ public class AuthorizationService {
         return result;
     }
 
+    public String serializeScope(Collection<AuthorizationScope> scopes) {
+
+        return scopes.stream()
+                .map(AuthorizationScope::getName)
+                .collect(Collectors.joining(" "));
+    }
 }
