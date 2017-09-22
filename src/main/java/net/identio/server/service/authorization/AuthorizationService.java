@@ -60,7 +60,8 @@ public class AuthorizationService {
 
     public LinkedHashMap<String, AuthorizationScope> deserializeScope(String scope) throws UnknownScopeException, NoScopeProvidedException {
 
-        List<String> scopeNames = Arrays.asList(scope.split(" "));
+        List<String> scopeNames = scope != null ? Arrays.asList(scope.split(" ")): new ArrayList<>();
+
         return deserializeScope(scopeNames);
     }
 

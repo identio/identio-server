@@ -5,4 +5,7 @@ public class AuthorizationCodeFetchException extends Exception {
     public AuthorizationCodeFetchException(Exception e) {
         super(e);
     }
+
+    public AuthorizationCodeFetchException() {
+    }
 }

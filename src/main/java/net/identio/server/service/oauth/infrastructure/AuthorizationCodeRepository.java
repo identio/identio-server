@@ -1,6 +1,6 @@
 package net.identio.server.service.oauth.infrastructure;
 
-import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationException;
+import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.AuthorizationCode;

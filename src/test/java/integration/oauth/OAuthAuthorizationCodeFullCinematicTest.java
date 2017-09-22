@@ -19,7 +19,7 @@
  *
  */
 
-package net.identio.server.tests.integ.oauth;
+package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class OAuthAuthorizationCodeFullCinematicTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    public void oAuthAuthorizeValidRequest() {
+    public void successfulCinematic() {
 
         OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2");
 
@@ -59,6 +59,6 @@ public class OAuthAuthorizationCodeFullCinematicTest {
 
         requests.consent();
 
-
+        requests.accessTokenRequest();
     }
 }

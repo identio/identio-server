@@ -88,7 +88,7 @@ public class OAuthTokenService {
         // Everything's ok, generate response
         LinkedHashMap<String, AuthorizationScope> scopes = null;
         try {
-             scopes = authorizationService.deserializeScope(code.get().getScope());
+            scopes = authorizationService.deserializeScope(code.get().getScope());
         } catch (UnknownScopeException | NoScopeProvidedException e) {
             return new ValidateTokenResult().setStatus(ValidateTokenStatus.FAIL).setErrorStatus(OAuthErrors.INVALID_GRANT);
         }
@@ -105,23 +105,57 @@ public class OAuthTokenService {
     }
 
     private boolean redirectUriMatchesInitialRequest(AuthorizationCode code, String redirectUri) {
-        return MiscUtils.equalsWithNulls(code.getRedirectUrl(), redirectUri);
+
+        if (!MiscUtils.equalsWithNulls(code.getRedirectUrl(), redirectUri)) {
+            LOG.error("Redirect uri {} doesn't match the initial redirect uri {}", redirectUri, code.getRedirectUrl());
+            return false;
+        }
+
+        return true;
     }
 
     private boolean codeGeneratedForClient(AuthorizationCode authorizationCode, OAuthClient client) {
-        return authorizationCode.getClientId().equals(client.getClientId());
+
+        if (!authorizationCode.getClientId().equals(client.getClientId())) {
+            LOG.error("Authorization code wasn't generated for clientId {} but for {}", client.getClientId(), authorizationCode.getClientId());
+            return false;
+        }
+
+        return true;
     }
 
     private boolean codeExistsAndIsValid(Optional<AuthorizationCode> code) {
-        return code.isPresent() && code.get().getExpirationTime() > System.currentTimeMillis() / 1000;
+
+        if (!code.isPresent()) {
+            LOG.error("Code doesn't exist");
+            return false;
+        }
+        if (code.get().getExpirationTime() < System.currentTimeMillis() / 1000) {
+            LOG.error("Code is expired");
+            return false;
+        }
+
+        return true;
     }
 
     private boolean isGrantAuthorizedForClient(OAuthClient client) {
-        return client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE);
+
+        if (!client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
+            LOG.error("Client not authorized to use the authorization code grant");
+            return false;
+        }
+
+        return true;
     }
 
     private boolean isGrantSupported(String grantType) {
-        return OAuthGrants.AUTHORIZATION_CODE.equals(grantType);
+
+        if (!OAuthGrants.AUTHORIZATION_CODE.equals(grantType)) {
+            LOG.error("Unsupported grant: {}", grantType);
+            return false;
+        }
+
+        return true;
     }
 
     private boolean isRequestValid(AuthorizationRequest request) {
@@ -143,7 +177,7 @@ public class OAuthTokenService {
 
                 OAuthClient client = clientRepository.getOAuthClientbyId(clientId);
 
-                if (client != null && client.getClientId().equals(clientSecret)) {
+                if (client != null && client.getClientSecret().equals(clientSecret)) {
                     return result.success(client);
                 }
 

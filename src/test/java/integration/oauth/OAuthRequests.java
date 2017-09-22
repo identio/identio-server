@@ -19,7 +19,7 @@
  *
  */
 
-package net.identio.server.tests.integ.oauth;
+package integration.oauth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -32,16 +32,16 @@ import net.identio.server.mvc.common.model.AuthSubmitResponse;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
+import net.identio.server.service.oauth.model.AccessTokenResponse;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.interfaces.RSAKey;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,6 +59,8 @@ public class OAuthRequests {
     private String responseUrl;
     private String responseType;
     private String clientId;
+    public String authorizationCode;
+    public String accessToken;
 
     public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId) {
         this.port = port;
@@ -168,10 +170,29 @@ public class OAuthRequests {
         if ("token".equals(this.responseType)) {
             assertTrue(this.responseUrl
                     .matches("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=.*&state=1234"));
+
+            Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
+            Matcher matcher = pattern.matcher(this.responseUrl);
+
+            if (matcher.find()) {
+                this.accessToken = matcher.group(1);
+            } else {
+                fail();
+            }
+
         }
         if ("code".equals(this.responseType)) {
             assertTrue(this.responseUrl
                     .matches("^http://example.com/cb\\?code=.*&state=1234"));
+
+            Pattern pattern = Pattern.compile("^http://example.com/cb\\?code=(.*)&state=1234");
+            Matcher matcher = pattern.matcher(this.responseUrl);
+
+            if (matcher.find()) {
+                this.authorizationCode = matcher.group(1);
+            } else {
+                fail();
+            }
         }
     }
 
@@ -191,14 +212,32 @@ public class OAuthRequests {
                 .withClaim("client_id", clientId)
                 .build();
 
-        Pattern pattern = Pattern.compile("^http://example.com/cb#expires_in=2400&token_type=Bearer&access_token=(.*)&state=1234");
-        Matcher matcher = pattern.matcher(this.responseUrl);
+        verifier.verify(this.accessToken);
+    }
 
-        if (matcher.find()) {
-            verifier.verify(matcher.group(1));
-        } else {
-            fail();
-        }
+    public void accessTokenRequest() {
+
+        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
+
+        payload.add("grant_type", "authorization_code");
+        payload.add("code", authorizationCode);
+        payload.add("redirect_uri", "http://example.com/cb");
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = restTemplate.exchange(
+                "/oauth/token",
+                HttpMethod.POST,
+                new HttpEntity<>(payload, headers),
+                AccessTokenResponse.class);
+
+        AccessTokenResponse accessTokenResponse = accessTokenResponseEntity.getBody();
+
+        assertNotNull(accessTokenResponse.getAccessToken());
+        assertEquals(2400, accessTokenResponse.getExpiresIn());
+        assertEquals("scope.test.1", accessTokenResponse.getScope());
     }
 
     private String getUrlWithPort(String url) {
@@ -231,4 +270,6 @@ public class OAuthRequests {
         return (RSAKey) (ks.getCertificate(alias)).getPublicKey();
 
     }
+
+
 }

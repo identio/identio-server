@@ -20,7 +20,9 @@
  */
 package net.identio.server.mvc.oauth;
 
+import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
 import net.identio.server.service.oauth.OAuthTokenService;
+import net.identio.server.service.oauth.model.AccessTokenResponse;
 import net.identio.server.service.oauth.model.AuthorizationRequest;
 import net.identio.server.service.oauth.model.ValidateTokenResult;
 import net.identio.server.service.orchestration.exceptions.ServerException;
@@ -33,6 +35,8 @@ import net.identio.server.service.orchestration.model.RequestValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
@@ -88,15 +92,32 @@ public class OAuthController {
     }
 
     @RequestMapping(value = "/oauth/token", method = RequestMethod.POST)
-    public String accessTokenRequest(
+    public ResponseEntity<?> accessTokenRequest(
             @RequestParam(value = "grant_type", required = false) String grantType,
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "redirect_uri", required = false) String redirectUri,
-            @RequestHeader(value = "Authorization", required = false) String authorization) throws ValidationException, ServerException, WebSecurityException {
+            @RequestHeader(value = "Authorization", required = false) String authorization,
+            HttpServletRequest request) throws ValidationException, ServerException, WebSecurityException {
 
         ValidateTokenResult result = oAuthTokenService.validateTokenRequest(
                 new AuthorizationRequest().setGrantType(grantType).setCode(code).setRedirectUri(redirectUri), authorization);
 
-        return null;
+        switch (result.getStatus()) {
+            case FAIL:
+                return new ResponseEntity<AccessTokenErrorResponse>(
+                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        HttpStatus.BAD_REQUEST);
+            default:
+            case SERVER_ERROR:
+                return new ResponseEntity<AccessTokenErrorResponse>(
+                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            case UNAUTHORIZED:
+                return new ResponseEntity<AccessTokenErrorResponse>(
+                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        HttpStatus.UNAUTHORIZED);
+            case OK:
+                return new ResponseEntity<AccessTokenResponse>(result.getResponse(), HttpStatus.OK);
+        }
     }
 }

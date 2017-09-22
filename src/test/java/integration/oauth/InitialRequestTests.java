@@ -19,7 +19,7 @@
  *
  */
 
-package net.identio.server.tests.integ.oauth;
+package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
 import org.junit.Test;

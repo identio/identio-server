@@ -1,4 +1,4 @@
-package net.identio.server.service.oauth.exceptions;
+package net.identio.server.service.oauth.infrastructure.exceptions;
 
 public class AuthorizationCodeCreationException extends Exception {
 

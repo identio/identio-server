@@ -125,7 +125,7 @@ public class OAuthRequestService {
 
         if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
                 || responseType.equals(OAuthResponseType.CODE)
-                && !client.getAllowedGrants().contains(OAuthGrants.CODE)) {
+                && !client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
 
             LOG.error("Client not authorized to use the response type: {}", responseType);
             return false;

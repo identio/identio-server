@@ -10,7 +10,7 @@ import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.DataSource;
-import net.identio.server.service.oauth.exceptions.AuthorizationCodeCreationException;
+import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.AuthorizationCode;
