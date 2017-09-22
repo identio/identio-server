@@ -44,15 +44,15 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
         exclude group: 'org.hibernate', module: 'hibernate-validator'
     }
-    compile("com.zaxxer:HikariCP:2.6.0")
+    compile("com.zaxxer:HikariCP:2.7.1")
     compile("org.liquibase:liquibase-core")
     compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
     compile('com.github.identio:identio-saml:1.0.2')
-    compile('com.google.guava:guava:22.0')
+    compile('com.google.guava:guava:23.0')
     compile('com.github.identio:jradius-client:-SNAPSHOT')
-    compile('com.auth0:java-jwt:3.0.2')
+    compile('com.auth0:java-jwt:3.2.0')
     compile('ch.qos.logback:logback-core:1.2.3')
     compile('ch.qos.logback:logback-classic:1.2.3')
     testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
@@ -85,10 +85,10 @@ bootRun {
 
 node {
     // Version of node to use.
-    version = '5.1.0'
+    version = '6.11.3'
 
     // Version of npm to use.
-    npmVersion = '3.9.6'
+    npmVersion = '5.4.2'
 
     // Base URL for fetching node distributions (change if you have a mirror).
     distBaseUrl = 'https://nodejs.org/dist'
@@ -174,5 +174,5 @@ task release(dependsOn: ['releaseTarGz', 'releaseZip']) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.0'
+    gradleVersion = '4.2'
 }
