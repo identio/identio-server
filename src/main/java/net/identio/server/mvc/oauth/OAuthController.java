@@ -104,20 +104,20 @@ public class OAuthController {
 
         switch (result.getStatus()) {
             case FAIL:
-                return new ResponseEntity<AccessTokenErrorResponse>(
+                return new ResponseEntity<>(
                         new AccessTokenErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.BAD_REQUEST);
             default:
             case SERVER_ERROR:
-                return new ResponseEntity<AccessTokenErrorResponse>(
+                return new ResponseEntity<>(
                         new AccessTokenErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.INTERNAL_SERVER_ERROR);
             case UNAUTHORIZED:
-                return new ResponseEntity<AccessTokenErrorResponse>(
+                return new ResponseEntity<>(
                         new AccessTokenErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.UNAUTHORIZED);
             case OK:
-                return new ResponseEntity<AccessTokenResponse>(result.getResponse(), HttpStatus.OK);
+                return new ResponseEntity<>(result.getResponse(), HttpStatus.OK);
         }
     }
 }

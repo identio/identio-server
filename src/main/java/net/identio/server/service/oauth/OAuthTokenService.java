@@ -36,9 +36,6 @@ public class OAuthTokenService {
     private AuthorizationCodeRepository authorizationCodeRepository;
 
     @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
     private OAuthResponseService oAuthResponseService;
 
     @Autowired

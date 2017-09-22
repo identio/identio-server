@@ -1,7 +1,5 @@
 package net.identio.server.service.oauth;
 
-import net.identio.server.service.authorization.AuthorizationService;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
 import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
@@ -10,15 +8,11 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.junit.Assert.*;
-import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
@@ -32,15 +26,6 @@ public class OAuthTokenServiceTest {
     @Mock
     private AuthorizationCodeRepository authorizationCodeRepository;
 
-    @Mock
-    private ConfigurationService configurationService;
-
-    @Mock
-    private OAuthResponseService oAuthResponseService;
-
-    @Mock
-    private AuthorizationService authorizationService;
-
     @InjectMocks
     private OAuthTokenService oAuthTokenService = new OAuthTokenService();
 
@@ -52,7 +37,7 @@ public class OAuthTokenServiceTest {
 
         OAuthClient client = new OAuthClient();
         client.setClientId("test");
-        client.setAllowedGrants(Arrays.asList("implicit"));
+        client.setAllowedGrants(Collections.singletonList("implicit"));
         client.setClientSecret("test");
 
         // Mockito expectations

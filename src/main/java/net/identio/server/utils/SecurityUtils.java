@@ -31,7 +31,7 @@ import java.security.cert.X509Certificate;
 
 public class SecurityUtils {
 
-    public static final String escapeDN(String name) {
+    public static String escapeDN(String name) {
         StringBuilder sb = new StringBuilder();
 
         if (name.length() > 0 && (name.charAt(0) == ' ' || name.charAt(0) == '#')) {
@@ -76,7 +76,7 @@ public class SecurityUtils {
         return sb.toString();
     }
 
-    public static final String escapeLDAPSearchFilter(String filter) {
+    public static String escapeLDAPSearchFilter(String filter) {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < filter.length(); i++) {
@@ -106,13 +106,13 @@ public class SecurityUtils {
     }
 
 
-    public static final void addCertificateToKeyStore(KeyStore ks, X509Certificate cert, String alias)
+    public static void addCertificateToKeyStore(KeyStore ks, X509Certificate cert, String alias)
             throws KeyStoreException {
 
         ks.setCertificateEntry(alias, cert);
     }
 
-    public static final X509Certificate parseCertificate(String path)
+    public static X509Certificate parseCertificate(String path)
             throws IOException, CertificateException {
 
         try (FileInputStream fis = new FileInputStream(path); BufferedInputStream bis = new BufferedInputStream(fis)) {
