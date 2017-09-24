@@ -6,7 +6,7 @@ ADD . /tmp/identio-server-build
 # Prepare system
 RUN apk update \
     && apk upgrade \
-    && apk add bash libstdc++ \
+    && apk add bash libstdc++ git \
     && addgroup -S identio \
     && adduser -S -g identio identio \
     && mkdir /opt
