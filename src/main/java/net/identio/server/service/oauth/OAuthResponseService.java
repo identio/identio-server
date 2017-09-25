@@ -25,7 +25,8 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
-import java.security.interfaces.RSAKey;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
@@ -39,7 +40,8 @@ public class OAuthResponseService {
 
     private ConfigurationService configurationService;
 
-    private RSAKey signingKey;
+    private RSAPrivateKey signingKey;
+    private RSAPublicKey publicKey;
 
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
@@ -70,7 +72,8 @@ public class OAuthResponseService {
                     new KeyStore.PasswordProtection(configurationService.getConfiguration().getGlobalConfiguration()
                             .getSignatureKeystorePassword().toCharArray()));
 
-            signingKey = (RSAKey) keyEntry.getPrivateKey();
+            signingKey = (RSAPrivateKey) keyEntry.getPrivateKey();
+            publicKey = (RSAPublicKey) keyEntry.getCertificate().getPublicKey();
 
         } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException
                 | UnrecoverableEntryException ex) {
@@ -190,7 +193,7 @@ public class OAuthResponseService {
                 .withJWTId(UUID.randomUUID().toString())
                 .withClaim("scope", serializedScopes)
                 .withClaim("client_id", sourceApplication)
-                .sign(Algorithm.RSA256(signingKey)))
+                .sign(Algorithm.RSA256(publicKey, signingKey)))
                 .setExpiresIn(expirationTime)
                 .setType("Bearer")
                 .setScope(serializedScopes);

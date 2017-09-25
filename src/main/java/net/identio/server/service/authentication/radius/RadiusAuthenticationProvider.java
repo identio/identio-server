@@ -43,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
@@ -52,8 +51,6 @@ import java.util.zip.DataFormatException;
 public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(RadiusAuthenticationProvider.class);
-
-    private HashMap<String, RadiusAuthMethod> radiusAuthMethodsMap = new HashMap<>();
 
     private int currentHostIndex;
 
@@ -73,7 +70,6 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
             LOG.debug("* Data Source: {}", radiusAuthMethod.getName());
 
-            radiusAuthMethodsMap.put(radiusAuthMethod.getName(), radiusAuthMethod);
         }
 
         register(authMethods, authenticationService);

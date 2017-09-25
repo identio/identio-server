@@ -56,7 +56,6 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
     private HashMap<String, GenericObjectPool<InitialLdapContext>> pools = new HashMap<>();
 
-    private HashMap<String, LdapAuthMethod> ldapAuthMethodsMap = new HashMap<>();
 
     @Autowired
     public LdapAuthenticationProvider(ConfigurationService configurationService,
@@ -161,8 +160,6 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
         for (LdapAuthMethod ldapAuthMethod : ldapAuthMethods) {
 
             LOG.debug("* Auth Method: {}", ldapAuthMethod.getName());
-
-            ldapAuthMethodsMap.put(ldapAuthMethod.getName(), ldapAuthMethod);
 
             LdapConnectionFactory factory = new LdapConnectionFactory(ldapAuthMethod);
 

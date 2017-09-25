@@ -5,7 +5,6 @@ import net.identio.server.model.Result;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
 import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
@@ -83,7 +82,7 @@ public class OAuthTokenService {
             return new ValidateTokenResult().setStatus(ValidateTokenStatus.FAIL).setErrorStatus(OAuthErrors.INVALID_GRANT);
 
         // Everything's ok, generate response
-        LinkedHashMap<String, AuthorizationScope> scopes = null;
+        LinkedHashMap<String, AuthorizationScope> scopes;
         try {
             scopes = authorizationService.deserializeScope(code.get().getScope());
         } catch (UnknownScopeException | NoScopeProvidedException e) {

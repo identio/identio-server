@@ -22,7 +22,6 @@ package net.identio.server.mvc.oauth;
 
 import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
 import net.identio.server.service.oauth.OAuthTokenService;
-import net.identio.server.service.oauth.model.AccessTokenResponse;
 import net.identio.server.service.oauth.model.AuthorizationRequest;
 import net.identio.server.service.oauth.model.ValidateTokenResult;
 import net.identio.server.service.orchestration.exceptions.ServerException;

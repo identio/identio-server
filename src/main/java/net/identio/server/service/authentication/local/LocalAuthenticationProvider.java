@@ -48,8 +48,6 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(LocalAuthenticationProvider.class);
 
-    private HashMap<String, LocalAuthMethod> fileAuthMethodsMap = new HashMap<>();
-
     private HashMap<LocalAuthMethod, HashMap<String, User>> globalUsersMap;
 
     @Autowired
@@ -91,8 +89,6 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
             } catch (IOException ex) {
                 throw new InitializationException("Impossible to parse users file", ex);
             }
-
-            fileAuthMethodsMap.put(fileAuthMethod.getName(), fileAuthMethod);
         }
 
         register(authMethods, authenticationService);
