@@ -41,6 +41,7 @@ import org.springframework.util.MultiValueMap;
 import java.io.FileInputStream;
 import java.security.KeyStore;
 import java.security.interfaces.RSAKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,7 +72,7 @@ public class OAuthRequests {
 
     public void authorizeRequest() {
 
-        ResponseEntity<String> initialRequestResponse = restTemplate.exchange(
+        ResponseEntity<String> initialRequestResponse = this.restTemplate.exchange(
                 "/oauth/authorize?client_id=" + this.clientId + "&redirect_uri=http://example.com/cb&response_type="
                         + this.responseType + "&scope=scope.test.1 scope.test.2&state=1234",
                 HttpMethod.GET,
@@ -91,14 +92,14 @@ public class OAuthRequests {
         assertNotNull(transactionId);
 
         // Request authentication methods
-        headers = new HttpHeaders();
-        headers.add(HttpHeaders.COOKIE, sessionCookie);
-        headers.add("X-Transaction-ID", transactionId);
+        this.headers = new HttpHeaders();
+        this.headers.add(HttpHeaders.COOKIE, sessionCookie);
+        this.headers.add("X-Transaction-ID", transactionId);
     }
 
     public void getAuthMethods() {
 
-        ResponseEntity<AuthMethodResponse[]> authMethodResponse = restTemplate.exchange(
+        ResponseEntity<AuthMethodResponse[]> authMethodResponse = this.restTemplate.exchange(
                 "/api/auth/methods",
                 HttpMethod.GET,
                 new HttpEntity<>(null, headers),
@@ -116,10 +117,10 @@ public class OAuthRequests {
         AuthSubmitRequest authenticationSubmit = new AuthSubmitRequest().setLogin("johndoe").setPassword("password")
                 .setMethod("Local");
 
-        ResponseEntity<AuthSubmitResponse> authSubmitResponseEntity = restTemplate.exchange(
+        ResponseEntity<AuthSubmitResponse> authSubmitResponseEntity = this.restTemplate.exchange(
                 "/api/auth/submit/password",
                 HttpMethod.POST,
-                new HttpEntity<>(authenticationSubmit, headers),
+                new HttpEntity<>(authenticationSubmit, this.headers),
                 AuthSubmitResponse.class);
 
         // Check that the authentication is successful and that we're asked for consent
@@ -132,10 +133,10 @@ public class OAuthRequests {
     public void getConsentContext() {
 
         // Get information for consent screen
-        ResponseEntity<ConsentContext> consentContextEntity = restTemplate.exchange(
+        ResponseEntity<ConsentContext> consentContextEntity = this.restTemplate.exchange(
                 "/api/authz/consent",
                 HttpMethod.GET,
-                new HttpEntity<>(null, headers),
+                new HttpEntity<>(null, this.headers),
                 ConsentContext.class);
 
         ConsentContext consentContext = consentContextEntity.getBody();
@@ -158,10 +159,10 @@ public class OAuthRequests {
         // Send the consent
         ConsentRequest consentRequest = new ConsentRequest().setApprovedScopes(Collections.singletonList("scope.test.1"));
 
-        ResponseEntity<ConsentResponse> consentResponseEntity = restTemplate.exchange(
+        ResponseEntity<ConsentResponse> consentResponseEntity = this.restTemplate.exchange(
                 "/api/authz/consent",
                 HttpMethod.POST,
-                new HttpEntity<>(consentRequest, headers),
+                new HttpEntity<>(consentRequest, this.headers),
                 ConsentResponse.class);
 
         ConsentResponse consentResponse = consentResponseEntity.getBody();
@@ -197,10 +198,11 @@ public class OAuthRequests {
     }
 
     public void validateResponse() {
+
         // Parse and validate JWT
         Algorithm algorithm = null;
         try {
-            algorithm = Algorithm.RSA256(getPublicSigningKey());
+            algorithm = Algorithm.RSA256(getPublicSigningKey(), null);
         } catch (Exception e) {
             fail();
         }
@@ -209,7 +211,7 @@ public class OAuthRequests {
                 .withIssuer("https://localhost")
                 .withSubject("johndoe")
                 .withClaim("scope", "scope.test.1")
-                .withClaim("client_id", clientId)
+                .withClaim("client_id", this.clientId)
                 .build();
 
         verifier.verify(this.accessToken);
@@ -220,14 +222,14 @@ public class OAuthRequests {
         MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
 
         payload.add("grant_type", "authorization_code");
-        payload.add("code", authorizationCode);
+        payload.add("code", this.authorizationCode);
         payload.add("redirect_uri", "http://example.com/cb");
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = restTemplate.exchange(
+        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = this.restTemplate.exchange(
                 "/oauth/token",
                 HttpMethod.POST,
                 new HttpEntity<>(payload, headers),
@@ -235,14 +237,16 @@ public class OAuthRequests {
 
         AccessTokenResponse accessTokenResponse = accessTokenResponseEntity.getBody();
 
-        assertNotNull(accessTokenResponse.getAccessToken());
+        this.accessToken = accessTokenResponse.getAccessToken();
+
+        assertNotNull(this.accessToken);
         assertEquals(2400, accessTokenResponse.getExpiresIn());
         assertEquals("scope.test.1", accessTokenResponse.getScope());
     }
 
     private String getUrlWithPort(String url) {
 
-        return "http://localhost:" + port + url;
+        return "http://localhost:" + this.port + url;
     }
 
     private String getSessionCookie(ResponseEntity<?> response) {
@@ -255,7 +259,7 @@ public class OAuthRequests {
         return url.substring(getUrlWithPort(AUTHENTICATION_URL).length());
     }
 
-    private RSAKey getPublicSigningKey() throws Exception {
+    private RSAPublicKey getPublicSigningKey() throws Exception {
 
         FileInputStream fis = new FileInputStream(
                 "src/test/resources/oauth-server-config/default-sign-certificate.p12");
@@ -267,9 +271,7 @@ public class OAuthRequests {
 
         String alias = aliases.nextElement();
 
-        return (RSAKey) (ks.getCertificate(alias)).getPublicKey();
+        return (RSAPublicKey) (ks.getCertificate(alias)).getPublicKey();
 
     }
-
-
 }

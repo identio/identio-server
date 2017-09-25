@@ -60,5 +60,7 @@ public class OAuthAuthorizationCodeFullCinematicTest {
         requests.consent();
 
         requests.accessTokenRequest();
+
+        requests.validateResponse();
     }
 }
