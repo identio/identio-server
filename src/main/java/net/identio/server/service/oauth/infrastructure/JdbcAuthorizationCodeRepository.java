@@ -1,15 +1,7 @@
 package net.identio.server.service.oauth.infrastructure;
 
 import com.zaxxer.hikari.HikariDataSource;
-import liquibase.Contexts;
-import liquibase.LabelExpression;
-import liquibase.Liquibase;
-import liquibase.database.DatabaseFactory;
-import liquibase.database.jvm.JdbcConnection;
-import liquibase.exception.LiquibaseException;
-import liquibase.resource.ClassLoaderResourceAccessor;
 import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.DataSource;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
@@ -26,35 +18,9 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAuthorizationCodeRepository.class);
     private HikariDataSource ds;
 
-    public JdbcAuthorizationCodeRepository(DataSource dataSourceConfiguration) throws InitializationException {
+    public JdbcAuthorizationCodeRepository(HikariDataSource ds) throws InitializationException {
 
-        initDataSource(dataSourceConfiguration);
-
-        initDataBase();
-    }
-
-    private void initDataBase() throws InitializationException {
-
-        try (Connection connection = this.ds.getConnection()) {
-
-            Liquibase liquibase = new Liquibase("db-schemas/oauth.yaml",
-                    new ClassLoaderResourceAccessor(),
-                    DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection)));
-            liquibase.update(new Contexts(), new LabelExpression());
-
-        } catch (SQLException | LiquibaseException e) {
-            throw new InitializationException("Error initializing authorization code database", e);
-        }
-    }
-
-    private void initDataSource(DataSource dataSourceConfiguration) {
-        this.ds = new HikariDataSource();
-
-        this.ds.setMaximumPoolSize(10);
-        this.ds.setDriverClassName(dataSourceConfiguration.getDriver());
-        this.ds.setJdbcUrl(dataSourceConfiguration.getUrl());
-        this.ds.setUsername(dataSourceConfiguration.getUsername());
-        this.ds.setPassword(dataSourceConfiguration.getPassword());
+        this.ds = ds;
     }
 
     @Override
