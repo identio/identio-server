@@ -33,7 +33,7 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
     private JdbcDataSourceService jdbcDataSourceService;
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() throws InitializationException {
 
         DataSource dataSourceConfiguration = configurationService.getConfiguration().getoAuthServerConfiguration().getDataSource();
 
