@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class JdbcDataSourceService {
@@ -37,7 +38,11 @@ public class JdbcDataSourceService {
     @Autowired
     public JdbcDataSourceService(ConfigurationService configurationService) {
 
-        for (DataSource dataSourceConfiguration : configurationService.getConfiguration().getDataSourcesConfiguration().getDataSources())
+        List<DataSource> dataSourceList =  configurationService.getConfiguration().getDataSourcesConfiguration().getDataSources();
+
+        if (dataSourceList == null) return;
+
+        for (DataSource dataSourceConfiguration : dataSourceList)
         {
             HikariDataSource ds = new HikariDataSource();
 

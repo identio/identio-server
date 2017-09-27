@@ -21,29 +21,47 @@
 
 package net.identio.server.service.oauth.infrastructure;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.model.AuthorizationCode;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.annotation.Nonnull;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 public class InMemoryAuthorizationCodeRepository implements AuthorizationCodeRepository {
 
+    private LoadingCache<String, AuthorizationCode> authorizationCodeCache;
+
+    public InMemoryAuthorizationCodeRepository() {
+
+        authorizationCodeCache = CacheBuilder.newBuilder().maximumSize(100000).expireAfterAccess(1, TimeUnit.MINUTES)
+                .build(new CacheLoader<String, AuthorizationCode>() {
+                    public AuthorizationCode load(@Nonnull String o) {
+                        return new AuthorizationCode();
+                    }
+                });
+    }
+
     @Override
     public void save(AuthorizationCode code) {
-        // TODO
-        throw new NotImplementedException();
+
+        authorizationCodeCache.put(code.getCode(), code);
     }
 
     @Override
     public Optional<AuthorizationCode> getAuthorizationCodeByValue(String code) {
-        // TODO
-        throw new NotImplementedException();
+
+        AuthorizationCode result = authorizationCodeCache.getIfPresent(code);
+
+        return result != null ? Optional.of(result) : Optional.empty();
     }
 
     @Override
     public void delete(AuthorizationCode code) throws AuthorizationCodeDeleteException {
-        // TODO
-        throw new NotImplementedException();
+
+        authorizationCodeCache.invalidate(code);
     }
 }

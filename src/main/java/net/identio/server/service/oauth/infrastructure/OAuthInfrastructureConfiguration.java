@@ -33,6 +33,8 @@ import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.DataSource;
 import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.data.JdbcDataSourceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +45,8 @@ import java.sql.SQLException;
 
 @Configuration
 public class OAuthInfrastructureConfiguration implements InitializingBean {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthInfrastructureConfiguration.class);
 
     private String dsType;
     private HikariDataSource jdbcDs;
@@ -58,21 +62,40 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
 
         DataSource dataSourceConfiguration = configurationService.getConfiguration().getoAuthServerConfiguration().getDataSource();
 
-        this.dsType = dataSourceConfiguration.getType();
+        this.dsType = dataSourceConfiguration != null ? dataSourceConfiguration.getType() : "in-memory";
 
-        if ("jdbc".equals(this.dsType)) {
+        switch (this.dsType) {
 
-            this.jdbcDs = jdbcDataSourceService.getDataSource(dataSourceConfiguration.getName());
-            initDataBaseSchema();
+            case "jdbc":
+                this.jdbcDs = jdbcDataSourceService.getDataSource(dataSourceConfiguration.getName());
+                initDataBaseSchema();
+                break;
+
+            case "in-memory":
+                break;
+
+            default:
+                LOG.error("Unsupported datasource type: {}", this.dsType);
+                throw new InitializationException("Unsupported datasource type");
         }
     }
 
     @Bean
     public AuthorizationCodeRepository getAuthorizationCodeRepository() throws InitializationException {
 
-        if ("jdbc".equals(this.dsType)) return new JdbcAuthorizationCodeRepository(jdbcDs);
+        switch (this.dsType) {
 
-        return new InMemoryAuthorizationCodeRepository();
+            case "jdbc":
+                return new JdbcAuthorizationCodeRepository(jdbcDs);
+
+            case "in-memory":
+                return new InMemoryAuthorizationCodeRepository();
+
+            default:
+                LOG.error("Unsupported datasource type: {}", this.dsType);
+                throw new InitializationException("Unsupported datasource type");
+
+        }
     }
 
     private void initDataBaseSchema() throws InitializationException {
