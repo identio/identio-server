@@ -25,6 +25,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'idea'
 apply plugin: 'application'
+apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -49,7 +50,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile('org.apache.commons:commons-pool2:2.4.2')
-    compile('com.github.identio:identio-saml:1.0.2')
+    compile('com.github.identio:identio-saml:1.0.3')
     compile('com.google.guava:guava:23.0')
     compile('com.github.identio:jradius-client:-SNAPSHOT')
     compile('com.auth0:java-jwt:3.2.0')
@@ -79,6 +80,12 @@ springBoot {
 
 bootRun {
     systemProperties = ['logging.config': 'file:./config/logback.xml']
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+    }
 }
 
 /// *** UI *** ///
