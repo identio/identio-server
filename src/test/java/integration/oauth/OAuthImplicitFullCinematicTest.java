@@ -45,7 +45,7 @@ public class OAuthImplicitFullCinematicTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    public void oAuthAuthorizeValidRequest() {
+    public void successfulCinematic() {
 
         OAuthRequests requests = new OAuthRequests(port, restTemplate, "token", "test");
 
