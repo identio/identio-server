@@ -30,7 +30,6 @@ import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.orchestration.model.ValidationStatus;
 import net.identio.server.service.orchestration.model.RequestValidationResult;
 import net.identio.server.utils.DecodeUtils;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,7 +73,7 @@ public class RequestConsumerController {
         // The SAML request is Base-64 encoded
         try {
             decodedSamlRequest = new String(DecodeUtils.decode(usSamlRequest, false));
-        } catch (Base64DecodingException | IOException | DataFormatException e) {
+        } catch (IOException | DataFormatException e) {
             throw new ServerException("Error when decoding SAML Request", e);
         }
 
@@ -139,7 +138,7 @@ public class RequestConsumerController {
         // The SAML request is Base-64 encoded and deflated
         try {
             decodedSamlRequest = new String(DecodeUtils.decode(usSamlRequest, true));
-        } catch (IOException | Base64DecodingException | DataFormatException e) {
+        } catch (IOException | DataFormatException e) {
             throw new ServerException("Error when decoding SAML Request", e);
         }
 

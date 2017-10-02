@@ -219,7 +219,7 @@ public class SamlService {
         byte[] signature;
         try {
             signature = DecodeUtils.decode(request.getSignatureValue(), false);
-        } catch (Base64DecodingException | IOException | DataFormatException e) {
+        } catch (IOException | DataFormatException e) {
             result.setStatus(RequestParsingStatus.RESPONSE_ERROR)
                     .setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
             return false;

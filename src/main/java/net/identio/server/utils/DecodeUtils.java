@@ -20,13 +20,12 @@
  */
 package net.identio.server.utils;
 
-import org.apache.xml.security.exceptions.Base64DecodingException;
-import org.apache.xml.security.utils.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Base64;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
@@ -36,12 +35,18 @@ public class DecodeUtils {
     private static final Logger LOG = LoggerFactory.getLogger(DecodeUtils.class);
 
     public static byte[] decode(String data, boolean inflate)
-            throws IOException, Base64DecodingException, DataFormatException {
+            throws IOException, DataFormatException {
 
         LOG.debug("Decoding string {} with inflate = {}", data, inflate);
 
         // First, we decode the B64 string
-        byte[] decodedBytes = Base64.decode(data);
+        byte[] decodedBytes;
+        try {
+             decodedBytes = Base64.getDecoder().decode(data);
+        }
+        catch(IllegalArgumentException ex) {
+            throw new IOException(ex);
+        }
 
         if (inflate) {
             try {
@@ -68,7 +73,7 @@ public class DecodeUtils {
         byte[] deflatedData = deflate ? deflate(data, true) : data;
 
         // First, we decode the B64 string
-        encodedString = Base64.encode(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
+        encodedString = Base64.getEncoder().encodeToString(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
 
         LOG.debug("Encoded string: {}", encodedString);
 

@@ -267,7 +267,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
                 return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS)
                         .setUserId(assertion.getSubjectNameID()).setAuthMethod(samlAuthMethod).setAuthLevel(authLevel);
             }
-        } catch (Base64DecodingException | IOException | DataFormatException | TechnicalException
+        } catch (IOException | DataFormatException | TechnicalException
                 | InvalidAuthentResponseException | InvalidAssertionException ex) {
             LOG.error("* Error when parsing SAML Response: {}", ex.getMessage());
         }

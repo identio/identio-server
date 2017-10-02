@@ -198,7 +198,7 @@ public class OAuthTokenService {
                     return result.success(client);
                 }
 
-            } catch (IOException | Base64DecodingException | DataFormatException e) {
+            } catch (IOException | DataFormatException e) {
                 LOG.error("Error when decoding Authorization header");
             }
         }
