@@ -34,8 +34,6 @@ import net.identio.server.service.oauth.infrastructure.AuthorizationCodeReposito
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.ResponseData;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,10 +46,8 @@ import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
-import java.util.Collection;
-import java.util.Enumeration;
-import java.util.LinkedHashMap;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
 @Service
 public class OAuthResponseService {
@@ -204,12 +200,12 @@ public class OAuthResponseService {
 
         String serializedScopes = authorizationService.serializeScope(scopes);
 
-        DateTime now = new DateTime(DateTimeZone.UTC);
+        Instant now = Instant.now();
 
         return new AccessToken().setValue(JWT.create()
                 .withIssuer(configurationService.getConfiguration().getGlobalConfiguration().getPublicFqdn())
-                .withExpiresAt(now.plusSeconds(expirationTime).toDate())
-                .withIssuedAt(now.toDate())
+                .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
+                .withIssuedAt(Date.from(now))
                 .withSubject(userId)
                 .withJWTId(UUID.randomUUID().toString())
                 .withClaim("scope", serializedScopes)
