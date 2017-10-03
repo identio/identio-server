@@ -19,12 +19,13 @@
  *
  */
 
-package net.identio.server.service.oauth.model;
+package net.identio.server.service.oauth.infrastructure.exceptions;
 
-public class OAuthGrants {
+import java.sql.SQLException;
 
-    public static final String TOKEN = "token";
-    public static final String AUTHORIZATION_CODE = "authorization_code";
-    public static final String REFRESH_TOKEN = "refresh_token";
+public class RefreshTokenCreationException extends Exception {
 
+    public RefreshTokenCreationException(SQLException e) {
+        super(e);
+    }
 }

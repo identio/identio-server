@@ -21,12 +21,11 @@
 
 package net.identio.server.service.oauth.model;
 
-public class AccessToken {
+public class RefreshToken {
 
     private String value;
-    private String type;
-    private int expiresIn;
     private String clientId;
+    private int expiresIn;
     private String scope;
     private String userId;
 
@@ -34,17 +33,17 @@ public class AccessToken {
         return value;
     }
 
-    public AccessToken setValue(String value) {
+    public RefreshToken setValue(String value) {
         this.value = value;
         return this;
     }
 
-    public String getType() {
-        return type;
+    public String getClientId() {
+        return clientId;
     }
 
-    public AccessToken setType(String type) {
-        this.type = type;
+    public RefreshToken setClientId(String clientId) {
+        this.clientId = clientId;
         return this;
     }
 
@@ -52,7 +51,7 @@ public class AccessToken {
         return expiresIn;
     }
 
-    public AccessToken setExpiresIn(int expiresIn) {
+    public RefreshToken setExpiresIn(int expiresIn) {
         this.expiresIn = expiresIn;
         return this;
     }
@@ -61,17 +60,8 @@ public class AccessToken {
         return scope;
     }
 
-    public AccessToken setScope(String scope) {
+    public RefreshToken setScope(String scope) {
         this.scope = scope;
-        return this;
-    }
-
-    public String getClientId() {
-        return clientId;
-    }
-
-    public AccessToken setClientId(String clientId) {
-        this.clientId = clientId;
         return this;
     }
 
@@ -79,7 +69,7 @@ public class AccessToken {
         return userId;
     }
 
-    public AccessToken setUserId(String userId) {
+    public RefreshToken setUserId(String userId) {
         this.userId = userId;
         return this;
     }

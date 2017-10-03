@@ -25,12 +25,15 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.AuthorizationScope;
+import net.identio.server.model.Result;
 import net.identio.server.model.UserSession;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.oauth.infrastructure.RefreshTokenRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
+import net.identio.server.service.oauth.infrastructure.exceptions.RefreshTokenCreationException;
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.ResponseData;
@@ -62,6 +65,9 @@ public class OAuthResponseService {
 
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private AuthorizationService authorizationService;
@@ -183,15 +189,48 @@ public class OAuthResponseService {
         return new ResponseData().setUrl(responseBuilder.toString());
     }
 
-    public AccessTokenResponse generateTokenResponse(Collection<AuthorizationScope> scopes, String sourceApplication, String userId) {
+    public Result<AccessTokenResponse> generateTokenResponse(Collection<AuthorizationScope> scopes, String sourceApplication,
+                                                     String userId, boolean addRefreshToken) {
+
+        AccessTokenResponse response = new AccessTokenResponse();
 
         AccessToken at = generateJwtAccessToken(scopes, sourceApplication, userId);
 
-        return new AccessTokenResponse()
-                .setAccessToken(at.getValue())
+        response.setAccessToken(at.getValue())
                 .setExpiresIn(at.getExpiresIn())
                 .setScope(at.getScope())
                 .setTokenType(at.getType());
+
+        if (addRefreshToken) {
+
+            Result<String> rt = generateRefreshToken(at);
+
+            if (rt.isSuccess()) {
+                response.setRefreshToken(rt.get());
+            }
+            else {
+                return Result.serverError();
+            }
+        }
+        return Result.success(response);
+    }
+
+    private Result<String> generateRefreshToken(AccessToken at) {
+
+        RefreshToken rt = new RefreshToken()
+                .setValue(UUID.randomUUID().toString())
+                .setClientId(at.getClientId())
+                .setExpiresIn(at.getExpiresIn())
+                .setScope(at.getScope())
+                .setUserId(at.getUserId());
+
+        try {
+            refreshTokenRepository.save(rt);
+        } catch (RefreshTokenCreationException e) {
+            return Result.serverError();
+        }
+
+        return Result.success(rt.getValue());
     }
 
     private AccessToken generateJwtAccessToken(Collection<AuthorizationScope> scopes, String sourceApplication, String userId) {
@@ -202,7 +241,12 @@ public class OAuthResponseService {
 
         Instant now = Instant.now();
 
-        return new AccessToken().setValue(JWT.create()
+        return new AccessToken()
+                .setExpiresIn(expirationTime)
+                .setType("Bearer")
+                .setScope(serializedScopes)
+                .setClientId(sourceApplication).setUserId(userId)
+                .setValue(JWT.create()
                 .withIssuer(configurationService.getConfiguration().getGlobalConfiguration().getPublicFqdn())
                 .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
                 .withIssuedAt(Date.from(now))
@@ -210,10 +254,8 @@ public class OAuthResponseService {
                 .withJWTId(UUID.randomUUID().toString())
                 .withClaim("scope", serializedScopes)
                 .withClaim("client_id", sourceApplication)
-                .sign(Algorithm.RSA256(publicKey, signingKey)))
-                .setExpiresIn(expirationTime)
-                .setType("Bearer")
-                .setScope(serializedScopes);
+                .sign(Algorithm.RSA256(publicKey, signingKey)));
+
     }
 
     private int getMinExpirationTime(Collection<AuthorizationScope> scopes) {

@@ -26,7 +26,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: redirect_uri
-                  type: varchar(100)
+                  type: varchar(500)
               - column:
                   name: expiration_time
                   type: bigint
@@ -39,7 +39,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: user_id
-                  type: varchar(200)
+                  type: varchar(100)
                   constraints:
                     nullable: false
         - createIndex:
@@ -48,4 +48,47 @@ databaseChangeLog:
             columns:
               - column:
                   name: code
+                  type: varchar(50)
+
+        - createTable:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: refresh_token
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: client_id
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: expires_in
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: scope
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_refresh_token
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: refresh_token
                   type: varchar(50)

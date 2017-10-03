@@ -109,7 +109,13 @@ public class OAuthTokenService {
         } catch (UnknownScopeException | NoScopeProvidedException e) {
             return new ValidateTokenResult().setStatus(ValidateTokenStatus.FAIL).setErrorStatus(OAuthErrors.INVALID_GRANT);
         }
-        AccessTokenResponse accessTokenResponse = oAuthResponseService.generateTokenResponse(scopes.values(), code.get().getClientId(), code.get().getUserId());
+
+        Result<AccessTokenResponse> accessTokenResponse = oAuthResponseService.generateTokenResponse(scopes.values(),
+                code.get().getClientId(), code.get().getUserId(),
+                isRefreshTokenAuthorized(client));
+
+        if (!accessTokenResponse.isSuccess())
+            return new ValidateTokenResult().setStatus(ValidateTokenStatus.SERVER_ERROR);
 
         // Delete authorization code from repository
         try {
@@ -118,7 +124,11 @@ public class OAuthTokenService {
             return new ValidateTokenResult().setStatus(ValidateTokenStatus.SERVER_ERROR);
         }
 
-        return new ValidateTokenResult().setStatus(ValidateTokenStatus.OK).setResponse(accessTokenResponse);
+        return new ValidateTokenResult().setStatus(ValidateTokenStatus.OK).setResponse(accessTokenResponse.get());
+    }
+
+    private boolean isRefreshTokenAuthorized(OAuthClient client) {
+        return client.getAllowedGrants().contains(OAuthGrants.REFRESH_TOKEN);
     }
 
     private boolean redirectUriMatchesInitialRequest(AuthorizationCode code, String redirectUri) {
@@ -181,8 +191,6 @@ public class OAuthTokenService {
 
     private Result<OAuthClient> extractClientFromAuthorization(String authorization) {
 
-        Result<OAuthClient> result = new Result<>();
-
         if (authorization != null && authorization.startsWith("Basic ")) {
 
             try {
@@ -195,7 +203,7 @@ public class OAuthTokenService {
                 OAuthClient client = clientRepository.getOAuthClientbyId(clientId);
 
                 if (client != null && client.getClientSecret().equals(clientSecret)) {
-                    return result.success(client);
+                    return Result.success(client);
                 }
 
             } catch (IOException | DataFormatException e) {
@@ -203,6 +211,6 @@ public class OAuthTokenService {
             }
         }
 
-        return result.fail();
+        return Result.fail();
     }
 }

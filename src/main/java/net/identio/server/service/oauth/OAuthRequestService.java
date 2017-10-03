@@ -123,7 +123,7 @@ public class OAuthRequestService {
 
     private boolean checkClientAuthorization(OAuthClient client, String responseType, Collection<AuthorizationScope> requestedScopes) {
 
-        if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.IMPLICIT)
+        if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.TOKEN)
                 || responseType.equals(OAuthResponseType.CODE)
                 && !client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
 

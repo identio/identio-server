@@ -23,29 +23,56 @@ package net.identio.server.model;
 
 public class Result<T> {
 
+    public enum ErrorType {
+        FAIL, SERVER_ERROR, UNAUTHORIZED
+    }
+
     private T result;
-    private boolean success;
+    private ErrorType errorType;
     private String errorStatus;
 
-    public Result<T> success(T result) {
+    private Result(T result) {
         this.result = result;
-        this.success = true;
-        return this;
     }
 
-    public Result<T> fail(String errorStatus) {
-        this.errorStatus = errorStatus;
-        this.success = false;
-        return this;
+    private Result() {
     }
 
-    public Result<T> fail() {
-        this.success = false;
-        return this;
+    public static <T> Result<T> success(T result) {
+        return new Result<>(result);
+    }
+
+    public static <T> Result<T> fail(String errorStatus) {
+        Result<T> response = new Result<>();
+        response.errorType = ErrorType.FAIL;
+        response.errorStatus = errorStatus;
+        return response;
+    }
+
+    public static <T> Result<T> fail() {
+        Result<T> response = new Result<>();
+        response.errorType = ErrorType.FAIL;
+        return response;
+    }
+
+    public static <T> Result<T> serverError() {
+        Result<T> response = new Result<>();
+        response.errorType = ErrorType.SERVER_ERROR;
+        return response;
+    }
+
+    public static <T> Result<T> unauthorized() {
+        Result<T> response = new Result<>();
+        response.errorType = ErrorType.UNAUTHORIZED;
+        return response;
+    }
+
+    public ErrorType getErrorType() {
+        return this.errorType;
     }
 
     public String getErrorStatus() {
-        return errorStatus;
+        return this.errorStatus;
     }
 
     public T get() {
@@ -53,8 +80,6 @@ public class Result<T> {
     }
 
     public boolean isSuccess() {
-        return success;
+        return result != null;
     }
-
-
 }

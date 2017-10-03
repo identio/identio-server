@@ -98,6 +98,24 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
         }
     }
 
+    @Bean
+    public RefreshTokenRepository getRefreshTokenRepository() throws InitializationException {
+
+        switch (this.dsType) {
+
+            case "jdbc":
+                return new JdbcRefreshTokenRepository(jdbcDs);
+
+            case "in-memory":
+                return new InMemoryRefreshTokenRepository();
+
+            default:
+                LOG.error("Unsupported datasource type: {}", this.dsType);
+                throw new InitializationException("Unsupported datasource type");
+
+        }
+    }
+
     private void initDataBaseSchema() throws InitializationException {
 
         try (Connection connection = this.jdbcDs.getConnection()) {
