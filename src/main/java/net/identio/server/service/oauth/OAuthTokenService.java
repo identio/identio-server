@@ -33,7 +33,6 @@ import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationC
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.utils.DecodeUtils;
 import net.identio.server.utils.MiscUtils;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

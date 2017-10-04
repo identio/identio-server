@@ -34,7 +34,6 @@ import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
 import net.identio.server.utils.DecodeUtils;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

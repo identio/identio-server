@@ -37,7 +37,6 @@ import net.identio.server.service.saml.MetadataService;
 import net.identio.server.service.saml.SamlService;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.DecodeUtils;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

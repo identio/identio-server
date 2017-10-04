@@ -242,6 +242,7 @@ public class OAuthRequests {
         assertNotNull(this.accessToken);
         assertEquals(2400, accessTokenResponse.getExpiresIn());
         assertEquals("scope.test.1", accessTokenResponse.getScope());
+        assertNotNull(accessTokenResponse.getRefreshToken());
     }
 
     private String getUrlWithPort(String url) {
