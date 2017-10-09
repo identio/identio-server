@@ -21,7 +21,7 @@
 
 package net.identio.server.service.oauth.model;
 
-public class AuthorizationRequest {
+public class AuthorizationCodeRequest {
 
     private String grantType;
 
@@ -33,7 +33,7 @@ public class AuthorizationRequest {
         return grantType;
     }
 
-    public AuthorizationRequest setGrantType(String grantType) {
+    public AuthorizationCodeRequest setGrantType(String grantType) {
         this.grantType = grantType;
         return this;
     }
@@ -42,7 +42,7 @@ public class AuthorizationRequest {
         return code;
     }
 
-    public AuthorizationRequest setCode(String code) {
+    public AuthorizationCodeRequest setCode(String code) {
         this.code = code;
         return this;
     }
@@ -51,7 +51,7 @@ public class AuthorizationRequest {
         return redirectUri;
     }
 
-    public AuthorizationRequest setRedirectUri(String redirectUri) {
+    public AuthorizationCodeRequest setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
         return this;
     }

@@ -40,7 +40,6 @@ import org.springframework.util.MultiValueMap;
 
 import java.io.FileInputStream;
 import java.security.KeyStore;
-import java.security.interfaces.RSAKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -62,6 +61,7 @@ public class OAuthRequests {
     private String clientId;
     public String authorizationCode;
     public String accessToken;
+    public String refreshToken;
 
     public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId) {
         this.port = port;
@@ -238,11 +238,44 @@ public class OAuthRequests {
         AccessTokenResponse accessTokenResponse = accessTokenResponseEntity.getBody();
 
         this.accessToken = accessTokenResponse.getAccessToken();
+        this.refreshToken = accessTokenResponse.getRefreshToken();
 
+        assertEquals(HttpStatus.OK, accessTokenResponseEntity.getStatusCode());
         assertNotNull(this.accessToken);
+        assertNotNull(this.refreshToken);
         assertEquals(2400, accessTokenResponse.getExpiresIn());
         assertEquals("scope.test.1", accessTokenResponse.getScope());
-        assertNotNull(accessTokenResponse.getRefreshToken());
+    }
+
+    public void refreshTokenRequest() {
+
+        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
+
+        payload.add("grant_type", "refresh_token");
+        payload.add("refresh_token", this.refreshToken);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = this.restTemplate.exchange(
+                "/oauth/token",
+                HttpMethod.POST,
+                new HttpEntity<>(payload, headers),
+                AccessTokenResponse.class);
+
+        AccessTokenResponse accessTokenResponse = accessTokenResponseEntity.getBody();
+
+        String accessToken = accessTokenResponse.getAccessToken();
+
+        assertEquals(HttpStatus.OK, accessTokenResponseEntity.getStatusCode());
+        assertNotNull(accessToken);
+        assertNotEquals(this.accessToken, accessToken);
+        assertNull(accessTokenResponse.getRefreshToken());
+        assertEquals(2400, accessTokenResponse.getExpiresIn());
+        assertEquals("scope.test.1", accessTokenResponse.getScope());
+
+        this.accessToken = accessToken;
     }
 
     private String getUrlWithPort(String url) {

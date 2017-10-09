@@ -20,10 +20,10 @@
  */
 package net.identio.server.mvc.oauth;
 
+import net.identio.server.model.Result;
 import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
 import net.identio.server.service.oauth.OAuthTokenService;
-import net.identio.server.service.oauth.model.AuthorizationRequest;
-import net.identio.server.service.oauth.model.ValidateTokenResult;
+import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -95,13 +95,12 @@ public class OAuthController {
             @RequestParam(value = "grant_type", required = false) String grantType,
             @RequestParam(value = "code", required = false) String code,
             @RequestParam(value = "redirect_uri", required = false) String redirectUri,
-            @RequestHeader(value = "Authorization", required = false) String authorization,
-            HttpServletRequest request) throws ValidationException, ServerException, WebSecurityException {
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
 
-        ValidateTokenResult result = oAuthTokenService.validateTokenRequest(
-                new AuthorizationRequest().setGrantType(grantType).setCode(code).setRedirectUri(redirectUri), authorization);
+        Result<AccessTokenResponse> result = oAuthTokenService.validateTokenRequest(
+                new AuthorizationCodeRequest().setGrantType(grantType).setCode(code).setRedirectUri(redirectUri), authorization);
 
-        switch (result.getStatus()) {
+        switch (result.getResultStatus()) {
             case FAIL:
                 return new ResponseEntity<>(
                         new AccessTokenErrorResponse().setError(result.getErrorStatus()),
@@ -116,7 +115,36 @@ public class OAuthController {
                         new AccessTokenErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.UNAUTHORIZED);
             case OK:
-                return new ResponseEntity<>(result.getResponse(), HttpStatus.OK);
+                return new ResponseEntity<>(result.get(), HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(value = "/oauth/token", method = RequestMethod.POST, params = "refresh_token")
+    public ResponseEntity<?> refreshTokenRequest(
+            @RequestParam(value = "grant_type", required = false) String grantType,
+            @RequestParam(value = "refresh_token", required = false) String refreshToken,
+            @RequestParam(value = "scope", required = false) String scope,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+
+        Result<AccessTokenResponse> result = oAuthTokenService.validateRefreshTokenRequest(
+                new RefreshTokenRequest().setGrantType(grantType).setRefreshToken(refreshToken).setScope(scope), authorization);
+
+        switch (result.getResultStatus()) {
+            case FAIL:
+                return new ResponseEntity<>(
+                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        HttpStatus.BAD_REQUEST);
+            default:
+            case SERVER_ERROR:
+                return new ResponseEntity<>(
+                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        HttpStatus.INTERNAL_SERVER_ERROR);
+            case UNAUTHORIZED:
+                return new ResponseEntity<>(
+                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        HttpStatus.UNAUTHORIZED);
+            case OK:
+                return new ResponseEntity<>(result.get(), HttpStatus.OK);
         }
     }
 }

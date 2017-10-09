@@ -21,36 +21,38 @@
 
 package net.identio.server.service.oauth.model;
 
-public class ValidateTokenResult {
+public class RefreshTokenRequest {
 
-    private ValidateTokenStatus status;
-    private String errorStatus;
-    private AccessTokenResponse response;
+    private String grantType;
 
-    public ValidateTokenStatus getStatus() {
-        return status;
+    private String refreshToken;
+
+    private String scope;
+
+    public String getGrantType() {
+        return grantType;
     }
 
-    public ValidateTokenResult setStatus(ValidateTokenStatus status) {
-        this.status = status;
+    public RefreshTokenRequest setGrantType(String grantType) {
+        this.grantType = grantType;
         return this;
     }
 
-    public String getErrorStatus() {
-        return errorStatus;
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
-    public ValidateTokenResult setErrorStatus(String errorStatus) {
-        this.errorStatus = errorStatus;
+    public RefreshTokenRequest setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
         return this;
     }
 
-    public AccessTokenResponse getResponse() {
-        return response;
+    public String getScope() {
+        return scope;
     }
 
-    public ValidateTokenResult setResponse(AccessTokenResponse response) {
-        this.response = response;
+    public RefreshTokenRequest setScope(String scope) {
+        this.scope = scope;
         return this;
     }
 }

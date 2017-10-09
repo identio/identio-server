@@ -21,6 +21,7 @@
 
 package net.identio.server.service.oauth;
 
+import net.identio.server.model.Result;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
 import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
@@ -53,7 +54,7 @@ public class OAuthTokenServiceTest {
     @Test
     public void clientGrantNotAuthorized() {
 
-        AuthorizationRequest request = new AuthorizationRequest()
+        AuthorizationCodeRequest request = new AuthorizationCodeRequest()
                 .setGrantType(OAuthGrants.AUTHORIZATION_CODE).setCode("1234").setRedirectUri("http://example.com/cb");
 
         OAuthClient client = new OAuthClient();
@@ -64,16 +65,16 @@ public class OAuthTokenServiceTest {
         // Mockito expectations
         when(clientRepository.getOAuthClientbyId(anyString())).thenReturn(client);
 
-        ValidateTokenResult result = oAuthTokenService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
+        Result<AccessTokenResponse> result = oAuthTokenService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
 
-        assertEquals(ValidateTokenStatus.FAIL, result.getStatus());
+        assertEquals(Result.ResultStatus.FAIL, result.getResultStatus());
         assertEquals(OAuthErrors.UNAUTHORIZED_CLIENT, result.getErrorStatus());
     }
 
     @Test
     public void authorizationCodeRepository_getAuthorizationCodeByValue_throws() throws AuthorizationCodeFetchException {
 
-        AuthorizationRequest request = new AuthorizationRequest()
+        AuthorizationCodeRequest request = new AuthorizationCodeRequest()
                 .setGrantType(OAuthGrants.AUTHORIZATION_CODE).setCode("1234").setRedirectUri("http://example.com/cb");
 
         OAuthClient client = new OAuthClient();
@@ -85,8 +86,8 @@ public class OAuthTokenServiceTest {
         when(clientRepository.getOAuthClientbyId(anyString())).thenReturn(client);
         doThrow(AuthorizationCodeFetchException.class).when(authorizationCodeRepository).getAuthorizationCodeByValue(anyString());
 
-        ValidateTokenResult result = oAuthTokenService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
+        Result<AccessTokenResponse> result = oAuthTokenService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
 
-        assertEquals(ValidateTokenStatus.SERVER_ERROR, result.getStatus());
+        assertEquals(Result.ResultStatus.SERVER_ERROR, result.getResultStatus());
     }
 }

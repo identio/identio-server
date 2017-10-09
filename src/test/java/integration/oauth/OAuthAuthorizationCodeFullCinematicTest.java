@@ -62,5 +62,7 @@ public class OAuthAuthorizationCodeFullCinematicTest {
         requests.accessTokenRequest();
 
         requests.validateResponse();
+
+        requests.refreshTokenRequest();
     }
 }

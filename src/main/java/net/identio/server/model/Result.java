@@ -23,12 +23,12 @@ package net.identio.server.model;
 
 public class Result<T> {
 
-    public enum ErrorType {
-        FAIL, SERVER_ERROR, UNAUTHORIZED
+    public enum ResultStatus {
+        OK, FAIL, SERVER_ERROR, UNAUTHORIZED
     }
 
     private T result;
-    private ErrorType errorType;
+    private ResultStatus resultStatus;
     private String errorStatus;
 
     private Result(T result) {
@@ -39,36 +39,44 @@ public class Result<T> {
     }
 
     public static <T> Result<T> success(T result) {
-        return new Result<>(result);
+        Result<T> response = new Result<>();
+        response.result = result;
+        response.resultStatus = ResultStatus.OK;
+        return response;
     }
 
     public static <T> Result<T> fail(String errorStatus) {
         Result<T> response = new Result<>();
-        response.errorType = ErrorType.FAIL;
+        response.resultStatus = ResultStatus.FAIL;
         response.errorStatus = errorStatus;
         return response;
     }
 
     public static <T> Result<T> fail() {
         Result<T> response = new Result<>();
-        response.errorType = ErrorType.FAIL;
+        response.resultStatus = ResultStatus.FAIL;
         return response;
     }
 
     public static <T> Result<T> serverError() {
         Result<T> response = new Result<>();
-        response.errorType = ErrorType.SERVER_ERROR;
+        response.resultStatus = ResultStatus.SERVER_ERROR;
         return response;
     }
 
     public static <T> Result<T> unauthorized() {
+        return unauthorized(null);
+    }
+
+    public static <T> Result<T> unauthorized(String errorStatus) {
         Result<T> response = new Result<>();
-        response.errorType = ErrorType.UNAUTHORIZED;
+        response.resultStatus = ResultStatus.UNAUTHORIZED;
+        response.errorStatus = errorStatus;
         return response;
     }
 
-    public ErrorType getErrorType() {
-        return this.errorType;
+    public ResultStatus getResultStatus() {
+        return this.resultStatus;
     }
 
     public String getErrorStatus() {
