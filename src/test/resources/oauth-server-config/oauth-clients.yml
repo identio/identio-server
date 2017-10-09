@@ -35,3 +35,16 @@ oAuthClients:
       - token
       - authorization_code
     consentNeeded: true
+  - name: Test Client 4
+    clientId: test4
+    clientSecret: test4
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - token
+      - authorization_code
+      - refresh_token
+    consentNeeded: true

@@ -129,6 +129,20 @@ public class RefreshTokenErrorTests {
         assertEquals(OAuthErrors.INVALID_SCOPE, refreshTokenResponse.getBody().getError());
     }
 
+    @Test
+    public void useAnotherClientId() {
+
+        initPayLoadAndHeaders();
+
+        headers.remove("Authorization");
+        headers.add("Authorization", "Basic dGVzdDQ6dGVzdDQ="); // test4:test4
+
+        ResponseEntity<AccessTokenErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+
+        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
+        assertEquals(OAuthErrors.INVALID_GRANT, refreshTokenResponse.getBody().getError());
+    }
+
     private ResponseEntity<AccessTokenErrorResponse> sendRefreshTokenRequest() {
 
         return restTemplate.exchange(
