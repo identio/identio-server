@@ -22,8 +22,10 @@
 package net.identio.server.service.oauth.infrastructure;
 
 import net.identio.server.exceptions.InitializationException;
+import net.identio.server.model.Result;
 import net.identio.server.service.oauth.model.OAuthClient;
 import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.utils.DecodeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.zip.DataFormatException;
 
 @Service
 public class FileOAuthClientRepository implements OAuthClientRepository {
@@ -79,9 +82,34 @@ public class FileOAuthClientRepository implements OAuthClientRepository {
     }
 
     @Override
-    public OAuthClient getOAuthClientbyId(String cliendId) {
+    public OAuthClient getOAuthClientbyId(String clientId) {
 
-        return clients.get(cliendId);
+        return clients.get(clientId);
+    }
+
+    public Result<OAuthClient> getClientFromAuthorization(String authorization) {
+
+        if (authorization != null && authorization.startsWith("Basic ")) {
+
+            try {
+                String filteredAuthorization = new String(DecodeUtils.decode(authorization.substring(6), false));
+
+                String[] credentials = filteredAuthorization.split(":");
+                String clientId = credentials[0];
+                String clientSecret = credentials[1];
+
+                OAuthClient client = clients.get(clientId);
+
+                if (client != null && client.getClientSecret().equals(clientSecret)) {
+                    return Result.success(client);
+                }
+
+            } catch (IOException | DataFormatException e) {
+                LOG.error("Error when decoding Authorization header");
+            }
+        }
+
+        return Result.fail();
     }
 
 }

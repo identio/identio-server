@@ -40,7 +40,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-public class OAuthTokenServiceTest {
+public class AuthorizationCodeServiceTest {
 
     @Mock
     private OAuthClientRepository clientRepository;
@@ -49,7 +49,7 @@ public class OAuthTokenServiceTest {
     private AuthorizationCodeRepository authorizationCodeRepository;
 
     @InjectMocks
-    private OAuthTokenService oAuthTokenService = new OAuthTokenService();
+    private AuthorizationCodeService authorizationCodeService = new AuthorizationCodeService();
 
     @Test
     public void clientGrantNotAuthorized() {
@@ -63,9 +63,9 @@ public class OAuthTokenServiceTest {
         client.setClientSecret("test");
 
         // Mockito expectations
-        when(clientRepository.getOAuthClientbyId(anyString())).thenReturn(client);
+        when(clientRepository.getClientFromAuthorization(anyString())).thenReturn(Result.success(client));
 
-        Result<AccessTokenResponse> result = oAuthTokenService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
+        Result<AccessTokenResponse> result = authorizationCodeService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
 
         assertEquals(Result.ResultStatus.FAIL, result.getResultStatus());
         assertEquals(OAuthErrors.UNAUTHORIZED_CLIENT, result.getErrorStatus());
@@ -83,10 +83,10 @@ public class OAuthTokenServiceTest {
         client.setClientSecret("test");
 
         // Mockito expectations
-        when(clientRepository.getOAuthClientbyId(anyString())).thenReturn(client);
+        when(clientRepository.getClientFromAuthorization(anyString())).thenReturn(Result.success(client));
         doThrow(AuthorizationCodeFetchException.class).when(authorizationCodeRepository).getAuthorizationCodeByValue(anyString());
 
-        Result<AccessTokenResponse> result = oAuthTokenService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
+        Result<AccessTokenResponse> result = authorizationCodeService.validateTokenRequest(request, "Basic dGVzdDp0ZXN0"); // test: test
 
         assertEquals(Result.ResultStatus.SERVER_ERROR, result.getResultStatus());
     }

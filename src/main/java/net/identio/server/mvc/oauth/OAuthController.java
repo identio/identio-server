@@ -22,7 +22,8 @@ package net.identio.server.mvc.oauth;
 
 import net.identio.server.model.Result;
 import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
-import net.identio.server.service.oauth.OAuthTokenService;
+import net.identio.server.service.oauth.AuthorizationCodeService;
+import net.identio.server.service.oauth.RefreshTokenService;
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
@@ -54,7 +55,10 @@ public class OAuthController {
     private TransparentAuthController transparentAuthController;
 
     @Autowired
-    private OAuthTokenService oAuthTokenService;
+    private AuthorizationCodeService authorizationCodeService;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
 
     @RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
     public String authorizeRequest(
@@ -97,7 +101,7 @@ public class OAuthController {
             @RequestParam(value = "redirect_uri", required = false) String redirectUri,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
-        Result<AccessTokenResponse> result = oAuthTokenService.validateTokenRequest(
+        Result<AccessTokenResponse> result = authorizationCodeService.validateTokenRequest(
                 new AuthorizationCodeRequest().setGrantType(grantType).setCode(code).setRedirectUri(redirectUri), authorization);
 
         switch (result.getResultStatus()) {
@@ -126,7 +130,7 @@ public class OAuthController {
             @RequestParam(value = "scope", required = false) String scope,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
-        Result<AccessTokenResponse> result = oAuthTokenService.validateRefreshTokenRequest(
+        Result<AccessTokenResponse> result = refreshTokenService.validateRefreshTokenRequest(
                 new RefreshTokenRequest().setGrantType(grantType).setRefreshToken(refreshToken).setScope(scope), authorization);
 
         switch (result.getResultStatus()) {
