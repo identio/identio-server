@@ -34,7 +34,6 @@ import net.sourceforge.jradiusclient.RadiusPacket;
 import net.sourceforge.jradiusclient.exception.InvalidParameterException;
 import net.sourceforge.jradiusclient.exception.RadiusException;
 import net.sourceforge.jradiusclient.packets.PapAccessRequest;
-import org.apache.xml.security.exceptions.Base64DecodingException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,7 +186,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                         .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
             }
 
-        } catch (InvalidParameterException | IOException | Base64DecodingException | DataFormatException ex) {
+        } catch (InvalidParameterException | IOException | DataFormatException ex) {
             LOG.error("Error when contacting RadiusServer server {}",
                     radiusAuthMethod.getRadiusHost()[currentHostIndex]);
         }
@@ -197,7 +196,8 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
     }
 
     private RadiusAttribute deserializeAttribute(String data)
-            throws Base64DecodingException, IOException, DataFormatException, InvalidParameterException {
+            throws IOException, DataFormatException, InvalidParameterException {
+
 
         byte[] dataBytes = DecodeUtils.decode(data, false);
 

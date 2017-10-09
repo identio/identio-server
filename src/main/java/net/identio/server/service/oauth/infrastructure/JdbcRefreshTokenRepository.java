@@ -40,7 +40,7 @@ public class JdbcRefreshTokenRepository implements RefreshTokenRepository {
 
     private HikariDataSource ds;
 
-    public JdbcRefreshTokenRepository(HikariDataSource ds) throws InitializationException {
+    public JdbcRefreshTokenRepository(HikariDataSource ds) {
 
         this.ds = ds;
     }

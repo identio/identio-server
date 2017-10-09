@@ -39,7 +39,7 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAuthorizationCodeRepository.class);
     private HikariDataSource ds;
 
-    public JdbcAuthorizationCodeRepository(HikariDataSource ds) throws InitializationException {
+    public JdbcAuthorizationCodeRepository(HikariDataSource ds) {
 
         this.ds = ds;
     }
