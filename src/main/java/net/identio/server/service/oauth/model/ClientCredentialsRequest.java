@@ -21,10 +21,26 @@
 
 package net.identio.server.service.oauth.model;
 
-public class OAuthGrants {
+public class ClientCredentialsRequest {
 
-    public static final String TOKEN = "token";
-    public static final String AUTHORIZATION_CODE = "authorization_code";
-    public static final String REFRESH_TOKEN = "refresh_token";
-    public static final String CLIENT_CREDENTIALS = "client_credentials";
+    private String grantType;
+    private String scope;
+
+    public String getGrantType() {
+        return grantType;
+    }
+
+    public ClientCredentialsRequest setGrantType(String grantType) {
+        this.grantType = grantType;
+        return this;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public ClientCredentialsRequest setScope(String scope) {
+        this.scope = scope;
+        return this;
+    }
 }

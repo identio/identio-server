@@ -22,6 +22,7 @@ oAuthClients:
       - token
       - authorization_code
       - refresh_token
+      - client_credentials
     consentNeeded: true
   - name: Test Client 3
     clientId: test3
