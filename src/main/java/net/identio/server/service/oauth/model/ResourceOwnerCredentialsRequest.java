@@ -21,11 +21,36 @@
 
 package net.identio.server.service.oauth.model;
 
-public class OAuthGrants {
+public class ResourceOwnerCredentialsRequest {
 
-    public static final String TOKEN = "token";
-    public static final String AUTHORIZATION_CODE = "authorization_code";
-    public static final String REFRESH_TOKEN = "refresh_token";
-    public static final String CLIENT_CREDENTIALS = "client_credentials";
-    public static final String PASSWORD = "password";
+    private String username;
+    private String password;
+    private String scope;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public ResourceOwnerCredentialsRequest setUsername(String username) {
+        this.username = username;
+        return this;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public ResourceOwnerCredentialsRequest setPassword(String password) {
+        this.password = password;
+        return this;
+    }
+
+    public String getScope() {
+        return scope;
+    }
+
+    public ResourceOwnerCredentialsRequest setScope(String scope) {
+        this.scope = scope;
+        return this;
+    }
 }

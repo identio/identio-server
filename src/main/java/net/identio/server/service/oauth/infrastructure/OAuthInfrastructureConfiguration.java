@@ -48,6 +48,9 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(OAuthInfrastructureConfiguration.class);
 
+    private static final String IN_MEMORY = "in-memory";
+    private static final String JDBC = "jdbc";
+
     private String dsType;
     private HikariDataSource jdbcDs;
 
@@ -62,16 +65,16 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
 
         DataSource dataSourceConfiguration = configurationService.getConfiguration().getoAuthServerConfiguration().getDataSource();
 
-        this.dsType = dataSourceConfiguration != null ? dataSourceConfiguration.getType() : "in-memory";
+        this.dsType = dataSourceConfiguration != null ? dataSourceConfiguration.getType() : IN_MEMORY;
 
         switch (this.dsType) {
 
-            case "jdbc":
+            case JDBC:
                 this.jdbcDs = jdbcDataSourceService.getDataSource(dataSourceConfiguration.getName());
                 initDataBaseSchema();
                 break;
 
-            case "in-memory":
+            case IN_MEMORY:
                 break;
 
             default:
@@ -85,10 +88,10 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
 
         switch (this.dsType) {
 
-            case "jdbc":
+            case JDBC:
                 return new JdbcAuthorizationCodeRepository(jdbcDs);
 
-            case "in-memory":
+            case IN_MEMORY:
                 return new InMemoryAuthorizationCodeRepository();
 
             default:
@@ -103,10 +106,10 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
 
         switch (this.dsType) {
 
-            case "jdbc":
+            case JDBC:
                 return new JdbcRefreshTokenRepository(jdbcDs);
 
-            case "in-memory":
+            case IN_MEMORY:
                 return new InMemoryRefreshTokenRepository();
 
             default:

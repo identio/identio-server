@@ -21,11 +21,17 @@
 
 package net.identio.server.service.oauth;
 
+import net.identio.server.exceptions.UnknownAuthMethodException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.model.Result;
+import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.AuthenticationResult;
+import net.identio.server.service.authentication.model.AuthenticationResultStatus;
+import net.identio.server.service.authentication.model.UserPasswordAuthentication;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
+import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
 import net.identio.server.service.oauth.model.*;
 import org.slf4j.Logger;
@@ -37,21 +43,31 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 @Service
-public class ClientCredentialsService {
+public class ResourceOwnerCredentialsService {
 
-    private static final Logger LOG = LoggerFactory.getLogger(ClientCredentialsService.class);
+    private static final Logger LOG = LoggerFactory.getLogger(ResourceOwnerCredentialsService.class);
 
     @Autowired
     private OAuthClientRepository clientRepository;
 
     @Autowired
-    private OAuthResponseService oAuthResponseService;
-
-    @Autowired
     private AuthorizationService authorizationService;
 
-    public Result<AccessTokenResponse> validateClientCredentialsRequest(
-            ClientCredentialsRequest request, String authorization) {
+    @Autowired
+    private AuthenticationService authenticationService;
+
+    @Autowired
+    private AuthPolicyService authPolicyService;
+
+    @Autowired
+    private OAuthResponseService oAuthResponseService;
+
+    public Result<AccessTokenResponse> validateResourceOwnerCredentialsRequest(
+            ResourceOwnerCredentialsRequest request, String authorization) {
+
+        // Check that all parameters are correct
+        if (!isRequestValid(request))
+            return Result.fail(OAuthErrors.INVALID_REQUEST);
 
         // Fetch and verify client identity
         OAuthClient client;
@@ -64,7 +80,7 @@ public class ClientCredentialsService {
         }
 
         // Check that the client is authorized to use the authorization code grant
-        if (!isClientCredentialsGrantAuthorizedForClient(client))
+        if (!isResourceOwnerCredentialsGrantAuthorizedForClient(client))
             return Result.fail(OAuthErrors.UNAUTHORIZED_CLIENT);
 
         // Check that the provided scopes were authorized
@@ -74,14 +90,52 @@ public class ClientCredentialsService {
         if (!scopeResult.isSuccess())
             return Result.fail(OAuthErrors.INVALID_SCOPE);
 
+        // Authenticate the resource owner
+        AuthenticationResult result;
+        try {
+            result = authenticationService.validateExplicit(authPolicyService.getAuthMethodByName(client.getResourceOwnerAuthMethod()),
+                    new UserPasswordAuthentication(request.getUsername(), request.getPassword()), null);
+        } catch (UnknownAuthMethodException e) {
+            LOG.error("Unknown authentication method: {}", client.getResourceOwnerAuthMethod());
+            return Result.serverError();
+        }
+
+        if (result.getStatus() != AuthenticationResultStatus.SUCCESS) {
+            return Result.fail(OAuthErrors.INVALID_GRANT);
+        }
+
         // Everything's ok, generate response
         Result<AccessTokenResponse> accessTokenResponse = oAuthResponseService.generateTokenResponse(scopeResult.get().values(),
-                client.getClientId(), null, false);
+                client.getClientId(), request.getUsername(), false);
 
         if (!accessTokenResponse.isSuccess())
             return Result.serverError();
 
         return Result.success(accessTokenResponse.get());
+    }
+
+    private boolean isRequestValid(ResourceOwnerCredentialsRequest request) {
+
+        if (request.getUsername() == null) {
+            LOG.error("Missing username parameter");
+            return false;
+        }
+        if (request.getPassword() == null) {
+            LOG.error("Missing password parameter");
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isResourceOwnerCredentialsGrantAuthorizedForClient(OAuthClient client) {
+
+        if (!client.getAllowedGrants().contains(OAuthGrants.PASSWORD)) {
+            LOG.error("Client not authorized to use the password grant");
+            return false;
+        }
+
+        return true;
     }
 
     private Result<LinkedHashMap<String, AuthorizationScope>> validateRequestedScopes(String requestedScopes, List<String> grantedScopes) {
@@ -110,15 +164,5 @@ public class ClientCredentialsService {
         } catch (UnknownScopeException | NoScopeProvidedException e) {
             return Result.fail();
         }
-    }
-
-    private boolean isClientCredentialsGrantAuthorizedForClient(OAuthClient client) {
-
-        if (!client.getAllowedGrants().contains(OAuthGrants.CLIENT_CREDENTIALS)) {
-            LOG.error("Client not authorized to use the client credentials grant");
-            return false;
-        }
-
-        return true;
     }
 }

@@ -25,6 +25,7 @@ import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
 import net.identio.server.service.oauth.AuthorizationCodeService;
 import net.identio.server.service.oauth.ClientCredentialsService;
 import net.identio.server.service.oauth.RefreshTokenService;
+import net.identio.server.service.oauth.ResourceOwnerCredentialsService;
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
@@ -66,6 +67,9 @@ public class OAuthController {
 
     @Autowired
     private ClientCredentialsService clientCredentialsService;
+
+    @Autowired
+    private ResourceOwnerCredentialsService resourceOwnerCredentialsService;
 
     @RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
     public String authorizeRequest(
@@ -114,16 +118,20 @@ public class OAuthController {
 
         switch (grantTypeResult.get()) {
 
-            case "authorization_code":
+            case OAuthGrants.AUTHORIZATION_CODE:
                 result = authorizationCodeRequest(allParams, authorization);
                 break;
 
-            case "refresh_token":
+            case OAuthGrants.REFRESH_TOKEN:
                 result = refreshTokenRequest(allParams, authorization);
                 break;
 
-            case "client_credentials":
+            case OAuthGrants.CLIENT_CREDENTIALS:
                 result = clientCredentialsRequest(allParams, authorization);
+                break;
+
+            case OAuthGrants.PASSWORD:
+                result = resourceOwnerCredentials(allParams, authorization);
                 break;
 
             default:
@@ -183,6 +191,26 @@ public class OAuthController {
         return clientCredentialsService.validateClientCredentialsRequest(
                 new ClientCredentialsRequest().setScope(scopeResult.get()), authorization);
     }
+
+    private Result<AccessTokenResponse> resourceOwnerCredentials(MultiValueMap<String, String> allParams, String authorization) {
+
+        Result<String> usernameResult = getUniqueParam(allParams, "username");
+        Result<String> passwordResult = getUniqueParam(allParams, "password");
+        Result<String> scopeResult = getUniqueParam(allParams, "scope");
+
+        if (!usernameResult.isSuccess() || !passwordResult.isSuccess() || !scopeResult.isSuccess())
+            return Result.fail(OAuthErrors.INVALID_REQUEST);
+
+
+
+
+
+
+        return resourceOwnerCredentialsService.validateResourceOwnerCredentialsRequest(
+                new ResourceOwnerCredentialsRequest().setUsername(usernameResult.get()).setPassword(passwordResult.get())
+                        .setScope(scopeResult.get()), authorization);
+    }
+
 
     private ResponseEntity<AccessTokenErrorResponse> badRequest() {
         return new ResponseEntity<>(

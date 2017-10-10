@@ -22,7 +22,6 @@
 package net.identio.server.service.oauth.infrastructure;
 
 import com.zaxxer.hikari.HikariDataSource;
-import net.identio.server.exceptions.InitializationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.*;
 import net.identio.server.service.oauth.model.RefreshToken;
 import org.slf4j.Logger;

@@ -44,7 +44,7 @@ import static org.junit.Assert.*;
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
-public class TokenApiErrorTests {
+public class AuthorizationCodeErrorTests {
 
     @LocalServerPort
     private int port;

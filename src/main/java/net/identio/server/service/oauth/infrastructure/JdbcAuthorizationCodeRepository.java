@@ -22,17 +22,17 @@
 package net.identio.server.service.oauth.infrastructure;
 
 import com.zaxxer.hikari.HikariDataSource;
-import net.identio.server.exceptions.InitializationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.AuthorizationCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.sql.*;
+import java.time.Instant;
 import java.util.Optional;
-
 
 public class JdbcAuthorizationCodeRepository implements AuthorizationCodeRepository {
 

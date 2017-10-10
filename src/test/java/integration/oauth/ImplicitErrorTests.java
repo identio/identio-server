@@ -40,7 +40,7 @@ import static org.junit.Assert.assertTrue;
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
-public class InitialRequestTests {
+public class ImplicitErrorTests {
 
     @LocalServerPort
     private int port;

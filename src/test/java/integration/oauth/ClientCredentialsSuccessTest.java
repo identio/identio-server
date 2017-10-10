@@ -22,21 +22,28 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
+import net.identio.server.service.oauth.model.AccessTokenResponse;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.*;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
-public class OAuthAuthorizationCodeFullCinematicTest {
+public class ClientCredentialsSuccessTest {
 
     @LocalServerPort
     private int port;
@@ -47,22 +54,30 @@ public class OAuthAuthorizationCodeFullCinematicTest {
     @Test
     public void successfulCinematic() {
 
-        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2");
+        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
 
-        requests.authorizeRequest();
+        payload.add("grant_type", "client_credentials");
+        payload.add("scope", "scope.test.1 scope.test.2");
 
-        requests.getAuthMethods();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        requests.authenticateLocal();
+        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = this.restTemplate.exchange(
+                "/oauth/token",
+                HttpMethod.POST,
+                new HttpEntity<>(payload, headers),
+                AccessTokenResponse.class);
 
-        requests.getConsentContext();
+        AccessTokenResponse accessTokenResponse = accessTokenResponseEntity.getBody();
 
-        requests.consent();
+        String accessToken = accessTokenResponse.getAccessToken();
 
-        requests.accessTokenRequest();
+        assertEquals(HttpStatus.OK, accessTokenResponseEntity.getStatusCode());
+        assertNotNull(accessToken);
+        assertNull(accessTokenResponse.getRefreshToken());
+        assertEquals(2400, accessTokenResponse.getExpiresIn());
+        assertEquals("scope.test.1 scope.test.2", accessTokenResponse.getScope());
 
-        requests.validateResponse();
-
-        requests.refreshTokenRequest();
     }
 }

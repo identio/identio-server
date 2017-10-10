@@ -31,6 +31,7 @@ public class OAuthClient {
     private List<String> responseUri;
     private List<String> allowedGrants;
     private boolean consentNeeded;
+    private String resourceOwnerAuthMethod;
 
     public String getName() {
         return name;
@@ -86,5 +87,13 @@ public class OAuthClient {
 
     public void setConsentNeeded(boolean consentNeeded) {
         this.consentNeeded = consentNeeded;
+    }
+
+    public String getResourceOwnerAuthMethod() {
+        return resourceOwnerAuthMethod;
+    }
+
+    public void setResourceOwnerAuthMethod(String resourceOwnerAuthMethod) {
+        this.resourceOwnerAuthMethod = resourceOwnerAuthMethod;
     }
 }
