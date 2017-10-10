@@ -39,10 +39,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 public class OAuthController {
@@ -98,72 +101,36 @@ public class OAuthController {
         }
     }
 
-    @RequestMapping(value = "/oauth/token", method = RequestMethod.POST, params = "code")
-    public ResponseEntity<?> accessTokenRequest(
-            @RequestParam(value = "grant_type", required = false) String grantType,
-            @RequestParam(value = "code", required = false) String code,
-            @RequestParam(value = "redirect_uri", required = false) String redirectUri,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-
-        Result<AccessTokenResponse> result = authorizationCodeService.validateTokenRequest(
-                new AuthorizationCodeRequest().setGrantType(grantType).setCode(code).setRedirectUri(redirectUri), authorization);
-
-        switch (result.getResultStatus()) {
-            case FAIL:
-                return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
-                        HttpStatus.BAD_REQUEST);
-            default:
-            case SERVER_ERROR:
-                return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            case UNAUTHORIZED:
-                return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
-                        HttpStatus.UNAUTHORIZED);
-            case OK:
-                return new ResponseEntity<>(result.get(), HttpStatus.OK);
-        }
-    }
-
-    @RequestMapping(value = "/oauth/token", method = RequestMethod.POST, params = "refresh_token")
-    public ResponseEntity<?> refreshTokenRequest(
-            @RequestParam(value = "grant_type", required = false) String grantType,
-            @RequestParam(value = "refresh_token", required = false) String refreshToken,
-            @RequestParam(value = "scope", required = false) String scope,
-            @RequestHeader(value = "Authorization", required = false) String authorization) {
-
-        Result<AccessTokenResponse> result = refreshTokenService.validateRefreshTokenRequest(
-                new RefreshTokenRequest().setGrantType(grantType).setRefreshToken(refreshToken).setScope(scope), authorization);
-
-        switch (result.getResultStatus()) {
-            case FAIL:
-                return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
-                        HttpStatus.BAD_REQUEST);
-            default:
-            case SERVER_ERROR:
-                return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
-                        HttpStatus.INTERNAL_SERVER_ERROR);
-            case UNAUTHORIZED:
-                return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
-                        HttpStatus.UNAUTHORIZED);
-            case OK:
-                return new ResponseEntity<>(result.get(), HttpStatus.OK);
-        }
-    }
-
     @RequestMapping(value = "/oauth/token", method = RequestMethod.POST)
-    public ResponseEntity<?> clientCredentialsRequest(
-            @RequestParam(value = "grant_type", required = false) String grantType,
-            @RequestParam(value = "scope", required = false) String scope,
+    public ResponseEntity<?> tokenRequest(
+            @RequestParam MultiValueMap<String, String> allParams,
             @RequestHeader(value = "Authorization", required = false) String authorization) {
 
-        Result<AccessTokenResponse> result = clientCredentialsService.validateClientCredentialsRequest(
-                new ClientCredentialsRequest().setGrantType(grantType).setScope(scope), authorization);
+        Result<String> grantTypeResult = getUniqueParam(allParams, "grant_type");
+
+        if (!grantTypeResult.isSuccess() || grantTypeResult.get() == null) return badRequest();
+
+        Result<AccessTokenResponse> result;
+
+        switch (grantTypeResult.get()) {
+
+            case "authorization_code":
+                result = authorizationCodeRequest(allParams, authorization);
+                break;
+
+            case "refresh_token":
+                result = refreshTokenRequest(allParams, authorization);
+                break;
+
+            case "client_credentials":
+                result = clientCredentialsRequest(allParams, authorization);
+                break;
+
+            default:
+                return new ResponseEntity<>(
+                        new AccessTokenErrorResponse().setError(OAuthErrors.UNSUPPORTED_GRANT_TYPE),
+                        HttpStatus.BAD_REQUEST);
+        }
 
         switch (result.getResultStatus()) {
             case FAIL:
@@ -183,4 +150,53 @@ public class OAuthController {
                 return new ResponseEntity<>(result.get(), HttpStatus.OK);
         }
     }
+
+    private Result<AccessTokenResponse> authorizationCodeRequest(MultiValueMap<String, String> allParams, String authorization) {
+
+        Result<String> codeResult = getUniqueParam(allParams, "code");
+        Result<String> redirectUriResult = getUniqueParam(allParams, "redirect_uri");
+
+        if (!redirectUriResult.isSuccess() || !codeResult.isSuccess()) return Result.fail(OAuthErrors.INVALID_REQUEST);
+
+        return authorizationCodeService.validateTokenRequest(
+                new AuthorizationCodeRequest().setCode(codeResult.get()).setRedirectUri(redirectUriResult.get()), authorization);
+    }
+
+    private Result<AccessTokenResponse> refreshTokenRequest(MultiValueMap<String, String> allParams, String authorization) {
+
+        Result<String> refreshTokenResult = getUniqueParam(allParams, "refresh_token");
+        Result<String> scopeResult = getUniqueParam(allParams, "scope");
+
+        if (!refreshTokenResult.isSuccess() || !scopeResult.isSuccess())
+            return Result.fail(OAuthErrors.INVALID_REQUEST);
+
+        return refreshTokenService.validateRefreshTokenRequest(
+                new RefreshTokenRequest().setRefreshToken(refreshTokenResult.get()).setScope(scopeResult.get()), authorization);
+    }
+
+    private Result<AccessTokenResponse> clientCredentialsRequest(MultiValueMap<String, String> allParams, String authorization) {
+
+        Result<String> scopeResult = getUniqueParam(allParams, "scope");
+
+        if (!scopeResult.isSuccess()) return Result.fail(OAuthErrors.INVALID_REQUEST);
+
+        return clientCredentialsService.validateClientCredentialsRequest(
+                new ClientCredentialsRequest().setScope(scopeResult.get()), authorization);
+    }
+
+    private ResponseEntity<AccessTokenErrorResponse> badRequest() {
+        return new ResponseEntity<>(
+                new AccessTokenErrorResponse().setError(OAuthErrors.INVALID_REQUEST),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    private Result<String> getUniqueParam(MultiValueMap<String, String> allParams, String param) {
+
+        List<String> paramList = allParams.getOrDefault(param, new ArrayList<>());
+
+        if (paramList.size() > 1) return Result.fail();
+
+        return paramList.size() == 1 ? Result.success(paramList.get(0)) : Result.success(null);
+    }
+
 }

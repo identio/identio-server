@@ -61,10 +61,6 @@ public class RefreshTokenService {
         if (!isRefreshTokenRequestValid(request))
             return Result.fail(OAuthErrors.INVALID_REQUEST);
 
-        // Check grant type
-        if (!isRefreshTokenGrantSupported(request.getGrantType()))
-            return Result.fail(OAuthErrors.UNSUPPORTED_GRANT_TYPE);
-
         // Fetch and verify client identity
         OAuthClient client;
         Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
@@ -164,22 +160,8 @@ public class RefreshTokenService {
         return true;
     }
 
-    private boolean isRefreshTokenGrantSupported(String grantType) {
-
-        if (!OAuthGrants.REFRESH_TOKEN.equals(grantType)) {
-            LOG.error("Unsupported grant: {}", grantType);
-            return false;
-        }
-
-        return true;
-    }
-
     private boolean isRefreshTokenRequestValid(RefreshTokenRequest request) {
 
-        if (request.getGrantType() == null) {
-            LOG.error("Missing grant_type parameter");
-            return false;
-        }
         if (request.getRefreshToken() == null) {
             LOG.error("Missing refresh_token parameter");
             return false;

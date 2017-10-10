@@ -55,7 +55,7 @@ public class AuthorizationCodeServiceTest {
     public void clientGrantNotAuthorized() {
 
         AuthorizationCodeRequest request = new AuthorizationCodeRequest()
-                .setGrantType(OAuthGrants.AUTHORIZATION_CODE).setCode("1234").setRedirectUri("http://example.com/cb");
+                .setCode("1234").setRedirectUri("http://example.com/cb");
 
         OAuthClient client = new OAuthClient();
         client.setClientId("test");
@@ -75,7 +75,7 @@ public class AuthorizationCodeServiceTest {
     public void authorizationCodeRepository_getAuthorizationCodeByValue_throws() throws AuthorizationCodeFetchException {
 
         AuthorizationCodeRequest request = new AuthorizationCodeRequest()
-                .setGrantType(OAuthGrants.AUTHORIZATION_CODE).setCode("1234").setRedirectUri("http://example.com/cb");
+                .setCode("1234").setRedirectUri("http://example.com/cb");
 
         OAuthClient client = new OAuthClient();
         client.setClientId("test");

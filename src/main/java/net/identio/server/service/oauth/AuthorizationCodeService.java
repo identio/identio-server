@@ -63,10 +63,6 @@ public class AuthorizationCodeService {
         if (!isAuthorizationCodeRequestValid(request))
             return Result.fail(OAuthErrors.INVALID_REQUEST);
 
-        // Check grant type
-        if (!isAuthorizationCodeGrantSupported(request.getGrantType()))
-            return Result.fail(OAuthErrors.UNSUPPORTED_GRANT_TYPE);
-
         // Fetch and verify client identity
         OAuthClient client;
         Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
@@ -174,22 +170,8 @@ public class AuthorizationCodeService {
         return true;
     }
 
-    private boolean isAuthorizationCodeGrantSupported(String grantType) {
-
-        if (!OAuthGrants.AUTHORIZATION_CODE.equals(grantType)) {
-            LOG.error("Unsupported grant: {}", grantType);
-            return false;
-        }
-
-        return true;
-    }
-
     private boolean isAuthorizationCodeRequestValid(AuthorizationCodeRequest request) {
 
-        if (request.getGrantType() == null) {
-            LOG.error("Missing grant_type parameter");
-            return false;
-        }
         if (request.getCode() == null) {
             LOG.error("Missing code parameter");
             return false;

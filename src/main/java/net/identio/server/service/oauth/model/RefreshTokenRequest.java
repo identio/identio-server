@@ -23,20 +23,9 @@ package net.identio.server.service.oauth.model;
 
 public class RefreshTokenRequest {
 
-    private String grantType;
-
     private String refreshToken;
 
     private String scope;
-
-    public String getGrantType() {
-        return grantType;
-    }
-
-    public RefreshTokenRequest setGrantType(String grantType) {
-        this.grantType = grantType;
-        return this;
-    }
 
     public String getRefreshToken() {
         return refreshToken;

@@ -53,14 +53,6 @@ public class ClientCredentialsService {
     public Result<AccessTokenResponse> validateClientCredentialsRequest(
             ClientCredentialsRequest request, String authorization) {
 
-        // Check that all parameters are correct
-        if (!isRequestValid(request))
-            return Result.fail(OAuthErrors.INVALID_REQUEST);
-
-        // Check grant type
-        if (!isClientCredentialsGrantSupported(request.getGrantType()))
-            return Result.fail(OAuthErrors.UNSUPPORTED_GRANT_TYPE);
-
         // Fetch and verify client identity
         OAuthClient client;
         Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
@@ -124,26 +116,6 @@ public class ClientCredentialsService {
 
         if (!client.getAllowedGrants().contains(OAuthGrants.CLIENT_CREDENTIALS)) {
             LOG.error("Client not authorized to use the client credentials grant");
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean isClientCredentialsGrantSupported(String grantType) {
-
-        if (!OAuthGrants.CLIENT_CREDENTIALS.equals(grantType)) {
-            LOG.error("Unsupported grant: {}", grantType);
-            return false;
-        }
-
-        return true;
-    }
-
-    private boolean isRequestValid(ClientCredentialsRequest request) {
-
-        if (request.getGrantType() == null) {
-            LOG.error("Missing grant_type parameter");
             return false;
         }
 

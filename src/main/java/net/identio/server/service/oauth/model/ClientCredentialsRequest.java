@@ -23,17 +23,7 @@ package net.identio.server.service.oauth.model;
 
 public class ClientCredentialsRequest {
 
-    private String grantType;
     private String scope;
-
-    public String getGrantType() {
-        return grantType;
-    }
-
-    public ClientCredentialsRequest setGrantType(String grantType) {
-        this.grantType = grantType;
-        return this;
-    }
 
     public String getScope() {
         return scope;

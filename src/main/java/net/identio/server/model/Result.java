@@ -31,10 +31,6 @@ public class Result<T> {
     private ResultStatus resultStatus;
     private String errorStatus;
 
-    private Result(T result) {
-        this.result = result;
-    }
-
     private Result() {
     }
 
@@ -53,9 +49,7 @@ public class Result<T> {
     }
 
     public static <T> Result<T> fail() {
-        Result<T> response = new Result<>();
-        response.resultStatus = ResultStatus.FAIL;
-        return response;
+        return fail(null);
     }
 
     public static <T> Result<T> serverError() {
@@ -88,6 +82,6 @@ public class Result<T> {
     }
 
     public boolean isSuccess() {
-        return result != null;
+        return resultStatus == ResultStatus.OK;
     }
 }
