@@ -3,17 +3,14 @@ globalConfiguration:
 
 authPolicyConfiguration:
   authLevels:
-    - &low
-      name: low
+    - name: low
       urn: urn:identio:auth-level:low
-    - &medium
-      name: medium
+    - name: medium
       urn: urn:identio:auth-level:medium
-    - &strong
-      name: strong
+    - name: strong
       urn: urn:identio:auth-level:strong
   defaultAuthLevel:
-    authLevel: *medium
+    authLevel: medium
     comparison: minimum
 
 samlIdpConfiguration:
@@ -33,6 +30,5 @@ sessionConfiguration:
 authMethodConfiguration:
 
   localAuthMethods:
-  - &local
-      name: Local
-      authLevel: *medium
+  - name: Local
+    authLevel: medium

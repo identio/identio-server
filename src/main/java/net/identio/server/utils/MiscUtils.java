@@ -25,6 +25,11 @@ public class MiscUtils {
 
     public static boolean equalsWithNulls(Object a, Object b) {
 
-       return ((a == null) && (b == null)) || ((a != null) && a.equals(b));
+        return (a == null && b == null) || (a != null && a.equals(b));
+    }
+
+    public static String nullIfEmpty(String value) {
+
+        return value != null && "".equals(value) ? null : value;
     }
 }

@@ -104,7 +104,7 @@ public class AuthOrchestrationService {
         try {
 
             authMethod = authMethodName != null ?
-                    authPolicyService.getAuthMethodByName(authMethodName) : transactionData.getSelectedAuthMethod();
+                    authenticationService.getAuthMethodByName(authMethodName) : transactionData.getSelectedAuthMethod();
 
             authPolicyService.checkAllowedAuthMethods(transactionData.getTargetAuthMethods(), authMethod);
 

@@ -31,7 +31,6 @@ import net.identio.server.service.authentication.model.UserPasswordAuthenticatio
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
 import net.identio.server.service.oauth.model.*;
 import org.slf4j.Logger;
@@ -55,9 +54,6 @@ public class ResourceOwnerCredentialsService {
 
     @Autowired
     private AuthenticationService authenticationService;
-
-    @Autowired
-    private AuthPolicyService authPolicyService;
 
     @Autowired
     private OAuthResponseService oAuthResponseService;
@@ -93,7 +89,7 @@ public class ResourceOwnerCredentialsService {
         // Authenticate the resource owner
         AuthenticationResult result;
         try {
-            result = authenticationService.validateExplicit(authPolicyService.getAuthMethodByName(client.getResourceOwnerAuthMethod()),
+            result = authenticationService.validateExplicit(authenticationService.getAuthMethodByName(client.getResourceOwnerAuthMethod()),
                     new UserPasswordAuthentication(request.getUsername(), request.getPassword()), null);
         } catch (UnknownAuthMethodException e) {
             LOG.error("Unknown authentication method: {}", client.getResourceOwnerAuthMethod());

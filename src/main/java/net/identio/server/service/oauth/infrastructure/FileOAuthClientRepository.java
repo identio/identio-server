@@ -23,8 +23,8 @@ package net.identio.server.service.oauth.infrastructure;
 
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.Result;
+import net.identio.server.service.oauth.OAuthConfiguration;
 import net.identio.server.service.oauth.model.OAuthClient;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.utils.DecodeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +46,15 @@ public class FileOAuthClientRepository implements OAuthClientRepository {
 
     private HashMap<String, OAuthClient> clients;
 
+
+
     @Autowired
-    public FileOAuthClientRepository(ConfigurationService configurationService) throws InitializationException {
+    public FileOAuthClientRepository(OAuthConfiguration config) throws InitializationException {
 
 
         clients = new HashMap<>();
 
-        String clientFilePath = configurationService.getConfiguration().getoAuthServerConfiguration().getClientFile();
+        String clientFilePath = config.getClientFile();
 
         if (clientFilePath == null) {
             return;

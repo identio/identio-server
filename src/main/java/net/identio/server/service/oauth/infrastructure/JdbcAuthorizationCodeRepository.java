@@ -22,26 +22,28 @@
 package net.identio.server.service.oauth.infrastructure;
 
 import com.zaxxer.hikari.HikariDataSource;
+import net.identio.server.service.data.JdbcDataService;
+import net.identio.server.service.oauth.OAuthConfiguration;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.AuthorizationCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.sql.*;
-import java.time.Instant;
 import java.util.Optional;
 
 public class JdbcAuthorizationCodeRepository implements AuthorizationCodeRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(JdbcAuthorizationCodeRepository.class);
+
     private HikariDataSource ds;
 
-    public JdbcAuthorizationCodeRepository(HikariDataSource ds) {
-
-        this.ds = ds;
+    @Autowired
+    public JdbcAuthorizationCodeRepository(OAuthConfiguration config, JdbcDataService dataService) {
+        this.ds = dataService.getDataSource(config.getDataSource());
     }
 
     @Override

@@ -26,7 +26,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
@@ -64,14 +63,17 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
     private List<X509Certificate> serverTrusts = new ArrayList<>();
 
+    private X509AuthenticationProviderConfiguration config;
+
     @Autowired
-    public X509AuthenticationProvider(ConfigurationService configurationService,
+    public X509AuthenticationProvider(X509AuthenticationProviderConfiguration config,
                                       AuthenticationService authenticationService) throws InitializationException {
 
-        List<X509AuthMethod> authMethods = configurationService.getConfiguration().getAuthMethodConfiguration()
-                .getX509AuthMethods();
+        this.config = config;
 
-        if (authMethods == null)
+        List<X509AuthMethod> authMethods = config.getAuthMethods();
+
+        if (authMethods == null || authMethods.size() == 0)
             return;
 
         LOG.debug("Initializing X509 Authentication Service");
@@ -89,6 +91,10 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
         LOG.info("* X509 Authentication Service initialized");
 
+    }
+
+    public List<X509AuthMethod> getConfiguredAuthMethods() {
+        return config.getAuthMethods();
     }
 
     private void cacheSpelExpressions(X509AuthMethod authMethod) {

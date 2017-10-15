@@ -18,26 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
 
-public class OAuthServerConfiguration {
+package net.identio.server.service.usersession;
 
-    private String clientFile;
-    private DataSource dataSource;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-    public String getClientFile() {
-        return clientFile;
+@Configuration
+@ConfigurationProperties(prefix = "sessionConfiguration")
+public class UserSessionConfiguration {
+
+    private int duration;
+
+    public int getDuration() {
+        return duration;
     }
 
-    public void setClientFile(String clientFile) {
-        this.clientFile = clientFile;
-    }
-
-    public DataSource getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
+    public void setDuration(int duration) {
+        this.duration = duration;
     }
 }

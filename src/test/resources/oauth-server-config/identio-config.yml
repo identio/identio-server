@@ -1,11 +1,12 @@
 globalConfiguration:
   publicFqdn: https://localhost
   staticResourcesPath: ui/app
+  signatureKeystorePath: src/test/resources/oauth-server-config/default-sign-certificate.p12
+  signatureKeystorePassword: password
 
-dataSourcesConfiguration:
+dataConfiguration:
   dataSources:
-    - &localDs
-      name: Local
+    - name: Local
       type: jdbc
       driver: org.h2.Driver
       url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
@@ -14,34 +15,31 @@ dataSourcesConfiguration:
 
 authPolicyConfiguration:
   authLevels:
-    - &low
-      name: low
+    - name: low
       urn: urn:identio:auth-level:low
-    - &medium
-      name: medium
+    - name: medium
       urn: urn:identio:auth-level:medium
-    - &strong
-      name: strong
+    - name: strong
       urn: urn:identio:auth-level:strong
   defaultAuthLevel:
-    authLevel: *medium
+    authLevel: medium
     comparison: minimum
 
 authorizationConfiguration:
   scopes:
     - name: scope.test.1
-      authLevel: *medium
+      authLevel: medium
       expirationTime: 2400
       description:
         fr: Accéder à scope test 1
         en: Access scope test 1
     - name: scope.test.2
-      authLevel: *strong
+      authLevel: strong
       expirationTime: 3600
 
 oAuthServerConfiguration:
   clientFile: src/test/resources/oauth-server-config/oauth-clients.yml
-  dataSource: *localDs
+  dataSource: Local
 
 samlIdpConfiguration:
   allowUnsecureRequests: true
@@ -60,8 +58,8 @@ sessionConfiguration:
 authMethodConfiguration:
 
   localAuthMethods:
-  - &local
-      name: Local
-      authLevel: *medium
+  - name: Local
+    authLevel: medium
+    userFilePath: src/test/resources/oauth-server-config/users.yml
 
 

@@ -22,8 +22,6 @@
 package net.identio.server.service.data;
 
 import com.zaxxer.hikari.HikariDataSource;
-import net.identio.server.model.DataSource;
-import net.identio.server.service.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,28 +29,30 @@ import java.util.HashMap;
 import java.util.List;
 
 @Service
-public class JdbcDataSourceService {
+public class JdbcDataService {
 
     private HashMap<String, HikariDataSource> dataSources = new HashMap<>();
 
     @Autowired
-    public JdbcDataSourceService(ConfigurationService configurationService) {
+    public JdbcDataService(DataConfiguration config) {
 
-        List<DataSource> dataSourceList =  configurationService.getConfiguration().getDataSourcesConfiguration().getDataSources();
+        List<DataConfiguration.DataSourcesConfiguration> dataSourceList = config.getDataSources();
 
         if (dataSourceList == null) return;
 
-        for (DataSource dataSourceConfiguration : dataSourceList)
-        {
-            HikariDataSource ds = new HikariDataSource();
+        for (DataConfiguration.DataSourcesConfiguration dataSourceConfiguration : dataSourceList) {
 
-            ds.setMaximumPoolSize(10);
-            ds.setDriverClassName(dataSourceConfiguration.getDriver());
-            ds.setJdbcUrl(dataSourceConfiguration.getUrl());
-            ds.setUsername(dataSourceConfiguration.getUsername());
-            ds.setPassword(dataSourceConfiguration.getPassword());
+            if ("jdbc".equals(dataSourceConfiguration.getType())) {
+                HikariDataSource ds = new HikariDataSource();
 
-            dataSources.put(dataSourceConfiguration.getName(), ds);
+                ds.setMaximumPoolSize(10);
+                ds.setDriverClassName(dataSourceConfiguration.getDriver());
+                ds.setJdbcUrl(dataSourceConfiguration.getUrl());
+                ds.setUsername(dataSourceConfiguration.getUsername());
+                ds.setPassword(dataSourceConfiguration.getPassword());
+
+                dataSources.put(dataSourceConfiguration.getName(), ds);
+            }
         }
     }
 

@@ -23,7 +23,6 @@ package net.identio.server.service.authorization;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.configuration.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,25 +36,12 @@ public class AuthorizationService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthorizationService.class);
 
-    private HashMap<String, AuthorizationScope> scopes;
-
     @Autowired
-    public AuthorizationService(ConfigurationService configurationService) {
+    private AuthorizationConfiguration config;
 
-        scopes = new HashMap<>();
-
-        List<AuthorizationScope> configuredScopes = configurationService.getConfiguration().getAuthorizationConfiguration().getScopes();
-
-        if (configuredScopes == null) {
-            return;
-        }
+    public AuthorizationService() {
 
         LOG.info("Initializing Authorization Service");
-
-        for (AuthorizationScope scope : configuredScopes) {
-            scopes.put(scope.getName(), scope);
-        }
-
     }
 
     public LinkedHashMap<String, AuthorizationScope> deserializeScope(String scope) throws UnknownScopeException, NoScopeProvidedException {
@@ -74,8 +60,8 @@ public class AuthorizationService {
         }
 
         for (String scopeName : scope) {
-            if (scopes.containsKey(scopeName)) {
-                result.put(scopeName, scopes.get(scopeName));
+            if (config.getAllScopes().containsKey(scopeName)) {
+                result.put(scopeName, config.getAllScopes().get(scopeName));
             } else {
                 throw new UnknownScopeException("Unknown scope: " + scopeName);
             }

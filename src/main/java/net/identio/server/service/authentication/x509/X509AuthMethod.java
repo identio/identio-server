@@ -18,7 +18,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
+package net.identio.server.service.authentication.x509;
+
+import net.identio.server.model.AuthMethod;
 
 public class X509AuthMethod extends AuthMethod {
 
@@ -33,87 +35,93 @@ public class X509AuthMethod extends AuthMethod {
     private String proxyCertDn;
     private String proxyCertTrust;
 
-    public X509AuthMethod() {
-        this.explicit = false;
-    }
-
     public String getUidExpression() {
         return uidExpression;
     }
 
-    public void setUidExpression(String uidExpression) {
+    public X509AuthMethod setUidExpression(String uidExpression) {
         this.uidExpression = uidExpression;
+        return this;
     }
 
     public String getConditionExpression() {
         return conditionExpression;
     }
 
-    public void setConditionExpression(String conditionExpression) {
+    public X509AuthMethod setConditionExpression(String conditionExpression) {
         this.conditionExpression = conditionExpression;
+        return this;
     }
 
     public String getSecurity() {
         return security;
     }
 
-    public void setSecurity(String security) {
+    public X509AuthMethod setSecurity(String security) {
         this.security = security;
+        return this;
     }
 
     public boolean isApacheFix() {
         return apacheFix;
     }
 
-    public void setApacheFix(boolean apacheFix) {
+    public X509AuthMethod setApacheFix(boolean apacheFix) {
         this.apacheFix = apacheFix;
+        return this;
     }
 
     public String getClientCertTrust() {
         return clientCertTrust;
     }
 
-    public void setClientCertTrust(String clientCertTrust) {
+    public X509AuthMethod setClientCertTrust(String clientCertTrust) {
         this.clientCertTrust = clientCertTrust;
+        return this;
     }
 
     public String getCertHeaderName() {
         return certHeaderName;
     }
 
-    public void setCertHeaderName(String certHeaderName) {
+    public X509AuthMethod setCertHeaderName(String certHeaderName) {
         this.certHeaderName = certHeaderName;
+        return this;
     }
 
     public String getSecurityHeaderName() {
         return securityHeaderName;
     }
 
-    public void setSecurityHeaderName(String securityHeaderName) {
+    public X509AuthMethod setSecurityHeaderName(String securityHeaderName) {
         this.securityHeaderName = securityHeaderName;
+        return this;
     }
 
     public String getSharedSecret() {
         return sharedSecret;
     }
 
-    public void setSharedSecret(String sharedSecret) {
+    public X509AuthMethod setSharedSecret(String sharedSecret) {
         this.sharedSecret = sharedSecret;
+        return this;
     }
 
     public String getProxyCertDn() {
         return proxyCertDn;
     }
 
-    public void setProxyCertDn(String proxyCertDn) {
+    public X509AuthMethod setProxyCertDn(String proxyCertDn) {
         this.proxyCertDn = proxyCertDn;
+        return this;
     }
 
     public String getProxyCertTrust() {
         return proxyCertTrust;
     }
 
-    public void setProxyCertTrust(String proxyCertTrust) {
+    public X509AuthMethod setProxyCertTrust(String proxyCertTrust) {
         this.proxyCertTrust = proxyCertTrust;
+        return this;
     }
 }

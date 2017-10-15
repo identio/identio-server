@@ -18,8 +18,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.service.userdetails;
+package net.identio.server.service.authentication.saml;
 
-public class UserDetailsService {
+import net.identio.server.service.authentication.model.Authentication;
 
+public class SamlAuthentication implements Authentication {
+
+    private String response;
+
+    public SamlAuthentication(String response) {
+        this.setResponse(response);
+    }
+
+    public String getResponse() {
+        return response;
+    }
+
+    public void setResponse(String response) {
+        this.response = response;
+    }
 }

@@ -20,7 +20,7 @@
  */
 package net.identio.server.mvc.common;
 
-import net.identio.server.service.authpolicy.AuthPolicyService;
+import net.identio.server.service.authentication.AuthenticationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,12 +43,12 @@ public class LogoController {
     private static final Logger LOG = LoggerFactory.getLogger(LogoController.class);
 
     @Autowired
-    private AuthPolicyService authPolicyService;
+    private AuthenticationService authenticationService;
 
     @RequestMapping(value = "/logo/{authMethodName}", method = RequestMethod.GET)
     public ResponseEntity<InputStreamResource> getLogo(@PathVariable("authMethodName") String authMethodName) {
 
-        String fileName = authPolicyService.getLogo(authMethodName);
+        String fileName = authenticationService.getLogo(authMethodName);
 
         if (fileName == null) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);

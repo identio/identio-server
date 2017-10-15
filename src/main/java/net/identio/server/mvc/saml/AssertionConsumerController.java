@@ -20,11 +20,11 @@
  */
 package net.identio.server.mvc.saml;
 
+import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
-import net.identio.server.model.SamlAuthentication;
-import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.authentication.saml.SamlAuthentication;
 import net.identio.server.service.orchestration.AuthOrchestrationService;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
 import net.identio.server.service.orchestration.model.ValidationStatus;
@@ -51,7 +51,7 @@ public class AssertionConsumerController {
     private AuthOrchestrationService authOrchestrationService;
 
     @Autowired
-    private ConfigurationService configurationService;
+    private GlobalConfiguration config;
 
     @Autowired
     private ResponderController responderController;
@@ -82,8 +82,7 @@ public class AssertionConsumerController {
         } else {
             LOG.debug("Displaying authentication page");
 
-            HttpUtils.setSessionCookie(httpResponse, identioSession,
-                    configurationService.getConfiguration().getGlobalConfiguration().isSecure());
+            HttpUtils.setSessionCookie(httpResponse, identioSession, config.isSecure());
 
             return "redirect:/#!/auth/" + transactionId;
         }

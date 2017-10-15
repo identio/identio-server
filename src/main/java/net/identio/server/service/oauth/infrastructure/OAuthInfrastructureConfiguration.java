@@ -21,7 +21,6 @@
 
 package net.identio.server.service.oauth.infrastructure;
 
-import com.zaxxer.hikari.HikariDataSource;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
@@ -30,13 +29,15 @@ import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
 import liquibase.resource.ClassLoaderResourceAccessor;
 import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.DataSource;
-import net.identio.server.service.configuration.ConfigurationService;
-import net.identio.server.service.data.JdbcDataSourceService;
+import net.identio.server.service.data.DataService;
+import net.identio.server.service.data.JdbcDataService;
+import net.identio.server.service.oauth.OAuthConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -52,25 +53,29 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
     private static final String JDBC = "jdbc";
 
     private String dsType;
-    private HikariDataSource jdbcDs;
 
     @Autowired
-    private ConfigurationService configurationService;
+    private OAuthConfiguration config;
 
     @Autowired
-    private JdbcDataSourceService jdbcDataSourceService;
+    private DataService dataService;
+
+    @Autowired
+    private ApplicationContext context;
+
+    @Autowired
+    private JdbcDataService jdbcDataService;
 
     @Override
     public void afterPropertiesSet() throws InitializationException {
 
-        DataSource dataSourceConfiguration = configurationService.getConfiguration().getoAuthServerConfiguration().getDataSource();
-
-        this.dsType = dataSourceConfiguration != null ? dataSourceConfiguration.getType() : IN_MEMORY;
+        this.dsType = config.getDataSource() != null ?
+                dataService.getDataSourceConfiguration(config.getDataSource()).getType()
+                : IN_MEMORY;
 
         switch (this.dsType) {
 
             case JDBC:
-                this.jdbcDs = jdbcDataSourceService.getDataSource(dataSourceConfiguration.getName());
                 initDataBaseSchema();
                 break;
 
@@ -84,44 +89,35 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
     }
 
     @Bean
-    public AuthorizationCodeRepository getAuthorizationCodeRepository() throws InitializationException {
+    public AuthorizationCodeRepository getAuthorizationCodeRepository() {
+
+        AutowireCapableBeanFactory factory = context.getAutowireCapableBeanFactory();
 
         switch (this.dsType) {
 
             case JDBC:
-                return new JdbcAuthorizationCodeRepository(jdbcDs);
-
-            case IN_MEMORY:
-                return new InMemoryAuthorizationCodeRepository();
-
+                return factory.createBean(JdbcAuthorizationCodeRepository.class);
             default:
-                LOG.error("Unsupported datasource type: {}", this.dsType);
-                throw new InitializationException("Unsupported datasource type");
-
+                return factory.createBean(InMemoryAuthorizationCodeRepository.class);
         }
     }
 
     @Bean
-    public RefreshTokenRepository getRefreshTokenRepository() throws InitializationException {
+    public RefreshTokenRepository getRefreshTokenRepository() {
+        AutowireCapableBeanFactory factory = context.getAutowireCapableBeanFactory();
 
         switch (this.dsType) {
 
             case JDBC:
-                return new JdbcRefreshTokenRepository(jdbcDs);
-
-            case IN_MEMORY:
-                return new InMemoryRefreshTokenRepository();
-
+                return factory.createBean(JdbcRefreshTokenRepository.class);
             default:
-                LOG.error("Unsupported datasource type: {}", this.dsType);
-                throw new InitializationException("Unsupported datasource type");
-
+                return factory.createBean(InMemoryRefreshTokenRepository.class);
         }
     }
 
     private void initDataBaseSchema() throws InitializationException {
 
-        try (Connection connection = this.jdbcDs.getConnection()) {
+        try (Connection connection = jdbcDataService.getDataSource(config.getDataSource()).getConnection()) {
 
             Liquibase liquibase = new Liquibase("db-schemas/oauth.yaml",
                     new ClassLoaderResourceAccessor(),

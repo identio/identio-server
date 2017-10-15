@@ -20,7 +20,6 @@
  */
 package net.identio.server.boot;
 
-import net.identio.server.service.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -33,13 +32,12 @@ import java.io.File;
 public class StaticResourceConfiguration extends WebMvcConfigurerAdapter {
 
     @Autowired
-    private ConfigurationService configurationService;
+    private GlobalConfiguration config;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 
-        String resourceLocation = "file:"
-                + configurationService.getConfiguration().getGlobalConfiguration().getStaticResourcesPath();
+        String resourceLocation = "file:" + config.getStaticResourcesPath();
 
         // Spring resource mapping is picky about the format of the path we
         // provide it.. The trailing file separator IS important...

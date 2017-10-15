@@ -18,76 +18,87 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
+package net.identio.server.service.authentication.ldap;
+
+import net.identio.server.model.AuthMethod;
+
+import java.util.List;
 
 public class LdapAuthMethod extends AuthMethod {
 
-    private String[] ldapUrl;
+    private List<String> ldapUrl;
     private String proxyUser;
     private String proxyPassword;
     private String baseDn;
     private String userSearchFilter;
     private String trustCert;
-    private LdapPoolConfig poolConfig;
+    private LdapAuthenticationProviderConfiguration.LdapPoolConfig poolConfig;
 
     public LdapAuthMethod() {
         this.type = "ldap";
     }
 
-    public String[] getLdapUrl() {
+    public List<String> getLdapUrl() {
         return ldapUrl;
     }
 
-    public void setLdapUrl(String[] ldapUrl) {
+    public LdapAuthMethod setLdapUrl(List<String> ldapUrl) {
         this.ldapUrl = ldapUrl;
+        return this;
     }
 
     public String getProxyUser() {
         return proxyUser;
     }
 
-    public void setProxyUser(String proxyUser) {
+    public LdapAuthMethod setProxyUser(String proxyUser) {
         this.proxyUser = proxyUser;
+        return this;
     }
 
     public String getProxyPassword() {
         return proxyPassword;
     }
 
-    public void setProxyPassword(String proxyPassword) {
+    public LdapAuthMethod setProxyPassword(String proxyPassword) {
         this.proxyPassword = proxyPassword;
+        return this;
     }
 
     public String getBaseDn() {
         return baseDn;
     }
 
-    public void setBaseDn(String baseDn) {
+    public LdapAuthMethod setBaseDn(String baseDn) {
         this.baseDn = baseDn;
+        return this;
     }
 
     public String getUserSearchFilter() {
         return userSearchFilter;
     }
 
-    public void setUserSearchFilter(String userSearchFilter) {
+    public LdapAuthMethod setUserSearchFilter(String userSearchFilter) {
         this.userSearchFilter = userSearchFilter;
+        return this;
     }
 
     public String getTrustCert() {
         return trustCert;
     }
 
-    public void setTrustCert(String trustCert) {
+    public LdapAuthMethod setTrustCert(String trustCert) {
         this.trustCert = trustCert;
+        return this;
     }
 
-    public LdapPoolConfig getPoolConfig() {
+    public LdapAuthenticationProviderConfiguration.LdapPoolConfig getPoolConfig() {
         return poolConfig;
     }
 
-    public void setPoolConfig(LdapPoolConfig poolConfig) {
+    public LdapAuthMethod setPoolConfig(LdapAuthenticationProviderConfiguration.LdapPoolConfig poolConfig) {
         this.poolConfig = poolConfig;
+        return this;
     }
 
 }

@@ -22,6 +22,7 @@
 package net.identio.server.service.orchestration;
 
 import net.identio.server.exceptions.SamlException;
+import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.oauth.OAuthResponseService;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.model.*;
@@ -64,6 +65,9 @@ public class RequestOrchestrationService {
     @Autowired
     private AuthPolicyService authPolicyService;
 
+    @Autowired
+    private AuthenticationService authenticationService;
+
     public RequestValidationResult validateRequest(InboundRequest request, String sessionId)
             throws ServerException, ValidationException {
 
@@ -99,7 +103,7 @@ public class RequestOrchestrationService {
 
         // Determine target auth levels and auth methods
         ArrayList<AuthLevel> targetAuthLevels = authPolicyService.determineTargetAuthLevel(parsingInfo);
-        HashSet<AuthMethod> targetAuthMethods = authPolicyService.determineTargetAuthMethods(targetAuthLevels);
+        HashSet<AuthMethod> targetAuthMethods = authenticationService.determineTargetAuthMethods(targetAuthLevels);
 
         transactionData.setTargetAuthLevels(targetAuthLevels);
         transactionData.setTargetAuthMethods(targetAuthMethods);

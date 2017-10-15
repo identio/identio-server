@@ -18,21 +18,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
 
-public class LocalAuthMethod extends AuthMethod {
+package net.identio.server.service.data;
 
-    private String userFilePath;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
-    public LocalAuthMethod() {
-        this.type = "local";
-    }
+@Service
+public class DataService {
 
-    public String getUserFilePath() {
-        return userFilePath;
-    }
+    @Autowired
+    private DataConfiguration config;
 
-    public void setUserFilePath(String userFilePath) {
-        this.userFilePath = userFilePath;
+    public DataConfiguration.DataSourcesConfiguration getDataSourceConfiguration(String name) {
+       return config.getDataSourceConfiguration(name);
     }
 }

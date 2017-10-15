@@ -24,7 +24,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.DecodeUtils;
 import net.sourceforge.jradiusclient.RadiusAttribute;
@@ -54,13 +53,12 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
     private int currentHostIndex;
 
     @Autowired
-    public RadiusAuthenticationProvider(ConfigurationService configurationService,
+    public RadiusAuthenticationProvider(RadiusAuthenticationProviderConfiguration config,
                                         AuthenticationService authenticationService) {
 
-        List<RadiusAuthMethod> authMethods = configurationService.getConfiguration().getAuthMethodConfiguration()
-                .getRadiusAuthMethods();
+        List<RadiusAuthMethod> authMethods = config.getAuthMethods();
 
-        if (authMethods == null)
+        if (authMethods == null || authMethods.size() == 0)
             return;
 
         LOG.debug("Initializing Radius Authentication Service");
@@ -92,14 +90,14 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
         } catch (RadiusException e) {
             try {
                 LOG.error("Error when contacting RadiusServer server {}",
-                        radiusAuthMethod.getRadiusHost()[currentHostIndex]);
+                        radiusAuthMethod.getRadiusHost().get(currentHostIndex));
 
-                if (radiusAuthMethod.getRadiusHost().length > 1) {
+                if (radiusAuthMethod.getRadiusHost().size() > 1) {
                     // Try another server if available
-                    currentHostIndex = currentHostIndex < radiusAuthMethod.getRadiusHost().length - 1
+                    currentHostIndex = currentHostIndex < radiusAuthMethod.getRadiusHost().size() - 1
                             ? currentHostIndex + 1 : 0;
 
-                    LOG.error("Switching to Radius server {}", radiusAuthMethod.getRadiusHost()[currentHostIndex]);
+                    LOG.error("Switching to Radius server {}", radiusAuthMethod.getRadiusHost().get(currentHostIndex));
                 }
 
                 return authenticate(radiusAuthMethod, userId, password, challengeResponse);
@@ -116,7 +114,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
         try {
 
-            RadiusClient client = new RadiusClient(radiusAuthMethod.getRadiusHost()[currentHostIndex],
+            RadiusClient client = new RadiusClient(radiusAuthMethod.getRadiusHost().get(currentHostIndex),
                     radiusAuthMethod.getAuthPort(), radiusAuthMethod.getAccountPort(),
                     radiusAuthMethod.getSharedSecret(), radiusAuthMethod.getTimeout());
 
@@ -188,7 +186,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
         } catch (InvalidParameterException | IOException | DataFormatException ex) {
             LOG.error("Error when contacting RadiusServer server {}",
-                    radiusAuthMethod.getRadiusHost()[currentHostIndex]);
+                    radiusAuthMethod.getRadiusHost().get(currentHostIndex));
         }
 
         return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)

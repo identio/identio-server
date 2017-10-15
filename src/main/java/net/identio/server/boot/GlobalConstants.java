@@ -18,23 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
 
-import net.identio.server.service.authentication.model.Authentication;
+package net.identio.server.boot;
 
-public class SamlAuthentication implements Authentication {
+public class GlobalConstants {
 
-    private String response;
-
-    public SamlAuthentication(String response) {
-        this.setResponse(response);
-    }
-
-    public String getResponse() {
-        return response;
-    }
-
-    public void setResponse(String response) {
-        this.response = response;
-    }
+    public static final int CONFIGURATION_ERROR = 1;
 }

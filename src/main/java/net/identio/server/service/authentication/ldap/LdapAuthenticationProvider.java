@@ -25,7 +25,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.SecurityUtils;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -56,15 +55,13 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
     private HashMap<String, GenericObjectPool<InitialLdapContext>> pools = new HashMap<>();
 
-
     @Autowired
-    public LdapAuthenticationProvider(ConfigurationService configurationService,
+    public LdapAuthenticationProvider(LdapAuthenticationProviderConfiguration config,
                                       AuthenticationService authenticationService) throws InitializationException {
 
-        List<LdapAuthMethod> authMethods = configurationService.getConfiguration().getAuthMethodConfiguration()
-                .getLdapAuthMethods();
+        List<LdapAuthMethod> authMethods = config.getAuthMethods();
 
-        if (authMethods == null)
+        if (authMethods == null || authMethods.size() == 0)
             return;
 
         LOG.debug("Initializing LDAP Authentication Service");
@@ -165,7 +162,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
             GenericObjectPool<InitialLdapContext> pool = new GenericObjectPool<>(factory);
 
-            LdapPoolConfig poolConfig = ldapAuthMethod.getPoolConfig();
+            LdapAuthenticationProviderConfiguration.LdapPoolConfig poolConfig = ldapAuthMethod.getPoolConfig();
 
             pool.setMinIdle(poolConfig.getMinIdleConnections());
             pool.setMaxIdle(poolConfig.getMaxIdleConnections());

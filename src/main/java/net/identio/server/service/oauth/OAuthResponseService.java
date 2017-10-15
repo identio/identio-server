@@ -23,12 +23,12 @@ package net.identio.server.service.oauth;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.model.Result;
 import net.identio.server.model.UserSession;
 import net.identio.server.service.authorization.AuthorizationService;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.oauth.infrastructure.RefreshTokenRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.exceptions.OAuthException;
@@ -58,10 +58,10 @@ public class OAuthResponseService {
     private static final int AT_DEFAULT_EXPIRATION_TIME = 3600;
     private static final int CODE_DEFAULT_EXPIRATION_TIME = 60;
 
-    private ConfigurationService configurationService;
-
     private RSAPrivateKey signingKey;
     private RSAPublicKey publicKey;
+
+    private GlobalConfiguration globalConfiguration;
 
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
@@ -73,15 +73,15 @@ public class OAuthResponseService {
     private AuthorizationService authorizationService;
 
     @Autowired
-    public OAuthResponseService(ConfigurationService configurationService) throws InitializationException {
-        this.configurationService = configurationService;
+    public OAuthResponseService(GlobalConfiguration globalConfiguration) throws InitializationException {
+
+        this.globalConfiguration = globalConfiguration;
 
         // Cache signing certificate
-        try (FileInputStream fis = new FileInputStream(
-                configurationService.getConfiguration().getGlobalConfiguration().getSignatureKeystorePath())) {
+        try (FileInputStream fis = new FileInputStream(globalConfiguration.getSignatureKeystorePath())) {
+
             KeyStore ks = KeyStore.getInstance("PKCS12");
-            ks.load(fis, configurationService.getConfiguration().getGlobalConfiguration().getSignatureKeystorePassword()
-                    .toCharArray());
+            ks.load(fis, globalConfiguration.getSignatureKeystorePassword().toCharArray());
 
             Enumeration<String> aliases = ks.aliases();
 
@@ -92,8 +92,7 @@ public class OAuthResponseService {
             String alias = aliases.nextElement();
 
             KeyStore.PrivateKeyEntry keyEntry = (KeyStore.PrivateKeyEntry) ks.getEntry(alias,
-                    new KeyStore.PasswordProtection(configurationService.getConfiguration().getGlobalConfiguration()
-                            .getSignatureKeystorePassword().toCharArray()));
+                    new KeyStore.PasswordProtection(globalConfiguration.getSignatureKeystorePassword().toCharArray()));
 
             signingKey = (RSAPrivateKey) keyEntry.getPrivateKey();
             publicKey = (RSAPublicKey) keyEntry.getCertificate().getPublicKey();
@@ -190,7 +189,7 @@ public class OAuthResponseService {
     }
 
     public Result<AccessTokenResponse> generateTokenResponse(Collection<AuthorizationScope> scopes, String sourceApplication,
-                                                     String userId, boolean addRefreshToken) {
+                                                             String userId, boolean addRefreshToken) {
 
         AccessTokenResponse response = new AccessTokenResponse();
 
@@ -207,8 +206,7 @@ public class OAuthResponseService {
 
             if (rt.isSuccess()) {
                 response.setRefreshToken(rt.get());
-            }
-            else {
+            } else {
                 return Result.serverError();
             }
         }
@@ -247,14 +245,14 @@ public class OAuthResponseService {
                 .setScope(serializedScopes)
                 .setClientId(sourceApplication).setUserId(userId)
                 .setValue(JWT.create()
-                .withIssuer(configurationService.getConfiguration().getGlobalConfiguration().getPublicFqdn())
-                .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
-                .withIssuedAt(Date.from(now))
-                .withSubject(userId)
-                .withJWTId(UUID.randomUUID().toString())
-                .withClaim("scope", serializedScopes)
-                .withClaim("client_id", sourceApplication)
-                .sign(Algorithm.RSA256(publicKey, signingKey)));
+                        .withIssuer(globalConfiguration.getPublicFqdn())
+                        .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
+                        .withIssuedAt(Date.from(now))
+                        .withSubject(userId)
+                        .withJWTId(UUID.randomUUID().toString())
+                        .withClaim("scope", serializedScopes)
+                        .withClaim("client_id", sourceApplication)
+                        .sign(Algorithm.RSA256(publicKey, signingKey)));
 
     }
 

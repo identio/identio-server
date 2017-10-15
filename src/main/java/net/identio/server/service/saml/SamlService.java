@@ -22,13 +22,13 @@ package net.identio.server.service.saml;
 
 import net.identio.saml.*;
 import net.identio.saml.exceptions.*;
-import net.identio.server.exceptions.InitializationException;
+import net.identio.server.boot.GlobalConfiguration;
+import net.identio.server.boot.IdentioServerApplication;
 import net.identio.server.exceptions.SamlException;
 import net.identio.server.exceptions.UnknownAuthLevelException;
 import net.identio.server.model.*;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
@@ -38,7 +38,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriUtils;
 
@@ -48,7 +47,6 @@ import java.util.ArrayList;
 import java.util.zip.DataFormatException;
 
 @Service
-@Scope("singleton")
 public class SamlService {
 
     private static final Logger LOG = LoggerFactory.getLogger(SamlService.class);
@@ -57,33 +55,36 @@ public class SamlService {
 
     private MetadataService metadataService;
 
-    private ConfigurationService configurationService;
-
     private AuthPolicyService authPolicyService;
 
-    @Autowired
-    public SamlService(ConfigurationService configurationService, MetadataService metadataService,
-                       AuthPolicyService authPolicyService) throws InitializationException {
+    private SamlConfiguration samlConfiguration;
 
-        this.configurationService = configurationService;
+    private GlobalConfiguration globalConfig;
+
+    @Autowired
+    public SamlService(GlobalConfiguration globalConfig, SamlConfiguration samlConfiguration, MetadataService metadataService,
+                       AuthPolicyService authPolicyService) {
+
+        this.samlConfiguration = samlConfiguration;
+        this.globalConfig = globalConfig;
+
         this.metadataService = metadataService;
         this.authPolicyService = authPolicyService;
 
         try {
 
-            initSigner(configurationService.getConfiguration());
+            initSigner();
         } catch (TechnicalException ex) {
-            String message = "Could not initialize SamlService";
-            LOG.error("{}: {}", message, ex.getMessage());
-            throw new InitializationException(message, ex);
+            IdentioServerApplication.quitOnStartupError(LOG,
+                    "Could not initialize SAML service: " + ex.getMessage());
         }
     }
 
-    private void initSigner(IdentioConfiguration config) throws TechnicalException {
+    private void initSigner() throws TechnicalException {
 
-        String keystoreFile = config.getGlobalConfiguration().getSignatureKeystorePath();
-        String keystorePassword = config.getGlobalConfiguration().getSignatureKeystorePassword();
-        boolean isCertificateCheckEnabled = config.getSamlIdpConfiguration().isCertificateCheckEnabled();
+        String keystoreFile = globalConfig.getSignatureKeystorePath();
+        String keystorePassword = globalConfig.getSignatureKeystorePassword();
+        boolean isCertificateCheckEnabled = samlConfiguration.isCertificateCheckEnabled();
 
         LOG.debug("Initializing SAML signer...");
 
@@ -245,7 +246,7 @@ public class SamlService {
 
             LOG.debug("* Request is not signed");
 
-            if (!configurationService.getConfiguration().getSamlIdpConfiguration().isAllowUnsecureRequests()) {
+            if (!samlConfiguration.isAllowUnsecureRequests()) {
                 LOG.error("Unsigned requests are not supported.");
                 result.setStatus(RequestParsingStatus.RESPONSE_ERROR)
                         .setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
@@ -278,7 +279,7 @@ public class SamlService {
         } else {
             LOG.debug("* Request is not signed");
 
-            if (!configurationService.getConfiguration().getSamlIdpConfiguration().isAllowUnsecureRequests()) {
+            if (!samlConfiguration.isAllowUnsecureRequests()) {
                 LOG.error("Unsigned requests are not supported.");
                 result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(SamlConstants.STATUS_REQUEST_DENIED);
                 return false;
@@ -318,8 +319,8 @@ public class SamlService {
                     .setSubject(userId, SamlConstants.NAMEID_UNSPECIFIED)
                     .setSubjectConfirmation(SamlConstants.SUBJECT_CONFIRMATION_BEARER, requestID, destinationUrl)
                     .setConditions(spEntityID,
-                            configurationService.getConfiguration().getSamlIdpConfiguration().getTokenValidityLength(),
-                            configurationService.getConfiguration().getSamlIdpConfiguration().getAllowedTimeOffset())
+                            samlConfiguration.getTokenValidityLength(),
+                            samlConfiguration.getAllowedTimeOffset())
                     .setAuthentStatement(authnLevel, authnInstant, sessionId).build();
 
             LOG.debug("* SAML Assertion built");

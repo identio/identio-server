@@ -18,19 +18,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
+package net.identio.server.service.authentication.saml;
 
-import java.util.List;
+import net.identio.server.model.AuthLevel;
 
-public class AuthorizationConfiguration {
+import java.util.HashMap;
 
-    private List<AuthorizationScope> scopes;
+public class SamlAuthMap {
 
-    public List<AuthorizationScope> getScopes() {
-        return scopes;
+    private HashMap<String, AuthLevel> in;
+    private HashMap<AuthLevel, String> out;
+
+    public HashMap<String, AuthLevel> getIn() {
+        return in;
     }
 
-    public void setScopes(List<AuthorizationScope> scopes) {
-        this.scopes = scopes;
+    public void setIn(HashMap<String, AuthLevel> in) {
+        this.in = in;
     }
+
+    public HashMap<AuthLevel, String> getOut() {
+        return out;
+    }
+
+    public void setOut(HashMap<AuthLevel, String> out) {
+        this.out = out;
+    }
+
 }

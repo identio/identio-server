@@ -18,58 +18,63 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
+package net.identio.server.service.authentication.radius;
+
+import net.identio.server.model.AuthMethod;
+
+import java.util.List;
 
 public class RadiusAuthMethod extends AuthMethod {
 
-    private String[] radiusHost;
+    private List<String> radiusHost;
     private int authPort = 1812;
     private int accountPort = 1813;
     private String sharedSecret;
     private int timeout = 5000;
 
-    public RadiusAuthMethod() {
-        this.type = "radius";
-    }
-
-    public String[] getRadiusHost() {
+    public List<String> getRadiusHost() {
         return radiusHost;
     }
 
-    public void setRadiusHost(String[] radiusHost) {
+    public RadiusAuthMethod setRadiusHost(List<String> radiusHost) {
         this.radiusHost = radiusHost;
+        return this;
     }
 
     public int getAuthPort() {
         return authPort;
     }
 
-    public void setAuthPort(int authPort) {
+    public RadiusAuthMethod setAuthPort(int authPort) {
         this.authPort = authPort;
+        return this;
     }
 
     public int getAccountPort() {
         return accountPort;
     }
 
-    public void setAccountPort(int accountPort) {
+    public RadiusAuthMethod setAccountPort(int accountPort) {
         this.accountPort = accountPort;
+        return this;
     }
 
     public String getSharedSecret() {
         return sharedSecret;
     }
 
-    public void setSharedSecret(String sharedSecret) {
+    public RadiusAuthMethod setSharedSecret(String sharedSecret) {
         this.sharedSecret = sharedSecret;
+        return this;
     }
 
     public int getTimeout() {
         return timeout;
     }
 
-    public void setTimeout(int timeout) {
+    public RadiusAuthMethod setTimeout(int timeout) {
         this.timeout = timeout;
+        return this;
     }
 
 }

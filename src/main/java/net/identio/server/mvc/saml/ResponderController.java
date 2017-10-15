@@ -20,8 +20,8 @@
  */
 package net.identio.server.mvc.saml;
 
+import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.service.orchestration.exceptions.ServerException;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,15 +38,14 @@ public class ResponderController {
     private static final Logger LOG = LoggerFactory.getLogger(ResponderController.class);
 
     @Autowired
-    private ConfigurationService configurationService;
+    private GlobalConfiguration config;
 
     public String displayResponderPage(String destinationUrl, String responseData, String relayState, String sessionId,
                                        HttpServletResponse httpResponse) throws ServerException {
 
         LOG.info("Generation of a SAML Response");
 
-        HttpUtils.setSessionCookie(httpResponse, sessionId,
-                configurationService.getConfiguration().getGlobalConfiguration().isSecure());
+        HttpUtils.setSessionCookie(httpResponse, sessionId, config.isSecure());
 
         String responseForm = "<!DOCTYPE html><html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"><meta http-equiv=\"Cache-Control\" content=\"no-store, no-cache, must-revalidate\"><meta http-equiv=\"Pragma\" content=\"no-cache\"><meta http-equiv=\"Expires\" content=\"0\"><title>Ident.io SAML Responder</title></head><body><form id=\"responseForm\" method=\"POST\" action=\""
                 + destinationUrl + "\"><input type=\"hidden\" name=\"SAMLResponse\" value=\"" + responseData

@@ -20,7 +20,6 @@
  */
 package net.identio.server.service.authentication.ldap;
 
-import net.identio.server.model.LdapAuthMethod;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -88,7 +87,7 @@ public class LdapConnectionFactory extends BasePooledObjectFactory<InitialLdapCo
 
         int currentUrlIndexTs = currentUrlIndex;
 
-        String currentUrl = ldapAuthMethod.getLdapUrl()[currentUrlIndexTs];
+        String currentUrl = ldapAuthMethod.getLdapUrl().get(currentUrlIndexTs);
 
         Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
@@ -113,17 +112,17 @@ public class LdapConnectionFactory extends BasePooledObjectFactory<InitialLdapCo
             ctx = new InitialLdapContext(env, null);
         } catch (CommunicationException e) {
 
-            LOG.error("Error when contacting LDAP server {}", ldapAuthMethod.getLdapUrl()[currentUrlIndexTs]);
+            LOG.error("Error when contacting LDAP server {}", ldapAuthMethod.getLdapUrl().get(currentUrlIndexTs));
 
-            if (ldapAuthMethod.getLdapUrl().length > 1) {
-                int newCurrentUrlIndex = currentUrlIndexTs < ldapAuthMethod.getLdapUrl().length - 1
+            if (ldapAuthMethod.getLdapUrl().size() > 1) {
+                int newCurrentUrlIndex = currentUrlIndexTs < ldapAuthMethod.getLdapUrl().size() - 1
                         ? currentUrlIndexTs + 1 : 0;
 
-                LOG.error("Switching to LDAP server {}", ldapAuthMethod.getLdapUrl()[newCurrentUrlIndex]);
+                LOG.error("Switching to LDAP server {}", ldapAuthMethod.getLdapUrl().get(newCurrentUrlIndex));
 
                 currentUrlIndex = newCurrentUrlIndex;
 
-                env.put(Context.PROVIDER_URL, ldapAuthMethod.getLdapUrl()[newCurrentUrlIndex]);
+                env.put(Context.PROVIDER_URL, ldapAuthMethod.getLdapUrl().get(newCurrentUrlIndex));
 
                 ctx = new InitialLdapContext(env, null);
             } else {

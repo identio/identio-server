@@ -25,14 +25,17 @@ import net.identio.server.boot.IdentioServerApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = IdentioServerApplication.class)
-@TestPropertySource(properties = {"identio.config: sample-config/identio-config.yml",
+@TestPropertySource(properties = {"spring.cloud.config.server.bootstrap: true", "spring.cloud.config.name: identio-config",
+        "spring.cloud.config.server.native.searchLocations: file:config",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
+@ActiveProfiles(profiles = {"native"})
 public class SampleConfigurationTest {
 
     @Test

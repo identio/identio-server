@@ -22,12 +22,15 @@ package net.identio.server.model;
 
 public abstract class AuthMethod {
 
-    protected boolean explicit = true;
-
+    private boolean explicit;
     private String name;
     private String logoFileName;
     private AuthLevel authLevel;
     protected String type;
+
+    public void setExplicit(boolean explicit) {
+        this.explicit = explicit;
+    }
 
     public boolean isExplicit() {
         return explicit;

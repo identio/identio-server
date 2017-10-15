@@ -23,7 +23,6 @@ package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
 import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
-import net.identio.server.service.oauth.model.AccessTokenResponse;
 import net.identio.server.service.oauth.model.OAuthErrors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +31,7 @@ import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
@@ -42,8 +42,10 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
         classes = IdentioServerApplication.class)
-@TestPropertySource(properties = {"identio.config: src/test/resources/oauth-server-config/identio-config.yml",
+@TestPropertySource(properties = {"spring.cloud.config.server.bootstrap: true", "spring.cloud.config.name: identio-config",
+        "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
+@ActiveProfiles(profiles = {"native"})
 public class ResourceOwnerCredentialsErrorTests {
 
     @LocalServerPort

@@ -22,6 +22,8 @@
 package net.identio.server.service.oauth.infrastructure;
 
 import com.zaxxer.hikari.HikariDataSource;
+import net.identio.server.service.data.JdbcDataService;
+import net.identio.server.service.oauth.OAuthConfiguration;
 import net.identio.server.service.oauth.infrastructure.exceptions.*;
 import net.identio.server.service.oauth.model.RefreshToken;
 import org.slf4j.Logger;
@@ -39,9 +41,8 @@ public class JdbcRefreshTokenRepository implements RefreshTokenRepository {
 
     private HikariDataSource ds;
 
-    public JdbcRefreshTokenRepository(HikariDataSource ds) {
-
-        this.ds = ds;
+    public JdbcRefreshTokenRepository(OAuthConfiguration config, JdbcDataService dataService) {
+        this.ds = dataService.getDataSource(config.getDataSource());
     }
 
     @Override

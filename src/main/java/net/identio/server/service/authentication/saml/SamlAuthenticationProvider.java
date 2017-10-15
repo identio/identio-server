@@ -31,7 +31,6 @@ import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authentication.model.AuthenticationResultStatus;
 import net.identio.server.service.authentication.model.AuthenticationErrorStatus;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
 import net.identio.server.service.saml.MetadataService;
 import net.identio.server.service.saml.SamlService;
@@ -59,8 +58,6 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
     private HashMap<String, Validator> remoteIdpValidators;
     private HashMap<String, Metadata> remoteIdpMetadatasByName;
 
-    private ConfigurationService configurationService;
-
     @Autowired
     private SamlService samlService;
 
@@ -68,18 +65,16 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
     private MetadataService metadataService;
 
     @Autowired
-    public SamlAuthenticationProvider(ConfigurationService configurationService,
+    public SamlAuthenticationProvider(SamlAuthenticationProviderConfiguration config,
                                       AuthenticationService authenticationService) throws InitializationException {
 
         LOG.debug("Initialization of Metadata Service...");
 
-        this.configurationService = configurationService;
-
         try {
 
-            initRemoteIdpMetadata();
+            initRemoteIdpMetadata(config);
 
-            register(configurationService.getConfiguration().getAuthMethodConfiguration().getSamlAuthMethods(),
+            register(config.getAuthMethods(),
                     authenticationService);
 
         } catch (TechnicalException ex) {
@@ -87,14 +82,11 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
         }
     }
 
-    private void initRemoteIdpMetadata() throws TechnicalException {
+    private void initRemoteIdpMetadata(SamlAuthenticationProviderConfiguration config) throws TechnicalException {
 
-        IdentioConfiguration config = configurationService.getConfiguration();
+        List<SamlAuthMethod> samlAuthMethods = config.getAuthMethods();
 
-        List<SamlAuthMethod> samlAuthMethods = config.getAuthMethodConfiguration().getSamlAuthMethods();
-        if (samlAuthMethods == null) {
-            return;
-        }
+        if (samlAuthMethods == null || samlAuthMethods.size() == 0) return;
 
         LOG.info("Loading Remote IDP metadata...");
 

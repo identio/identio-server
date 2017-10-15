@@ -20,11 +20,11 @@
  */
 package net.identio.server.mvc.common;
 
+import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.authentication.model.X509Authentication;
 import net.identio.server.mvc.saml.ResponderController;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.orchestration.AuthOrchestrationService;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
 import net.identio.server.service.orchestration.model.ValidationStatus;
@@ -48,7 +48,7 @@ public class TransparentAuthController {
     @Autowired
     private ResponderController responderController;
     @Autowired
-    private ConfigurationService configurationService;
+    private GlobalConfiguration config;
 
     public String checkTransparentAuthentication(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
                                                  String sessionId, String transactionId)
@@ -86,8 +86,7 @@ public class TransparentAuthController {
                                                 String transactionId) {
         LOG.debug("Displaying authentication page");
 
-        HttpUtils.setSessionCookie(httpResponse, sessionId,
-                configurationService.getConfiguration().getGlobalConfiguration().isSecure());
+        HttpUtils.setSessionCookie(httpResponse, sessionId, config.isSecure());
 
         return "redirect:/#!/auth/" + transactionId;
     }

@@ -24,7 +24,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.identio.server.model.UserSession;
-import net.identio.server.service.configuration.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,12 +44,12 @@ public class UserSessionService {
     private LoadingCache<String, UserSession> sessionCache;
 
     @Autowired
-    public UserSessionService(ConfigurationService configurationService) {
+    public UserSessionService(UserSessionConfiguration config) {
 
         LOG.debug("Initializing in-memory session service");
 
         sessionCache = CacheBuilder.newBuilder().maximumSize(100000)
-                .expireAfterAccess(configurationService.getConfiguration().getSessionConfiguration().getDuration(),
+                .expireAfterAccess(config.getDuration(),
                         TimeUnit.MINUTES)
                 .build(new CacheLoader<String, UserSession>() {
                     public UserSession load(@Nonnull String o) {

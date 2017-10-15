@@ -25,7 +25,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,13 +50,12 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
     private HashMap<LocalAuthMethod, HashMap<String, User>> globalUsersMap;
 
     @Autowired
-    public LocalAuthenticationProvider(ConfigurationService configurationService,
+    public LocalAuthenticationProvider(LocalAuthenticationProviderConfiguration config,
                                        AuthenticationService authenticationService) throws InitializationException {
 
-        List<LocalAuthMethod> authMethods = configurationService.getConfiguration().getAuthMethodConfiguration()
-                .getLocalAuthMethods();
+        List<LocalAuthMethod> authMethods = config.getAuthMethods();
 
-        if (authMethods == null)
+        if (authMethods == null || authMethods.size() == 0)
             return;
 
         LOG.info("Initializing File Authentication Service");

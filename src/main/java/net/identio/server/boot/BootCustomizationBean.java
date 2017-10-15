@@ -20,9 +20,8 @@
  */
 package net.identio.server.boot;
 
-import net.identio.server.model.X509AuthMethod;
+import net.identio.server.service.authentication.x509.X509AuthMethod;
 import net.identio.server.service.authentication.x509.X509AuthenticationProvider;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.utils.SecurityUtils;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.AbstractHttp11Protocol;
@@ -52,7 +51,7 @@ public class BootCustomizationBean {
     private static final Logger LOG = LoggerFactory.getLogger(BootCustomizationBean.class);
 
     @Autowired
-    private ConfigurationService configurationService;
+    private GlobalConfiguration config;
 
     @Autowired
     private X509AuthenticationProvider x509AuthenticationProvider;
@@ -61,7 +60,7 @@ public class BootCustomizationBean {
     public EmbeddedServletContainerFactory servletContainer() {
 
         TomcatEmbeddedServletContainerFactory factory = new TomcatEmbeddedServletContainerFactory();
-        factory.setPort(configurationService.getConfiguration().getGlobalConfiguration().getPort());
+        factory.setPort(config.getPort());
 
         factory.setSessionTimeout(5, TimeUnit.MINUTES);
 
@@ -71,14 +70,14 @@ public class BootCustomizationBean {
             httpProtocol.setCompression("on");
             httpProtocol.setMaxThreads(150);
 
-            if (configurationService.getConfiguration().getGlobalConfiguration().isSecure()) {
+            if (config.isSecure()) {
 
                 connector.setSecure(true);
                 connector.setScheme("https");
                 connector.setAttribute("keystoreFile", "file:///"
-                        + configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePath());
+                        + config.getSslKeystorePath());
                 connector.setAttribute("keystorePass",
-                        configurationService.getConfiguration().getGlobalConfiguration().getSslKeystorePassword());
+                        config.getSslKeystorePassword());
                 connector.setAttribute("keystoreType", "PKCS12");
                 connector.setAttribute("keyAlias", "1");
                 connector.setAttribute("sslProtocol", "TLSv1.2");
@@ -95,13 +94,12 @@ public class BootCustomizationBean {
 
     private void configureTlsClientAuth(Connector connector) {
 
-        List<X509AuthMethod> x509methods = configurationService.getConfiguration().getAuthMethodConfiguration()
-                .getX509AuthMethods();
+        List<X509AuthMethod> x509methods = x509AuthenticationProvider.getConfiguredAuthMethods();
 
         if (x509methods != null) {
 
             try (FileOutputStream fos = new FileOutputStream(
-                    configurationService.getConfiguration().getGlobalConfiguration().getWorkDirectory()
+                    config.getWorkDirectory()
                             + "/identio-trust.jks")) {
 
                 KeyStore ks = KeyStore.getInstance("JKS");
@@ -118,7 +116,7 @@ public class BootCustomizationBean {
 
                 connector.setAttribute("clientAuth", "want");
                 connector.setAttribute("truststoreFile",
-                        "file:///" + configurationService.getConfiguration().getGlobalConfiguration().getWorkDirectory()
+                        "file:///" + config.getWorkDirectory()
                                 + "/identio-trust.jks");
                 connector.setAttribute("truststorePass", trustPassword);
                 connector.setAttribute("truststoreType", "JKS");

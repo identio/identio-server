@@ -20,10 +20,12 @@
  */
 package net.identio.server.boot;
 
+import org.slf4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -31,9 +33,27 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableAutoConfiguration(exclude = MongoAutoConfiguration.class)
 @ComponentScan(basePackages = {"net.identio.server"})
 @EnableScheduling
+@EnableConfigurationProperties
 public class IdentioServerApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(IdentioServerApplication.class, args);
+        SpringApplication application = new SpringApplication(IdentioServerApplication.class);
+
+        BootConfiguration.setupConfiguration(args, application);
+        BootConfiguration.setupDefaultConfigurationValue();
+
+        application.run(args);
+    }
+
+    public static void quitOnConfigurationError(Logger log, String message) {
+
+        log.error(message);
+        System.exit(GlobalConstants.CONFIGURATION_ERROR);
+    }
+
+    public static void quitOnStartupError(Logger log, String message) {
+
+        log.error(message);
+        System.exit(GlobalConstants.CONFIGURATION_ERROR);
     }
 }

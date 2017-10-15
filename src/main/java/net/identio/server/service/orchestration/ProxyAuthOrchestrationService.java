@@ -23,7 +23,8 @@ package net.identio.server.service.orchestration;
 
 import net.identio.server.exceptions.*;
 import net.identio.server.model.AuthMethod;
-import net.identio.server.model.SamlAuthMethod;
+import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.saml.SamlAuthMethod;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -53,6 +54,9 @@ public class ProxyAuthOrchestrationService {
     @Autowired
     private SamlAuthenticationProvider samlAuthenticationProvider;
 
+    @Autowired
+    private AuthenticationService authenticationService;
+
     public SamlAuthRequestGenerationResult initSamlRequest(String transactionId, String sessionId,
                                                            String authMethodName)
             throws ValidationException, WebSecurityException, ServerException {
@@ -69,7 +73,7 @@ public class ProxyAuthOrchestrationService {
         }
 
         try {
-            AuthMethod authMethod = authPolicyService.getAuthMethodByName(authMethodName);
+            AuthMethod authMethod = authenticationService.getAuthMethodByName(authMethodName);
 
             transactionData.setSelectedAuthMethod(authMethod);
 

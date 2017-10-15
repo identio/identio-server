@@ -18,26 +18,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
+package net.identio.server.service.authentication.local;
 
-public class SessionConfiguration {
+import net.identio.server.model.AuthMethod;
 
-    private String type;
-    private int duration = 60;
+public class LocalAuthMethod extends AuthMethod {
 
-    public String getType() {
-        return type;
+    private String userFilePath;
+
+    public LocalAuthMethod() {
+        this.type = "local";
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public String getUserFilePath() {
+        return userFilePath;
     }
 
-    public int getDuration() {
-        return duration;
-    }
-
-    public void setDuration(int duration) {
-        this.duration = duration;
+    public LocalAuthMethod setUserFilePath(String userFilePath) {
+        this.userFilePath = userFilePath;
+        return this;
     }
 }

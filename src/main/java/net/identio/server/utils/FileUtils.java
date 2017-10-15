@@ -22,6 +22,7 @@ package net.identio.server.utils;
 
 import org.springframework.security.crypto.codec.Hex;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
@@ -48,5 +49,9 @@ public class FileUtils {
         }
 
         return result;
+    }
+
+    public static boolean fileExists(String filePath) {
+        return new File(filePath).exists();
     }
 }

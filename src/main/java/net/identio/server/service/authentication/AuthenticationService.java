@@ -20,16 +20,20 @@
  */
 package net.identio.server.service.authentication;
 
+import net.identio.server.exceptions.UnknownAuthMethodException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authentication.model.AuthenticationResultStatus;
+import net.identio.server.service.authentication.saml.SamlAuthMethod;
 import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 @Service
 public class AuthenticationService {
@@ -38,6 +42,7 @@ public class AuthenticationService {
 
     private HashMap<AuthMethod, AuthenticationProvider> explicitAuthenticationProviders = new HashMap<>();
     private HashMap<AuthMethod, AuthenticationProvider> transparentAuthenticationProviders = new HashMap<>();
+    private HashMap<String, AuthMethod> authMethods = new HashMap<>();
 
     public void registerExplicit(AuthMethod authMethod, AuthenticationProvider provider) throws IllegalArgumentException {
 
@@ -50,6 +55,7 @@ public class AuthenticationService {
         }
 
         explicitAuthenticationProviders.put(authMethod, provider);
+        authMethods.put(authMethod.getName(), authMethod);
     }
 
     public void registerTransparent(AuthMethod authMethod, AuthenticationProvider provider) throws IllegalArgumentException {
@@ -63,6 +69,7 @@ public class AuthenticationService {
         }
 
         transparentAuthenticationProviders.put(authMethod, provider);
+        authMethods.put(authMethod.getName(), authMethod);
     }
 
     public AuthenticationResult validateTransparent(Authentication authentication, TransactionData transactionData) {
@@ -98,5 +105,54 @@ public class AuthenticationService {
         }
 
         return result;
+    }
+
+    public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {
+
+        AuthMethod authMethod = authMethods.get(name);
+
+        if (authMethod == null) {
+            throw new UnknownAuthMethodException("Unknown authentication method requested: " + name);
+        }
+
+        return authMethod;
+    }
+
+
+    public HashSet<AuthMethod> determineTargetAuthMethods(ArrayList<AuthLevel> targetAuthLevels) {
+
+        HashSet<AuthMethod> nextAuthMethods = new HashSet<>();
+
+        for (AuthMethod authMethod : authMethods.values()) {
+
+            if (authMethod instanceof SamlAuthMethod) {
+
+                // Check if the authentication level is supported
+                HashMap<AuthLevel, String> outMap = ((SamlAuthMethod) authMethod).getSamlAuthMap().getOut();
+
+                for (AuthLevel targetAuthLevel : targetAuthLevels) {
+                    if (outMap.containsKey(targetAuthLevel)) {
+                        nextAuthMethods.add(authMethod);
+                        break;
+                    }
+                }
+                continue;
+            }
+
+            if (targetAuthLevels.contains(authMethod.getAuthLevel())) {
+                nextAuthMethods.add(authMethod);
+            }
+        }
+
+        return nextAuthMethods;
+    }
+
+    public String getLogo(String authMethodName) {
+
+        try {
+            return getAuthMethodByName(authMethodName).getLogoFileName();
+        } catch (UnknownAuthMethodException e) {
+            return null;
+        }
     }
 }

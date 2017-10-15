@@ -28,7 +28,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
-import net.identio.server.service.configuration.ConfigurationService;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -47,43 +45,12 @@ public class AuthPolicyService {
 
     private static final Logger LOG = LoggerFactory.getLogger(AuthPolicyService.class);
 
-    private AuthPolicyConfiguration authPolicyConfiguration;
-    private AuthMethodConfiguration authMethodConfiguration;
-
-    private HashMap<String, AuthLevel> authLevelByUrn = new HashMap<>();
-    private HashMap<String, AppAuthLevel> authLevelByApp = new HashMap<>();
-    private HashMap<String, AuthMethod> authMethodByName = new HashMap<>();
-
     @Autowired
-    public AuthPolicyService(ConfigurationService configurationService) {
+    private AuthPolicyConfiguration config;
 
-        LOG.debug("Initialization of auth policy service");
+    public AuthPolicyService() {
 
-        authPolicyConfiguration = configurationService.getConfiguration().getAuthPolicyConfiguration();
-        authMethodConfiguration = configurationService.getConfiguration().getAuthMethodConfiguration();
-
-        // Index auth levels
-        int index = 0;
-        for (AuthLevel authLevel : authPolicyConfiguration.getAuthLevels()) {
-            authLevel.setStrength(index);
-            authLevelByUrn.put(authLevel.getUrn(), authLevel);
-            index++;
-        }
-
-        // Index app-specific auth levels
-        List<AppAuthLevel> appAuthLevels = authPolicyConfiguration.getApplicationSpecificAuthLevel();
-
-        if (appAuthLevels != null) {
-            for (AppAuthLevel appAuthLevel : appAuthLevels) {
-                authLevelByApp.put(appAuthLevel.getAppName(), appAuthLevel);
-            }
-        }
-
-        // Index auth methods
-        for (AuthMethod authMethod : authMethodConfiguration.getAuthMethods()) {
-            authMethodByName.put(authMethod.getName(), authMethod);
-        }
-
+        LOG.info("Initializing Authentication Policy Service");
     }
 
     public ArrayList<AuthLevel> determineTargetAuthLevel(RequestParsingInfo parsingInfo) {
@@ -111,7 +78,7 @@ public class AuthPolicyService {
             // Request doesn't specify a minimum auth level
             // , we check if we have a specific auth level
             // for this application
-            AppAuthLevel appAuthLevel = authLevelByApp.get(parsingInfo.getSourceApplication());
+            AppAuthLevel appAuthLevel = config.getAuthLevelByApp(parsingInfo.getSourceApplication());
 
             if (appAuthLevel != null) {
 
@@ -123,10 +90,10 @@ public class AuthPolicyService {
                         requestedComparison, selectedAuthLevel.getName());
             } else {
 
-                AuthLevel selectedAuthLevel = authPolicyConfiguration.getDefaultAuthLevel().getAuthLevel();
+                AuthLevel selectedAuthLevel = config.getEnrichedDefaultAppLevel().getAuthLevel();
 
                 requestedAuthLevels.add(selectedAuthLevel);
-                requestedComparison = authPolicyConfiguration.getDefaultAuthLevel().getComparison();
+                requestedComparison = config.getEnrichedDefaultAppLevel().getComparison();
 
                 LOG.debug("* Request does not specify an auth level. Applying default auth level: {} - {}",
                         requestedComparison, selectedAuthLevel.getName());
@@ -134,7 +101,7 @@ public class AuthPolicyService {
         }
 
         // Determine the target auth levels
-        for (AuthLevel authLevel : authPolicyConfiguration.getAuthLevels()) {
+        for (AuthLevel authLevel : config.getAllAuthLevels()) {
             int strength = authLevel.getStrength();
 
             for (AuthLevel requestedAuthLevel : requestedAuthLevels) {
@@ -156,34 +123,6 @@ public class AuthPolicyService {
 
         // Save the required auth levels
         return targetAuthLevels;
-    }
-
-    public HashSet<AuthMethod> determineTargetAuthMethods(ArrayList<AuthLevel> targetAuthLevels) {
-
-        HashSet<AuthMethod> nextAuthMethods = new HashSet<>();
-
-        for (AuthMethod authMethod : authMethodConfiguration.getAuthMethods()) {
-
-            if (authMethod instanceof SamlAuthMethod) {
-
-                // Check if the authentication level is supported
-                HashMap<AuthLevel, String> outMap = ((SamlAuthMethod) authMethod).getSamlAuthMap().getOut();
-
-                for (AuthLevel targetAuthLevel : targetAuthLevels) {
-                    if (outMap.containsKey(targetAuthLevel)) {
-                        nextAuthMethods.add(authMethod);
-                        break;
-                    }
-                }
-                continue;
-            }
-
-            if (targetAuthLevels.contains(authMethod.getAuthLevel())) {
-                nextAuthMethods.add(authMethod);
-            }
-        }
-
-        return nextAuthMethods;
     }
 
     public AuthPolicyDecision checkPreviousAuthSessions(UserSession userSession,
@@ -239,7 +178,7 @@ public class AuthPolicyService {
 
     public AuthLevel getAuthLevelByUrn(String urn) throws UnknownAuthLevelException {
 
-        AuthLevel authLevel = authLevelByUrn.get(urn);
+        AuthLevel authLevel = config.getAuthLevelByUrn(urn);
 
         if (authLevel == null) {
             LOG.error("Unknown authentication level requested: {}", urn);
@@ -249,24 +188,16 @@ public class AuthPolicyService {
         return authLevel;
     }
 
-    public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {
+    public AuthLevel getAuthLevelByName(String name) throws UnknownAuthLevelException {
 
-        AuthMethod authMethod = authMethodByName.get(name);
+        AuthLevel authLevel = config.getAuthLevelByName(name);
 
-        if (authMethod == null) {
-            throw new UnknownAuthMethodException("Unknown authentication method requested: " + name);
+        if (authLevel == null) {
+            LOG.error("Unknown authentication level requested: {}", name);
+            throw new UnknownAuthLevelException("Unknown authentication level requested: " + name);
         }
 
-        return authMethod;
-    }
-
-    public String getLogo(String authMethodName) {
-
-        try {
-            return getAuthMethodByName(authMethodName).getLogoFileName();
-        } catch (UnknownAuthMethodException e) {
-            return null;
-        }
+        return authLevel;
     }
 
     private AuthSession updateUserSession(UserSession userSession, AuthenticationResult result,
@@ -274,4 +205,6 @@ public class AuthPolicyService {
 
         return userSession.addAuthSession(result.getUserId(), result.getAuthMethod(), authLevel);
     }
+
+
 }

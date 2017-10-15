@@ -18,9 +18,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
 
-public class SamlIdpConfiguration {
+package net.identio.server.service.saml;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@ConfigurationProperties(prefix = "samlIdpConfiguration")
+public class SamlConfiguration implements InitializingBean {
+
+    private static final int DEFAULT_TOKEN_VALIDITY_LENGTH = 3;
+    private static final String DEFAULT_SP_METADATA_DIRECTORY = "config/trusted-sp";
+
+    // Configuration mapping handled by Spring Cloud config
 
     private String organizationName;
     private String organizationDisplayName;
@@ -32,38 +44,6 @@ public class SamlIdpConfiguration {
     private int tokenValidityLength;
     private int allowedTimeOffset;
     private String spMetadataDirectory;
-
-    public boolean isCertificateCheckEnabled() {
-        return certificateCheckEnabled;
-    }
-
-    public void setCertificateCheckEnabled(boolean certificateCheckEnabled) {
-        this.certificateCheckEnabled = certificateCheckEnabled;
-    }
-
-    public int getTokenValidityLength() {
-        return tokenValidityLength;
-    }
-
-    public void setTokenValidityLength(int tokenValidityLength) {
-        this.tokenValidityLength = tokenValidityLength;
-    }
-
-    public int getAllowedTimeOffset() {
-        return allowedTimeOffset;
-    }
-
-    public void setAllowedTimeOffset(int allowedTimeOffset) {
-        this.allowedTimeOffset = allowedTimeOffset;
-    }
-
-    public String getSpMetadataDirectory() {
-        return spMetadataDirectory;
-    }
-
-    public void setSpMetadataDirectory(String spDirectory) {
-        this.spMetadataDirectory = spDirectory;
-    }
 
     public String getOrganizationName() {
         return organizationName;
@@ -111,5 +91,47 @@ public class SamlIdpConfiguration {
 
     public void setAllowUnsecureRequests(boolean allowUnsecureRequests) {
         this.allowUnsecureRequests = allowUnsecureRequests;
+    }
+
+    public boolean isCertificateCheckEnabled() {
+        return certificateCheckEnabled;
+    }
+
+    public void setCertificateCheckEnabled(boolean certificateCheckEnabled) {
+        this.certificateCheckEnabled = certificateCheckEnabled;
+    }
+
+    public int getTokenValidityLength() {
+        return tokenValidityLength;
+    }
+
+    public void setTokenValidityLength(int tokenValidityLength) {
+        this.tokenValidityLength = tokenValidityLength;
+    }
+
+    public int getAllowedTimeOffset() {
+        return allowedTimeOffset;
+    }
+
+    public void setAllowedTimeOffset(int allowedTimeOffset) {
+        this.allowedTimeOffset = allowedTimeOffset;
+    }
+
+    public String getSpMetadataDirectory() {
+        return spMetadataDirectory;
+    }
+
+    public void setSpMetadataDirectory(String spMetadataDirectory) {
+        this.spMetadataDirectory = spMetadataDirectory;
+    }
+
+    // End: Configuration mapping handled by Spring Cloud config
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
+        tokenValidityLength = tokenValidityLength != 0 ? tokenValidityLength : DEFAULT_TOKEN_VALIDITY_LENGTH;
+        spMetadataDirectory = spMetadataDirectory != null ? spMetadataDirectory : DEFAULT_SP_METADATA_DIRECTORY;
+
     }
 }

@@ -18,39 +18,38 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.model;
 
-public class SamlAuthMethod extends AuthMethod {
+package net.identio.server.service.oauth;
 
-    private String metadata;
-    private boolean certificateCheckEnabled;
-    private SamlAuthMap samlAuthMap;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
-    public SamlAuthMethod() {
-        this.type = "saml";
+@Configuration
+@ConfigurationProperties(prefix = "oAuthServerConfiguration")
+public class OAuthConfiguration {
+
+    // Configuration mapping handled by Spring Cloud config
+
+    private String clientFile;
+    private String dataSource;
+
+    public String getClientFile() {
+        return clientFile;
     }
 
-    public String getMetadata() {
-        return metadata;
+    public void setClientFile(String clientFile) {
+        this.clientFile = clientFile;
     }
 
-    public void setMetadata(String metadata) {
-        this.metadata = metadata;
+    public String getDataSource() {
+        return dataSource;
     }
 
-    public boolean isCertificateCheckEnabled() {
-        return certificateCheckEnabled;
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource;
     }
 
-    public void setCertificateCheckEnabled(boolean certificateCheckEnabled) {
-        this.certificateCheckEnabled = certificateCheckEnabled;
-    }
+    // End: Configuration mapping handled by Spring Cloud config
 
-    public SamlAuthMap getSamlAuthMap() {
-        return samlAuthMap;
-    }
 
-    public void setSamlAuthMap(SamlAuthMap samlAuthMap) {
-        this.samlAuthMap = samlAuthMap;
-    }
 }
