@@ -1,7 +1,7 @@
-globalConfiguration:
-  publicFqdn: http://<your_hostname>:10080
+global:
+  basePublicUrl: http://<your_hostname>:10080
 
-authPolicyConfiguration:
+authPolicy:
   authLevels:
     - name: low
       urn: urn:identio:auth-level:low
@@ -13,7 +13,7 @@ authPolicyConfiguration:
     authLevel: medium
     comparison: minimum
 
-samlIdpConfiguration:
+samlIdp:
   allowUnsecureRequests: true
   allowedTimeOffset: 1
   certificateCheckEnabled: true
@@ -24,11 +24,10 @@ samlIdpConfiguration:
   organizationUrl: http://identio.net
   tokenValidityLength: 3
 
-sessionConfiguration:
+session:
   duration: 120
   
-authMethodConfiguration:
-
+authMethods:
   localAuthMethods:
   - name: Local
     authLevel: medium

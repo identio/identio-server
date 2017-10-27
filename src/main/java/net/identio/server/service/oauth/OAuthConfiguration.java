@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "oAuthServerConfiguration")
+@ConfigurationProperties(prefix = "oAuthServer")
 public class OAuthConfiguration {
 
     // Configuration mapping handled by Spring Cloud config

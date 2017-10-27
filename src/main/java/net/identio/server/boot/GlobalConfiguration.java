@@ -31,7 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import static net.identio.server.utils.MiscUtils.nullIfEmpty;
 
 @Configuration
-@ConfigurationProperties(prefix = "globalConfiguration")
+@ConfigurationProperties(prefix = "global")
 public class GlobalConfiguration implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(GlobalConfiguration.class);
@@ -47,7 +47,7 @@ public class GlobalConfiguration implements InitializingBean {
 
     /// Configuration mapping handled by Spring Cloud config
 
-    private String publicFqdn;
+    private String basePublicUrl;
     private int port;
     private boolean secure;
     private String sslKeystorePath;
@@ -57,12 +57,12 @@ public class GlobalConfiguration implements InitializingBean {
     private String workDirectory;
     private String staticResourcesPath;
 
-    public String getPublicFqdn() {
-        return publicFqdn;
+    public String getBasePublicUrl() {
+        return basePublicUrl;
     }
 
-    public void setPublicFqdn(String publicFqdn) {
-        this.publicFqdn = nullIfEmpty(publicFqdn);
+    public void setBasePublicUrl(String basePublicUrl) {
+        this.basePublicUrl = nullIfEmpty(basePublicUrl);
     }
 
     public int getPort() {
@@ -158,9 +158,9 @@ public class GlobalConfiguration implements InitializingBean {
 
     private void verifyValues() {
 
-        if (publicFqdn == null)
+        if (basePublicUrl == null)
             IdentioServerApplication.quitOnConfigurationError(LOG,
-                    "Global configuration error: \"globalConfiguration > publicFqDn\" property must be set");
+                    "Global configuration error: \"global > basePublicUrl\" property must be set");
 
         if (secure && !FileUtils.fileExists(sslKeystorePath))
             IdentioServerApplication.quitOnConfigurationError(LOG,

@@ -33,7 +33,7 @@ import java.util.List;
 import static net.identio.server.utils.MiscUtils.nullIfEmpty;
 
 @Configuration
-@ConfigurationProperties(prefix = "authorizationConfiguration")
+@ConfigurationProperties(prefix = "authorization")
 public class AuthorizationConfiguration implements InitializingBean {
 
     private static final int DEFAULT_ACCESS_TOKEN_LIFETIME = 3600;

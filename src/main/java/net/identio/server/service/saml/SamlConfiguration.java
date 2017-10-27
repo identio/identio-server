@@ -26,7 +26,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "samlIdpConfiguration")
+@ConfigurationProperties(prefix = "samlIdp")
 public class SamlConfiguration implements InitializingBean {
 
     private static final int DEFAULT_TOKEN_VALIDITY_LENGTH = 3;

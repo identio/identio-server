@@ -35,7 +35,7 @@ import java.util.List;
 import static net.identio.server.utils.MiscUtils.nullIfEmpty;
 
 @Configuration
-@ConfigurationProperties(prefix = "authPolicyConfiguration")
+@ConfigurationProperties(prefix = "authPolicy")
 public class AuthPolicyConfiguration implements InitializingBean {
 
     private HashMap<String, AuthLevel> authLevelByName = new HashMap<>();

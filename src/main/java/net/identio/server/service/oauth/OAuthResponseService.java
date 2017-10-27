@@ -245,7 +245,7 @@ public class OAuthResponseService {
                 .setScope(serializedScopes)
                 .setClientId(sourceApplication).setUserId(userId)
                 .setValue(JWT.create()
-                        .withIssuer(globalConfiguration.getPublicFqdn())
+                        .withIssuer(globalConfiguration.getBasePublicUrl())
                         .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
                         .withIssuedAt(Date.from(now))
                         .withSubject(userId)

@@ -38,7 +38,7 @@ import java.util.List;
 import static net.identio.server.utils.MiscUtils.nullIfEmpty;
 
 @Configuration
-@ConfigurationProperties(prefix = "authMethodConfiguration")
+@ConfigurationProperties(prefix = "authMethods")
 public class LocalAuthenticationProviderConfiguration implements InitializingBean {
 
     private static final Logger LOG = LoggerFactory.getLogger(LocalAuthenticationProviderConfiguration.class);

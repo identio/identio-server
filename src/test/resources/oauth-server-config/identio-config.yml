@@ -1,10 +1,10 @@
-globalConfiguration:
-  publicFqdn: https://localhost
+global:
+  basePublicUrl: https://localhost
   staticResourcesPath: ui/app
   signatureKeystorePath: src/test/resources/oauth-server-config/default-sign-certificate.p12
   signatureKeystorePassword: password
 
-dataConfiguration:
+data:
   dataSources:
     - name: Local
       type: jdbc
@@ -13,7 +13,7 @@ dataConfiguration:
       username: sa
       password: sa
 
-authPolicyConfiguration:
+authPolicy:
   authLevels:
     - name: low
       urn: urn:identio:auth-level:low
@@ -25,7 +25,7 @@ authPolicyConfiguration:
     authLevel: medium
     comparison: minimum
 
-authorizationConfiguration:
+authorization:
   scopes:
     - name: scope.test.1
       authLevel: medium
@@ -37,11 +37,11 @@ authorizationConfiguration:
       authLevel: strong
       expirationTime: 3600
 
-oAuthServerConfiguration:
+oAuthServer:
   clientFile: src/test/resources/oauth-server-config/oauth-clients.yml
   dataSource: Local
 
-samlIdpConfiguration:
+samlIdp:
   allowUnsecureRequests: true
   allowedTimeOffset: 1
   certificateCheckEnabled: true
@@ -52,14 +52,11 @@ samlIdpConfiguration:
   organizationUrl: http://identio.net
   tokenValidityLength: 3
 
-sessionConfiguration:
+session:
   duration: 120
   
-authMethodConfiguration:
-
+authMethods:
   localAuthMethods:
   - name: Local
     authLevel: medium
     userFilePath: src/test/resources/oauth-server-config/users.yml
-
-

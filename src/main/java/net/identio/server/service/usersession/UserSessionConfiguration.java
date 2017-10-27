@@ -25,7 +25,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "sessionConfiguration")
+@ConfigurationProperties(prefix = "session")
 public class UserSessionConfiguration {
 
     private int duration;

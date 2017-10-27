@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 
 @Configuration
-@ConfigurationProperties(prefix = "dataConfiguration")
+@ConfigurationProperties(prefix = "data")
 public class DataConfiguration implements InitializingBean {
 
     private HashMap<String, DataSourcesConfiguration> dataSourceIndex = new HashMap<>();
