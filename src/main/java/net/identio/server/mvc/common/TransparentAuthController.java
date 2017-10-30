@@ -21,6 +21,7 @@
 package net.identio.server.mvc.common;
 
 import net.identio.server.boot.GlobalConfiguration;
+import net.identio.server.mvc.common.model.ApiResponseStatus;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.authentication.model.X509Authentication;
@@ -71,14 +72,24 @@ public class TransparentAuthController {
         AuthenticationValidationResult result = authOrchestrationService.handleTransparentAuthentication(
                 authentication, sessionId, transactionId);
 
-        if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
+        switch (result.getValidationStatus()) {
 
-            return responderController.displayResponderPage(
-                    result.getResponseData().getUrl(), result.getResponseData().getData(),
-                    result.getResponseData().getRelayState(), sessionId, httpResponse);
+            case RESPONSE:
 
-        } else {
-            return redirectToAuthenticationPage(httpResponse, sessionId, transactionId);
+                return responderController.displayResponderPage(
+                        result.getResponseData().getUrl(), result.getResponseData().getData(),
+                        result.getResponseData().getRelayState(), sessionId, httpResponse);
+
+            default:
+            case CHALLENGE:
+            case ERROR:
+
+                return redirectToAuthenticationPage(httpResponse, sessionId, transactionId);
+
+            case CONSENT:
+
+                return redirectToConsentPage(httpResponse, sessionId, transactionId);
+
         }
     }
 
@@ -89,6 +100,15 @@ public class TransparentAuthController {
         HttpUtils.setSessionCookie(httpResponse, sessionId, config.isSecure());
 
         return "redirect:/#!/auth/" + transactionId;
+    }
+
+    private String redirectToConsentPage(HttpServletResponse httpResponse, String sessionId,
+                                                String transactionId) {
+        LOG.debug("Displaying consent page");
+
+        HttpUtils.setSessionCookie(httpResponse, sessionId, config.isSecure());
+
+        return "redirect:/#!/consent/" + transactionId;
     }
 
 }
