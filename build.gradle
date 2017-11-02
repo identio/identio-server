@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        springBootVersion = '1.5.4.RELEASE'
+        springBootVersion = '1.5.8.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -11,6 +11,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'org.owasp:dependency-check-gradle:3.0.1'
     }
 }
 
@@ -19,6 +20,8 @@ plugins {
     id 'com.moowork.grunt' version '0.13'
     id 'com.github.ben-manes.versions' version '0.15.0'
     id 'org.springframework.boot' version '1.5.4.RELEASE'
+    id 'org.owasp.dependencycheck' version '3.0.1'
+
 }
 
 apply plugin: 'java'
