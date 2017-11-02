@@ -96,7 +96,7 @@ public class BootCustomizationBean {
 
         List<X509AuthMethod> x509methods = x509AuthenticationProvider.getConfiguredAuthMethods();
 
-        if (x509methods != null) {
+        if (x509methods.size() > 0) {
 
             try (FileOutputStream fos = new FileOutputStream(
                     config.getWorkDirectory()
