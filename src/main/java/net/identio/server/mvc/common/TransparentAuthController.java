@@ -21,14 +21,12 @@
 package net.identio.server.mvc.common;
 
 import net.identio.server.boot.GlobalConfiguration;
-import net.identio.server.mvc.common.model.ApiResponseStatus;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.authentication.model.X509Authentication;
 import net.identio.server.mvc.saml.ResponderController;
 import net.identio.server.service.orchestration.AuthOrchestrationService;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
-import net.identio.server.service.orchestration.model.ValidationStatus;
 import net.identio.server.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,7 +79,6 @@ public class TransparentAuthController {
                         result.getResponseData().getRelayState(), sessionId, httpResponse);
 
             default:
-            case CHALLENGE:
             case ERROR:
 
                 return redirectToAuthenticationPage(httpResponse, sessionId, transactionId);
