@@ -29,11 +29,15 @@ import java.util.HashMap;
 
 public class BootConfiguration {
 
-    private static final String fileConfigOptionName = "identio.config";
-    private static final String gitUriConfigOptionName = "identio.config.git.uri";
-    private static final String configServerConfigOptionName = "identio.config.server.uri";
-    private static final String usernameConfigOptionName = "identio.config.username";
-    private static final String passwordConfigOptionName = "identio.config.password";
+    private static final String FILE_CONFIG_OPTION = "identio.config";
+
+    private static final String GIT_CONFIG_OPTION = "identio.config.git.uri";
+    private static final String GIT_CONFIG_USERNAME_OPTION = "identio.config.git.username";
+    private static final String GIT_CONFIG_PASSWORD_OPTION = "identio.config.git.password";
+
+    private static final String CONFIG_SERVER_OPTION = "identio.config.server.uri";
+    private static final String CONFIG_SERVER_USERNAME_OPTION = "identio.config.server.username";
+    private static final String CONFIG_SERVER_PASSWORD_OPTION = "identio.config.server.password";
 
     public static void setupDefaultConfigurationValue() {
 
@@ -51,32 +55,38 @@ public class BootConfiguration {
         if (args != null && args.length != 0)
             addConfigOptionsFromCmdLine(configOptions, args);
 
-        if (configOptions.containsKey(fileConfigOptionName))
-            setupFileConfiguration(configOptions.get(fileConfigOptionName), application);
+        if (configOptions.containsKey(FILE_CONFIG_OPTION))
+            setupFileConfiguration(configOptions.get(FILE_CONFIG_OPTION), application);
 
-        if (configOptions.containsKey(gitUriConfigOptionName))
-            setupGitConfiguration(configOptions.get(gitUriConfigOptionName),
-                    configOptions.get(usernameConfigOptionName),
-                    configOptions.get(passwordConfigOptionName));
+        if (configOptions.containsKey(GIT_CONFIG_OPTION))
+            setupGitConfiguration(configOptions.get(GIT_CONFIG_OPTION),
+                    configOptions.get(GIT_CONFIG_USERNAME_OPTION),
+                    configOptions.get(GIT_CONFIG_PASSWORD_OPTION));
 
-        if (configOptions.containsKey(configServerConfigOptionName))
-            setupConfigServerConfiguration(configOptions.get(configServerConfigOptionName),
-                    configOptions.get(usernameConfigOptionName),
-                    configOptions.get(passwordConfigOptionName));
-
-
+        if (configOptions.containsKey(CONFIG_SERVER_OPTION))
+            setupConfigServerConfiguration(configOptions.get(CONFIG_SERVER_OPTION),
+                    configOptions.get(CONFIG_SERVER_USERNAME_OPTION),
+                    configOptions.get(CONFIG_SERVER_PASSWORD_OPTION));
     }
 
     private static void addConfigOptionsFromSysEnv(HashMap<String, String> configOptions) {
 
-        if (System.getenv(fileConfigOptionName) != null)
-            configOptions.put(fileConfigOptionName, System.getenv(fileConfigOptionName));
-        if (System.getenv(gitUriConfigOptionName) != null)
-            configOptions.put(gitUriConfigOptionName, System.getenv(gitUriConfigOptionName));
-        if (System.getenv(usernameConfigOptionName) != null)
-            configOptions.put(usernameConfigOptionName, System.getenv(usernameConfigOptionName));
-        if (System.getenv(passwordConfigOptionName) != null)
-            configOptions.put(passwordConfigOptionName, System.getenv(passwordConfigOptionName));
+        if (System.getenv(FILE_CONFIG_OPTION) != null)
+            configOptions.put(FILE_CONFIG_OPTION, System.getenv(FILE_CONFIG_OPTION));
+
+        if (System.getenv(GIT_CONFIG_OPTION) != null)
+            configOptions.put(GIT_CONFIG_OPTION, System.getenv(GIT_CONFIG_OPTION));
+        if (System.getenv(GIT_CONFIG_USERNAME_OPTION) != null)
+            configOptions.put(GIT_CONFIG_USERNAME_OPTION, System.getenv(GIT_CONFIG_USERNAME_OPTION));
+        if (System.getenv(GIT_CONFIG_PASSWORD_OPTION) != null)
+            configOptions.put(GIT_CONFIG_PASSWORD_OPTION, System.getenv(GIT_CONFIG_PASSWORD_OPTION));
+
+        if (System.getenv(CONFIG_SERVER_OPTION) != null)
+            configOptions.put(CONFIG_SERVER_OPTION, System.getenv(CONFIG_SERVER_OPTION));
+        if (System.getenv(CONFIG_SERVER_USERNAME_OPTION) != null)
+            configOptions.put(CONFIG_SERVER_USERNAME_OPTION, System.getenv(CONFIG_SERVER_USERNAME_OPTION));
+        if (System.getenv(CONFIG_SERVER_PASSWORD_OPTION) != null)
+            configOptions.put(CONFIG_SERVER_PASSWORD_OPTION, System.getenv(CONFIG_SERVER_PASSWORD_OPTION));
     }
 
     private static void addConfigOptionsFromCmdLine(HashMap<String, String> configOptions, String[] args) {
@@ -96,7 +106,7 @@ public class BootConfiguration {
         Path configPath = Paths.get(file);
 
         System.setProperty("spring.cloud.config.server.bootstrap", "true");
-        System.setProperty("spring.cloud.config.name",
+        System.setProperty("spring.config.name",
                 configPath.getFileName().toString().replaceAll(".yml", ""));
         System.setProperty("spring.cloud.config.server.native.searchLocations", "file:" +
                 configPath.getParent().toString());
@@ -106,7 +116,7 @@ public class BootConfiguration {
 
         System.setProperty("spring.cloud.config.server.bootstrap", "true");
         System.setProperty("spring.cloud.config.server.git.uri", uri);
-        System.setProperty("spring.cloud.config.name", "identio-config.yml");
+        System.setProperty("spring.config.name", "identio-config");
 
         if (username != null) {
             System.setProperty("spring.cloud.config.server.git.username", username);
@@ -117,6 +127,7 @@ public class BootConfiguration {
     private static void setupConfigServerConfiguration(String uri, String username, String password) {
 
         System.setProperty("spring.cloud.config.uri", uri);
+
         if (username != null) {
             System.setProperty("spring.cloud.config.username", username);
             System.setProperty("spring.cloud.config.password", password);
