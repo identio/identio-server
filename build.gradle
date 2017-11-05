@@ -172,13 +172,13 @@ bowerInstall.mustRunAfter npmInstall
 npmInstall.mustRunAfter clean
 jar.mustRunAfter clean
 
-task releaseZip(type: Zip, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
+task releaseZip(type: Zip, dependsOn: ['clean', 'test', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
     description 'Build a release in zip format'
     with distributionsCopySpec
     archiveName = "identio-server.zip"
 }
 
-task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
+task releaseTarGz(type: Tar, dependsOn: ['clean', 'test', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
     description 'Build a release in tar.gz format'
     compression = Compression.GZIP
     with distributionsCopySpec
