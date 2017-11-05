@@ -45,7 +45,7 @@ import static org.junit.Assert.assertEquals;
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"spring.cloud.config.server.bootstrap: true", "spring.cloud.config.name: identio-config",
         "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
-        "logging.config: src/test/resources/oauth-server-config/logback.xml"})
+        "logging.config: src/test/resources/oauth-server-config/logback.xml", "spring.cloud.vault.enabled: false"})
 @ActiveProfiles(profiles = {"native"})
 public class ClientCredentialsErrorTests {
 

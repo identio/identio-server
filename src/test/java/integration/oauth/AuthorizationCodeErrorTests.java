@@ -21,6 +21,7 @@
 
 package integration.oauth;
 
+import net.identio.server.boot.BootConfiguration;
 import net.identio.server.boot.IdentioServerApplication;
 import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
 import net.identio.server.service.oauth.model.OAuthErrors;
@@ -45,7 +46,7 @@ import static org.junit.Assert.*;
         classes = IdentioServerApplication.class)
 @TestPropertySource(properties = {"spring.cloud.config.server.bootstrap: true", "spring.cloud.config.name: identio-config",
         "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
-        "logging.config: src/test/resources/oauth-server-config/logback.xml"})
+        "logging.config: src/test/resources/oauth-server-config/logback.xml", "spring.cloud.vault.enabled: false"})
 @ActiveProfiles(profiles = {"native"})
 public class AuthorizationCodeErrorTests {
 
@@ -62,7 +63,7 @@ public class AuthorizationCodeErrorTests {
 
     @Before
     public void setUp() {
-
+        
         requests = new OAuthRequests(port, restTemplate, "code", "test2", false);
 
         requests.authorizeRequest();
