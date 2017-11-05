@@ -42,6 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.zip.DataFormatException;
@@ -460,14 +461,14 @@ public class SamlService {
             } else {
                 // Generate the information to sign
                 String encodedSamlRequest = UriUtils
-                        .encode(DecodeUtils.encode(authentRequest.toString().getBytes(), true), "UTF-8");
-                String encodedRelayState = UriUtils.encode(transactionId, "UTF-8");
-                String encodedSigAlg = UriUtils.encode(SamlConstants.SIGNATURE_ALG_RSA_SHA256, "UTF-8");
+                        .encode(DecodeUtils.encode(authentRequest.toString().getBytes(), true), StandardCharsets.UTF_8.name());
+                String encodedRelayState = UriUtils.encode(transactionId, StandardCharsets.UTF_8.name());
+                String encodedSigAlg = UriUtils.encode(SamlConstants.SIGNATURE_ALG_RSA_SHA256, StandardCharsets.UTF_8.name());
 
                 String signedInfo = "SAMLRequest=" + encodedSamlRequest + "&RelayState=" + encodedRelayState
                         + "&SigAlg=" + encodedSigAlg;
                 String encodedSignature = UriUtils.encode(DecodeUtils.encode(signer.signExternal(signedInfo), false),
-                        "UTF-8");
+                        StandardCharsets.UTF_8.name());
 
                 result.setSignature(encodedSignature).setSerializedRequest(encodedSamlRequest)
                         .setRelayState(encodedRelayState).setSignatureAlgorithm(encodedSigAlg);
