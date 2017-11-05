@@ -50,7 +50,7 @@ public class AuthorizationCodeSuccessTest {
     @Test
     public void successfulCinematic() {
 
-        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2");
+        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2", false);
 
         requests.authorizeRequest();
 

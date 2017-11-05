@@ -63,7 +63,7 @@ public class AuthorizationCodeErrorTests {
     @Before
     public void setUp() {
 
-        requests = new OAuthRequests(port, restTemplate, "code", "test2");
+        requests = new OAuthRequests(port, restTemplate, "code", "test2", false);
 
         requests.authorizeRequest();
 

@@ -29,6 +29,8 @@ public class AuthorizationCode {
     private long expirationTime;
     private String scope;
     private String userId;
+    private String codeChallenge;
+    private String codeChallengeMethod;
 
     public String getCode() {
         return code;
@@ -81,6 +83,24 @@ public class AuthorizationCode {
 
     public AuthorizationCode setUserId(String userId) {
         this.userId = userId;
+        return this;
+    }
+
+    public String getCodeChallenge() {
+        return codeChallenge;
+    }
+
+    public AuthorizationCode setCodeChallenge(String codeChallenge) {
+        this.codeChallenge = codeChallenge;
+        return this;
+    }
+
+    public String getCodeChallengeMethod() {
+        return codeChallengeMethod;
+    }
+
+    public AuthorizationCode setCodeChallengeMethod(String codeChallengeMethod) {
+        this.codeChallengeMethod = codeChallengeMethod;
         return this;
     }
 }

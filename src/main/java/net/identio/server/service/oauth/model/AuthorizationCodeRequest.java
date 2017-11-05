@@ -24,8 +24,8 @@ package net.identio.server.service.oauth.model;
 public class AuthorizationCodeRequest {
 
     private String code;
-
     private String redirectUri;
+    private String codeVerifier;
 
     public String getCode() {
         return code;
@@ -42,6 +42,15 @@ public class AuthorizationCodeRequest {
 
     public AuthorizationCodeRequest setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+        return this;
+    }
+
+    public String getCodeVerifier() {
+        return codeVerifier;
+    }
+
+    public AuthorizationCodeRequest setCodeVerifier(String codeVerifier) {
+        this.codeVerifier = codeVerifier;
         return this;
     }
 }

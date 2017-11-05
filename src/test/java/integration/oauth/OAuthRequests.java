@@ -33,13 +33,17 @@ import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.oauth.model.AccessTokenResponse;
+import org.junit.Assert;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
 import java.io.FileInputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPublicKey;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -59,22 +63,45 @@ public class OAuthRequests {
     private String responseUrl;
     private String responseType;
     private String clientId;
+    private boolean enablePkce;
+    private String codeVerifier;
+
+
     public String authorizationCode;
     public String accessToken;
     public String refreshToken;
 
-    public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId) {
+    public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId, boolean enablePkce) {
         this.port = port;
         this.restTemplate = restTemplate;
         this.responseType = responseType;
         this.clientId = clientId;
+        this.enablePkce = enablePkce;
     }
 
     public void authorizeRequest() {
 
+        String url = "/oauth/authorize?client_id=" + this.clientId + "&redirect_uri=http://example.com/cb&response_type="
+                + this.responseType + "&scope=scope.test.1 scope.test.2&state=1234";
+
+        if (enablePkce) {
+
+            try {
+
+                this.codeVerifier = UUID.randomUUID().toString();
+
+                String challenge = Base64.getEncoder().encodeToString(
+                        MessageDigest.getInstance("SHA-256").digest(this.codeVerifier.getBytes(StandardCharsets.US_ASCII)));
+
+                url += "&code_challenge=" + challenge;
+
+            } catch (NoSuchAlgorithmException e) {
+                Assert.fail();
+            }
+        }
+
         ResponseEntity<String> initialRequestResponse = this.restTemplate.exchange(
-                "/oauth/authorize?client_id=" + this.clientId + "&redirect_uri=http://example.com/cb&response_type="
-                        + this.responseType + "&scope=scope.test.1 scope.test.2&state=1234",
+                url,
                 HttpMethod.GET,
                 new HttpEntity<>(null, new HttpHeaders()),
                 String.class);
@@ -224,6 +251,10 @@ public class OAuthRequests {
         payload.add("grant_type", "authorization_code");
         payload.add("code", this.authorizationCode);
         payload.add("redirect_uri", "http://example.com/cb");
+
+        if (this.enablePkce) {
+            payload.add("code_verifier", this.codeVerifier);
+        }
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64

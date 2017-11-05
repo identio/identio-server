@@ -153,7 +153,9 @@ public class OAuthResponseService {
                     .setRedirectUrl(requestParsingInfo.getResponseUrl())
                     .setExpirationTime(System.currentTimeMillis() / 1000 + CODE_DEFAULT_EXPIRATION_TIME)
                     .setScope(authorizationService.serializeScope(approvedScopes.values()))
-                    .setUserId(userSession.getUserId());
+                    .setUserId(userSession.getUserId())
+                    .setCodeChallenge(requestParsingInfo.getChallenge())
+                    .setCodeChallengeMethod(requestParsingInfo.getChallengeMethod());
 
             // Store code
             try {

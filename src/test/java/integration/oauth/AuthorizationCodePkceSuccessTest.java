@@ -22,24 +22,15 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.service.oauth.model.AccessTokenResponse;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -48,7 +39,7 @@ import static org.junit.Assert.assertNull;
         "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
 @ActiveProfiles(profiles = {"native"})
-public class RefreshTokenTests {
+public class AuthorizationCodePkceSuccessTest {
 
     @LocalServerPort
     private int port;
@@ -56,15 +47,10 @@ public class RefreshTokenTests {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private OAuthRequests requests;
+    @Test
+    public void successfulCinematic() {
 
-    private MultiValueMap<String, String> payload;
-    private HttpHeaders headers;
-
-    @Before
-    public void setUp() {
-
-        requests = new OAuthRequests(port, restTemplate, "code", "test3", false);
+        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2", true);
 
         requests.authorizeRequest();
 
@@ -76,39 +62,10 @@ public class RefreshTokenTests {
 
         requests.consent();
 
-    }
+        requests.accessTokenRequest();
 
-    @Test
-    public void clientWithoutRefreshAllowedGrant() {
+        requests.validateResponse();
 
-        initPayLoadAndHeaders();
-
-        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = sendTokenRequest();
-
-        assertEquals(HttpStatus.OK, accessTokenResponseEntity.getStatusCode());
-        assertNotNull(accessTokenResponseEntity.getBody().getAccessToken());
-        assertNull(accessTokenResponseEntity.getBody().getRefreshToken());
-    }
-
-    private ResponseEntity<AccessTokenResponse> sendTokenRequest() {
-
-        return restTemplate.exchange(
-                "/oauth/token",
-                HttpMethod.POST,
-                new HttpEntity<>(payload, headers),
-                AccessTokenResponse.class);
-    }
-
-    private void initPayLoadAndHeaders() {
-
-        // Set up default payload and headers
-        payload = new LinkedMultiValueMap<>();
-        payload.add("grant_type", "authorization_code");
-        payload.add("code", requests.authorizationCode);
-        payload.add("redirect_uri", "http://example.com/cb");
-
-        headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDM6dGVzdDM="); // test3:test3 in base64
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        requests.refreshTokenRequest();
     }
 }

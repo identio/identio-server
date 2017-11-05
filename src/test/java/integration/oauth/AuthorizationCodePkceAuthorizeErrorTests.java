@@ -22,7 +22,9 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.service.oauth.model.AccessTokenResponse;
+import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
+import net.identio.server.service.oauth.model.OAuthErrors;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,9 +39,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
+import java.util.UUID;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -48,7 +56,7 @@ import static org.junit.Assert.assertNull;
         "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
 @ActiveProfiles(profiles = {"native"})
-public class RefreshTokenTests {
+public class AuthorizationCodePkceAuthorizeErrorTests {
 
     @LocalServerPort
     private int port;
@@ -61,54 +69,20 @@ public class RefreshTokenTests {
     private MultiValueMap<String, String> payload;
     private HttpHeaders headers;
 
-    @Before
-    public void setUp() {
-
-        requests = new OAuthRequests(port, restTemplate, "code", "test3", false);
-
-        requests.authorizeRequest();
-
-        requests.getAuthMethods();
-
-        requests.authenticateLocal();
-
-        requests.getConsentContext();
-
-        requests.consent();
-
-    }
-
     @Test
-    public void clientWithoutRefreshAllowedGrant() {
+    public void missingCodeChallenge() {
 
-        initPayLoadAndHeaders();
+        String url = "/oauth/authorize?client_id=test4&redirect_uri=http://example.com/cb&response_type=code"
+                + "&scope=scope.test.1 scope.test.2&state=1234";
 
-        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = sendTokenRequest();
+        ResponseEntity<String> response = this.restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                new HttpEntity<>(null, new HttpHeaders()),
+                String.class);
 
-        assertEquals(HttpStatus.OK, accessTokenResponseEntity.getStatusCode());
-        assertNotNull(accessTokenResponseEntity.getBody().getAccessToken());
-        assertNull(accessTokenResponseEntity.getBody().getRefreshToken());
-    }
-
-    private ResponseEntity<AccessTokenResponse> sendTokenRequest() {
-
-        return restTemplate.exchange(
-                "/oauth/token",
-                HttpMethod.POST,
-                new HttpEntity<>(payload, headers),
-                AccessTokenResponse.class);
-    }
-
-    private void initPayLoadAndHeaders() {
-
-        // Set up default payload and headers
-        payload = new LinkedMultiValueMap<>();
-        payload.add("grant_type", "authorization_code");
-        payload.add("code", requests.authorizationCode);
-        payload.add("redirect_uri", "http://example.com/cb");
-
-        headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDM6dGVzdDM="); // test3:test3 in base64
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        assertEquals(HttpStatus.FOUND, response.getStatusCode());
+        assertEquals("http://example.com/cb#error=invalid_request&state=1234",
+                response.getHeaders().getFirst(HttpHeaders.LOCATION));
     }
 }

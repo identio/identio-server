@@ -32,6 +32,7 @@ public class OAuthClient {
     private List<String> allowedGrants;
     private boolean consentNeeded;
     private String resourceOwnerAuthMethod;
+    private boolean forcePkce;
 
     public String getName() {
         return name;
@@ -95,5 +96,13 @@ public class OAuthClient {
 
     public void setResourceOwnerAuthMethod(String resourceOwnerAuthMethod) {
         this.resourceOwnerAuthMethod = resourceOwnerAuthMethod;
+    }
+
+    public boolean isForcePkce() {
+        return forcePkce;
+    }
+
+    public void setForcePkce(boolean forcePkce) {
+        this.forcePkce = forcePkce;
     }
 }

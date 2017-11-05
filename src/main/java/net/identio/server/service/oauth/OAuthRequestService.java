@@ -94,8 +94,14 @@ public class OAuthRequestService {
             return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.UNAUTHORIZED_CLIENT).setResponseUrl(redirectUri);
         }
 
+        // Validate PKCE code challenge
+        if (!checkCodeChallengeMethod(request.getCodeChallenge(), request.getCodeChallengeMethod(), client)) {
+            return result.setStatus(RequestParsingStatus.RESPONSE_ERROR).setErrorStatus(OAuthErrors.INVALID_REQUEST).setResponseUrl(redirectUri);
+        }
+
         result.setStatus(RequestParsingStatus.OK).setSourceApplication(client.getClientId()).setResponseUrl(redirectUri)
-                .setRequestedScopes(scopes).setResponseType(request.getResponseType()).setConsentNeeded(client.isConsentNeeded());
+                .setRequestedScopes(scopes).setResponseType(request.getResponseType()).setConsentNeeded(client.isConsentNeeded())
+                .setChallenge(request.getCodeChallenge());
 
         return result;
     }
@@ -137,6 +143,21 @@ public class OAuthRequestService {
                 LOG.error("Client not authorized to use the requested scope");
                 return false;
             }
+        }
+
+        return true;
+    }
+
+    private boolean checkCodeChallengeMethod(String codeChallenge, String codeChallengeMethod, OAuthClient client) {
+
+        if (codeChallengeMethod != null && !"S256".equals(codeChallengeMethod)) {
+            LOG.error("Unsupported code challenge method: {}", codeChallengeMethod);
+            return false;
+        }
+
+        if (codeChallenge == null && client.isForcePkce()) {
+            LOG.error("A code verifier is mandatory for this client");
+            return false;
         }
 
         return true;

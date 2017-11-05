@@ -28,54 +28,69 @@ public class OAuthInboundRequest implements InboundRequest {
     private String redirectUri;
     private String scope;
     private String state;
-
-    public OAuthInboundRequest(String clientId, String responseType, String redirectUri, String scope,
-                               String state) {
-
-        this.clientId = clientId;
-        this.responseType = responseType;
-        this.redirectUri = redirectUri;
-        this.scope = scope;
-        this.state = state;
-    }
+    private String codeChallenge;
+    private String codeChallengeMethod;
 
     public String getClientId() {
         return clientId;
     }
 
-    public void setClientId(String clientId) {
+    public OAuthInboundRequest setClientId(String clientId) {
         this.clientId = clientId;
+        return this;
     }
 
     public String getResponseType() {
         return responseType;
     }
 
-    public void setResponseType(String responseType) {
+    public OAuthInboundRequest setResponseType(String responseType) {
         this.responseType = responseType;
+        return this;
     }
 
     public String getRedirectUri() {
         return redirectUri;
     }
 
-    public void setRedirectUri(String redirectUri) {
+    public OAuthInboundRequest setRedirectUri(String redirectUri) {
         this.redirectUri = redirectUri;
+        return this;
     }
 
     public String getScope() {
         return scope;
     }
 
-    public void setScope(String scope) {
+    public OAuthInboundRequest setScope(String scope) {
         this.scope = scope;
+        return this;
     }
 
     public String getState() {
         return state;
     }
 
-    public void setState(String state) {
+    public OAuthInboundRequest setState(String state) {
         this.state = state;
+        return this;
+    }
+
+    public String getCodeChallenge() {
+        return codeChallenge;
+    }
+
+    public OAuthInboundRequest setCodeChallenge(String codeChallenge) {
+        this.codeChallenge = codeChallenge;
+        return this;
+    }
+
+    public String getCodeChallengeMethod() {
+        return codeChallengeMethod;
+    }
+
+    public OAuthInboundRequest setCodeChallengeMethod(String codeChallengeMethod) {
+        this.codeChallengeMethod = codeChallengeMethod;
+        return this;
     }
 }

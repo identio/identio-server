@@ -37,6 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Optional;
 
@@ -101,6 +105,10 @@ public class AuthorizationCodeService {
                 !redirectUriMatchesInitialRequest(code, request.getRedirectUri()))
             return Result.fail(OAuthErrors.INVALID_GRANT);
 
+        // If a code challenge was submitted, check that the verifier is valid
+        if (!isCodeVerifierValid(request.getCodeVerifier(), code.getCodeChallenge(), code.getCodeChallengeMethod()))
+            return Result.fail(OAuthErrors.INVALID_GRANT);
+
         // Everything's ok, generate response
         LinkedHashMap<String, AuthorizationScope> scopes;
         try {
@@ -124,6 +132,42 @@ public class AuthorizationCodeService {
         }
 
         return Result.success(accessTokenResponse.get());
+    }
+
+    private boolean isCodeVerifierValid(String codeVerifier, String codeChallenge, String codeChallengeMethod) {
+
+        // If no challenge was present in the initial request, ignore the check
+        if (codeChallenge == null)
+            return true;
+
+        if (codeVerifier == null) {
+            LOG.error("Missing code verifier");
+            return false;
+        }
+
+        // Assume that the default code challenge is S256
+        if (codeChallengeMethod != null && !"S256".equals(codeChallengeMethod)) {
+            LOG.error("Unsupported code challenge method {}", codeChallengeMethod);
+            return false;
+        }
+
+        try {
+
+            String calculatedCodeChallenge = Base64.getEncoder().encodeToString(
+                    MessageDigest.getInstance("SHA-256").digest(codeVerifier.getBytes(StandardCharsets.US_ASCII)));
+
+            if (codeChallenge.equals(calculatedCodeChallenge)) {
+                return true;
+            } else {
+                LOG.error("Invalid code verifier");
+                return false;
+            }
+
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("Unable to compute SHA256 hash of the code_verifier {}", codeVerifier);
+        }
+
+        return false;
     }
 
     private boolean isRefreshTokenAuthorized(OAuthClient client) {

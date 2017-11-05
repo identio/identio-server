@@ -47,7 +47,7 @@ import static org.junit.Assert.assertEquals;
         "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
         "logging.config: src/test/resources/oauth-server-config/logback.xml"})
 @ActiveProfiles(profiles = {"native"})
-public class RefreshTokenErrorTests {
+public class AuthorizationCodePkceTokenErrorTests {
 
     @LocalServerPort
     private int port;
@@ -63,7 +63,7 @@ public class RefreshTokenErrorTests {
     @Before
     public void setUp() {
 
-        requests = new OAuthRequests(port, restTemplate, "code", "test2", false);
+        requests = new OAuthRequests(port, restTemplate, "code", "test4", true);
 
         requests.authorizeRequest();
 
@@ -75,78 +75,46 @@ public class RefreshTokenErrorTests {
 
         requests.consent();
 
-        requests.accessTokenRequest();
-
     }
 
     @Test
-    public void requestWithoutRefreshToken() {
+    public void missingCodeChallenge() {
 
         initPayLoadAndHeaders();
 
-        payload.remove("refresh_token");
+        payload.add("code_verifier", "invalid_code_verifier");
 
-        ResponseEntity<AccessTokenErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+        ResponseEntity<AccessTokenErrorResponse> accessTokenResponseEntity = sendTokenRequest();
 
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_REQUEST, refreshTokenResponse.getBody().getError());
+        assertEquals(HttpStatus.BAD_REQUEST, accessTokenResponseEntity.getStatusCode());
+        assertEquals(OAuthErrors.INVALID_GRANT, accessTokenResponseEntity.getBody().getError());
     }
 
     @Test
-    public void invalidRefreshToken() {
+    public void missingCodeVerifier() {
 
         initPayLoadAndHeaders();
 
-        payload.remove("refresh_token");
-        payload.add("refresh_token", "123456");
+        ResponseEntity<AccessTokenErrorResponse> accessTokenResponseEntity = sendTokenRequest();
 
-        ResponseEntity<AccessTokenErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
-
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_GRANT, refreshTokenResponse.getBody().getError());
+        assertEquals(HttpStatus.BAD_REQUEST, accessTokenResponseEntity.getStatusCode());
+        assertEquals(OAuthErrors.INVALID_GRANT, accessTokenResponseEntity.getBody().getError());
     }
 
     @Test
-    public void invalidScope() {
+    public void invalidCodeVerifier() {
 
         initPayLoadAndHeaders();
 
-        payload.add("scope", "scope.invalid");
+        payload.add("code_verifier", "invalid_code_verifier");
 
-        ResponseEntity<AccessTokenErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+        ResponseEntity<AccessTokenErrorResponse> accessTokenResponseEntity = sendTokenRequest();
 
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_SCOPE, refreshTokenResponse.getBody().getError());
+        assertEquals(HttpStatus.BAD_REQUEST, accessTokenResponseEntity.getStatusCode());
+        assertEquals(OAuthErrors.INVALID_GRANT, accessTokenResponseEntity.getBody().getError());
     }
 
-    @Test
-    public void notGrantedScope() {
-
-        initPayLoadAndHeaders();
-
-        payload.add("scope", "scope.test.2");
-
-        ResponseEntity<AccessTokenErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
-
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_SCOPE, refreshTokenResponse.getBody().getError());
-    }
-
-    @Test
-    public void useAnotherClientId() {
-
-        initPayLoadAndHeaders();
-
-        headers.remove("Authorization");
-        headers.add("Authorization", "Basic dGVzdDQ6dGVzdDQ="); // test4:test4
-
-        ResponseEntity<AccessTokenErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
-
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_GRANT, refreshTokenResponse.getBody().getError());
-    }
-
-    private ResponseEntity<AccessTokenErrorResponse> sendRefreshTokenRequest() {
+    private ResponseEntity<AccessTokenErrorResponse> sendTokenRequest() {
 
         return restTemplate.exchange(
                 "/oauth/token",
@@ -159,12 +127,12 @@ public class RefreshTokenErrorTests {
 
         // Set up default payload and headers
         payload = new LinkedMultiValueMap<>();
-        payload.add("grant_type", "refresh_token");
-        payload.add("refresh_token", requests.refreshToken);
+        payload.add("grant_type", "authorization_code");
+        payload.add("code", requests.authorizationCode);
+        payload.add("redirect_uri", "http://example.com/cb");
 
         headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test3:test3 in base64
+        headers.set("Authorization", "Basic dGVzdDQ6dGVzdDQ="); // test4:test4 in base64
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     }
-
 }

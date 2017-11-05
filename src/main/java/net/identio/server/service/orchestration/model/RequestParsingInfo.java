@@ -42,6 +42,8 @@ public class RequestParsingInfo {
     private LinkedHashMap<String, AuthorizationScope> requestedScopes;
     private String responseType;
     private boolean consentNeeded;
+    private String challenge;
+    private String challengeMethod;
 
     public RequestParsingStatus getStatus() {
         return status;
@@ -157,6 +159,24 @@ public class RequestParsingInfo {
 
     public RequestParsingInfo setConsentNeeded(boolean consentNeeded) {
         this.consentNeeded = consentNeeded;
+        return this;
+    }
+
+    public String getChallenge() {
+        return challenge;
+    }
+
+    public RequestParsingInfo setChallenge(String challenge) {
+        this.challenge = challenge;
+        return this;
+    }
+
+    public String getChallengeMethod() {
+        return challengeMethod;
+    }
+
+    public RequestParsingInfo setChallengeMethod(String challengeMethod) {
+        this.challengeMethod = challengeMethod;
         return this;
     }
 }

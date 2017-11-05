@@ -51,3 +51,4 @@ oAuthClients:
       - authorization_code
       - refresh_token
     consentNeeded: true
+    forcePkce: true

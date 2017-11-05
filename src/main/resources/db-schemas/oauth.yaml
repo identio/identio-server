@@ -42,6 +42,12 @@ databaseChangeLog:
                   type: varchar(100)
                   constraints:
                     nullable: false
+              - column:
+                  name: code_challenge
+                  type: varchar(128)
+              - column:
+                  name: code_challenge_method
+                  type: varchar(10)
         - createIndex:
             indexName: idx_code
             tableName: authorization_code

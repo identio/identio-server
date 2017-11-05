@@ -50,7 +50,7 @@ public class ImplicitSuccessTest {
     @Test
     public void successfulCinematic() {
 
-        OAuthRequests requests = new OAuthRequests(port, restTemplate, "token", "test");
+        OAuthRequests requests = new OAuthRequests(port, restTemplate, "token", "test", false);
 
         requests.authorizeRequest();
 

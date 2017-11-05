@@ -51,8 +51,9 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
 
         try (Connection connection = this.ds.getConnection()) {
 
-            PreparedStatement creationStatement = connection.prepareStatement("INSERT INTO authorization_code (code, client_id, redirect_uri, expiration_time, scope, user_id) " +
-                    "VALUES (?, ?, ?, ?, ?, ?);");
+            PreparedStatement creationStatement = connection.prepareStatement("INSERT INTO authorization_code " +
+                    "(code, client_id, redirect_uri, expiration_time, scope, user_id, code_challenge, code_challenge_method) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?);");
 
             creationStatement.setString(1, code.getCode());
             creationStatement.setString(2, code.getClientId());
@@ -60,6 +61,8 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
             creationStatement.setLong(4, code.getExpirationTime());
             creationStatement.setString(5, code.getScope());
             creationStatement.setString(6, code.getUserId());
+            creationStatement.setString(7, code.getCodeChallenge());
+            creationStatement.setString(8, code.getCodeChallengeMethod());
 
             creationStatement.executeUpdate();
 
@@ -91,6 +94,8 @@ public class JdbcAuthorizationCodeRepository implements AuthorizationCodeReposit
                         .setExpirationTime(rs.getLong("expiration_time"))
                         .setScope(rs.getString("scope"))
                         .setUserId(rs.getString("user_id"))
+                        .setCodeChallenge(rs.getString("code_challenge"))
+                        .setCodeChallengeMethod(rs.getString("code_challenge_method"))
                 );
             }
 

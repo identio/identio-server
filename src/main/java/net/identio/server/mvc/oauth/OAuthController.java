@@ -78,6 +78,8 @@ public class OAuthController {
             @RequestParam(value = "redirect_uri", required = false) String redirectUri,
             @RequestParam(value = "scope", required = false) String scopes,
             @RequestParam(value = "state", required = false) String state,
+            @RequestParam(value = "code_challenge", required = false) String codeChallenge,
+            @RequestParam(value = "code_challenge_method", required = false) String codeChallengeMethod,
             @CookieValue(required = false) String identioSession,
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) throws ValidationException, ServerException, WebSecurityException {
@@ -85,7 +87,9 @@ public class OAuthController {
         LOG.info("Received OAuth authorization request from ClientId: {}", clientId);
         LOG.debug("RT: {} - RU: {} - SC: {} - ST: {}", responseType, redirectUri, scopes, state);
 
-        OAuthInboundRequest request = new OAuthInboundRequest(clientId, responseType, redirectUri, scopes, state);
+        OAuthInboundRequest request = new OAuthInboundRequest().setClientId(clientId).setResponseType(responseType)
+                .setRedirectUri(redirectUri).setScope(scopes).setState(state).setCodeChallenge(codeChallenge)
+                .setCodeChallengeMethod(codeChallengeMethod);
 
         RequestValidationResult result = validationService.validateRequest(request, identioSession);
 
@@ -163,11 +167,14 @@ public class OAuthController {
 
         Result<String> codeResult = getUniqueParam(allParams, "code");
         Result<String> redirectUriResult = getUniqueParam(allParams, "redirect_uri");
+        Result<String> codeVerifierResult = getUniqueParam(allParams, "code_verifier");
 
-        if (!redirectUriResult.isSuccess() || !codeResult.isSuccess()) return Result.fail(OAuthErrors.INVALID_REQUEST);
+        if (!redirectUriResult.isSuccess() || !codeResult.isSuccess() || !codeVerifierResult.isSuccess())
+            return Result.fail(OAuthErrors.INVALID_REQUEST);
 
         return authorizationCodeService.validateTokenRequest(
-                new AuthorizationCodeRequest().setCode(codeResult.get()).setRedirectUri(redirectUriResult.get()), authorization);
+                new AuthorizationCodeRequest().setCode(codeResult.get()).setRedirectUri(redirectUriResult.get())
+                .setCodeVerifier(codeVerifierResult.get()), authorization);
     }
 
     private Result<AccessTokenResponse> refreshTokenRequest(MultiValueMap<String, String> allParams, String authorization) {
@@ -200,11 +207,6 @@ public class OAuthController {
 
         if (!usernameResult.isSuccess() || !passwordResult.isSuccess() || !scopeResult.isSuccess())
             return Result.fail(OAuthErrors.INVALID_REQUEST);
-
-
-
-
-
 
         return resourceOwnerCredentialsService.validateResourceOwnerCredentialsRequest(
                 new ResourceOwnerCredentialsRequest().setUsername(usernameResult.get()).setPassword(passwordResult.get())
