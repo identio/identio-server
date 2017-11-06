@@ -130,7 +130,7 @@ public class BootConfiguration {
         System.setProperty("spring.cloud.config.server.git.uri", configOptions.get(GIT_CONFIG_OPTION));
         System.setProperty("spring.config.name", "identio-config");
 
-        if (configOptions.get(GIT_CONFIG_USERNAME_OPTION) != null) {
+        if (configOptions.get(GIT_CONFIG_USERNAME_OPTION) != null && configOptions.get(GIT_CONFIG_PASSWORD_OPTION) != null) {
             System.setProperty("spring.cloud.config.server.git.username", configOptions.get(GIT_CONFIG_USERNAME_OPTION));
             System.setProperty("spring.cloud.config.server.git.password", configOptions.get(GIT_CONFIG_PASSWORD_OPTION));
         }
@@ -140,7 +140,7 @@ public class BootConfiguration {
 
         System.setProperty("spring.cloud.config.uri", configOptions.get(CONFIG_SERVER_OPTION));
 
-        if (configOptions.get(CONFIG_SERVER_USERNAME_OPTION) != null) {
+        if (configOptions.get(CONFIG_SERVER_USERNAME_OPTION) != null && configOptions.get(CONFIG_SERVER_PASSWORD_OPTION) != null) {
             System.setProperty("spring.cloud.config.username", configOptions.get(CONFIG_SERVER_USERNAME_OPTION));
             System.setProperty("spring.cloud.config.password", configOptions.get(CONFIG_SERVER_PASSWORD_OPTION));
         }
