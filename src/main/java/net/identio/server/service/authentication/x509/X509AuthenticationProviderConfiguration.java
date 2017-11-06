@@ -51,14 +51,14 @@ public class X509AuthenticationProviderConfiguration implements InitializingBean
 
     /// Configuration mapping handled by Spring Cloud config
 
-    private List<X509AuthMethodConfiguration> x509AuthMethods = new ArrayList<>();
+    private List<X509AuthMethodConfiguration> x509 = new ArrayList<>();
 
-    public List<X509AuthMethodConfiguration> getX509AuthMethods() {
-        return x509AuthMethods;
+    public List<X509AuthMethodConfiguration> getX509() {
+        return x509;
     }
 
-    public void setX509AuthMethods(List<X509AuthMethodConfiguration> x509AuthMethods) {
-        this.x509AuthMethods = x509AuthMethods;
+    public void setX509(List<X509AuthMethodConfiguration> x509) {
+        this.x509 = x509;
     }
 
     public static class X509AuthMethodConfiguration {
@@ -193,7 +193,7 @@ public class X509AuthenticationProviderConfiguration implements InitializingBean
 
     private void indexAuthMethods() {
 
-        for (X509AuthMethodConfiguration config : x509AuthMethods) {
+        for (X509AuthMethodConfiguration config : x509) {
 
             X509AuthMethod authMethod = new X509AuthMethod();
 

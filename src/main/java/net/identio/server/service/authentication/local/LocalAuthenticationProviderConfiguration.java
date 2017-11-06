@@ -52,14 +52,14 @@ public class LocalAuthenticationProviderConfiguration implements InitializingBea
 
     /// Configuration mapping handled by Spring Cloud config
 
-    private List<LocalAuthenticationProviderConfiguration.LocalAuthMethodConfiguration> localAuthMethods = new ArrayList<>();
+    private List<LocalAuthenticationProviderConfiguration.LocalAuthMethodConfiguration> local = new ArrayList<>();
 
-    public List<LocalAuthMethodConfiguration> getLocalAuthMethods() {
-        return localAuthMethods;
+    public List<LocalAuthMethodConfiguration> getLocal() {
+        return local;
     }
 
-    public void setLocalAuthMethods(List<LocalAuthMethodConfiguration> localAuthMethods) {
-        this.localAuthMethods = localAuthMethods;
+    public void setLocal(List<LocalAuthMethodConfiguration> local) {
+        this.local = local;
     }
 
     public static class LocalAuthMethodConfiguration {
@@ -114,7 +114,7 @@ public class LocalAuthenticationProviderConfiguration implements InitializingBea
     private void indexAuthMethods() {
 
 
-        for (LocalAuthMethodConfiguration config : localAuthMethods) {
+        for (LocalAuthMethodConfiguration config : local) {
 
             LocalAuthMethod authMethod = new LocalAuthMethod();
 

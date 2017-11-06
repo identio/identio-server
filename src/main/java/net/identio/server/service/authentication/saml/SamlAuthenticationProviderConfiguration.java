@@ -52,14 +52,14 @@ public class SamlAuthenticationProviderConfiguration implements InitializingBean
 
     /// Configuration mapping handled by Spring Cloud config
 
-    private List<SamlAuthMethodConfiguration> samlAuthMethods = new ArrayList<>();
+    private List<SamlAuthMethodConfiguration> saml = new ArrayList<>();
 
-    public List<SamlAuthMethodConfiguration> getSamlAuthMethods() {
-        return samlAuthMethods;
+    public List<SamlAuthMethodConfiguration> getSaml() {
+        return saml;
     }
 
-    public void setSamlAuthMethods(List<SamlAuthMethodConfiguration> samlAuthMethods) {
-        this.samlAuthMethods = samlAuthMethods;
+    public void setSaml(List<SamlAuthMethodConfiguration> saml) {
+        this.saml = saml;
     }
 
     public static class SamlAuthMethodConfiguration {
@@ -144,7 +144,7 @@ public class SamlAuthenticationProviderConfiguration implements InitializingBean
 
     private void indexAuthMethods() {
 
-        for (SamlAuthMethodConfiguration config : samlAuthMethods) {
+        for (SamlAuthMethodConfiguration config : saml) {
 
             SamlAuthMethod authMethod = new SamlAuthMethod();
 

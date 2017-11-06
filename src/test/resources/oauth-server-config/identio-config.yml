@@ -56,7 +56,7 @@ session:
   duration: 120
   
 authMethods:
-  localAuthMethods:
+  local:
   - name: Local
     authLevel: medium
     userFilePath: src/test/resources/oauth-server-config/users.yml

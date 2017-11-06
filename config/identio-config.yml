@@ -28,6 +28,6 @@ session:
   duration: 120
   
 authMethods:
-  localAuthMethods:
+  local:
   - name: Local
     authLevel: medium

@@ -51,14 +51,14 @@ public class LdapAuthenticationProviderConfiguration implements InitializingBean
 
     /// Configuration mapping handled by Spring Cloud config
 
-    private List<LdapAuthenticationProviderConfiguration.LdapAuthMethodConfiguration> ldapAuthMethods = new ArrayList<>();
+    private List<LdapAuthenticationProviderConfiguration.LdapAuthMethodConfiguration> ldap = new ArrayList<>();
 
-    public List<LdapAuthMethodConfiguration> getLdapAuthMethods() {
-        return ldapAuthMethods;
+    public List<LdapAuthMethodConfiguration> getLdap() {
+        return ldap;
     }
 
-    public void setLdapAuthMethods(List<LdapAuthMethodConfiguration> ldapAuthMethods) {
-        this.ldapAuthMethods = ldapAuthMethods;
+    public void setLdap(List<LdapAuthMethodConfiguration> ldap) {
+        this.ldap = ldap;
     }
 
     public static class LdapAuthMethodConfiguration {
@@ -243,7 +243,7 @@ public class LdapAuthenticationProviderConfiguration implements InitializingBean
 
     private void indexAuthMethods(){
 
-        for (LdapAuthMethodConfiguration config : ldapAuthMethods) {
+        for (LdapAuthMethodConfiguration config : ldap) {
 
             LdapAuthMethod authMethod = new LdapAuthMethod();
 

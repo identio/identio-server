@@ -53,14 +53,14 @@ public class RadiusAuthenticationProviderConfiguration implements InitializingBe
 
     /// Configuration mapping handled by Spring Cloud config
 
-    private List<RadiusAuthenticationProviderConfiguration.RadiusAuthMethodConfiguration> radiusAuthMethods = new ArrayList<>();
+    private List<RadiusAuthenticationProviderConfiguration.RadiusAuthMethodConfiguration> radius = new ArrayList<>();
 
-    public List<RadiusAuthMethodConfiguration> getRadiusAuthMethods() {
-        return radiusAuthMethods;
+    public List<RadiusAuthMethodConfiguration> getRadius() {
+        return radius;
     }
 
-    public void setRadiusAuthMethods(List<RadiusAuthMethodConfiguration> radiusAuthMethods) {
-        this.radiusAuthMethods = radiusAuthMethods;
+    public void setRadius(List<RadiusAuthMethodConfiguration> radius) {
+        this.radius = radius;
     }
 
     public static class RadiusAuthMethodConfiguration {
@@ -150,7 +150,7 @@ public class RadiusAuthenticationProviderConfiguration implements InitializingBe
 
     private void indexAuthMethods() {
 
-        for (RadiusAuthMethodConfiguration config : radiusAuthMethods) {
+        for (RadiusAuthMethodConfiguration config : radius) {
 
             RadiusAuthMethod authMethod = new RadiusAuthMethod();
 
