@@ -32,6 +32,7 @@ public class OAuthConfiguration {
 
     private String actorsFile;
     private String dataSource;
+    private boolean jwtToken;
 
     public String getActorsFile() {
         return actorsFile;
@@ -49,7 +50,13 @@ public class OAuthConfiguration {
         this.dataSource = dataSource;
     }
 
+    public boolean isJwtToken() {
+        return jwtToken;
+    }
+
+    public void setJwtToken(boolean jwtToken) {
+        this.jwtToken = jwtToken;
+    }
+
     // End: Configuration mapping handled by Spring Cloud config
-
-
 }

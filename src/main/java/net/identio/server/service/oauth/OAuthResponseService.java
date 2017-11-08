@@ -66,6 +66,9 @@ public class OAuthResponseService {
     private GlobalConfiguration globalConfiguration;
 
     @Autowired
+    private OAuthConfiguration oAuthConfiguration;
+
+    @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
 
     @Autowired
@@ -272,17 +275,22 @@ public class OAuthResponseService {
                 .setIssuedAt(epoch)
                 .setNotBefore(epoch)
                 .setJwtId(jwtId)
-                .setSubject(userId)
-                .setValue(JWT.create()
-                        .withIssuer(globalConfiguration.getBasePublicUrl())
-                        .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
-                        .withIssuedAt(Date.from(now))
-                        .withSubject(userId)
-                        .withNotBefore(Date.from(now))
-                        .withJWTId(jwtId)
-                        .withClaim("scope", serializedScopes)
-                        .withClaim("client_id", sourceApplication)
-                        .sign(Algorithm.RSA256(publicKey, signingKey)));
+                .setSubject(userId);
+
+        if (oAuthConfiguration.isJwtToken()) {
+            accessToken.setValue(JWT.create()
+                    .withIssuer(globalConfiguration.getBasePublicUrl())
+                    .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
+                    .withIssuedAt(Date.from(now))
+                    .withSubject(userId)
+                    .withNotBefore(Date.from(now))
+                    .withJWTId(jwtId)
+                    .withClaim("scope", serializedScopes)
+                    .withClaim("client_id", sourceApplication)
+                    .sign(Algorithm.RSA256(publicKey, signingKey)));
+        } else {
+            accessToken.setValue(SecurityUtils.generateSecureIdentifier(TOKEN_LENGTH));
+        }
 
         try {
             tokenRepository.save(accessToken);

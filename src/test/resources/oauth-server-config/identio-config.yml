@@ -40,6 +40,7 @@ authorization:
 oAuthServer:
   actorsFile: src/test/resources/oauth-server-config/oauth-actors.yml
   dataSource: Local
+  jwtToken: true
 
 samlIdp:
   allowUnsecureRequests: true
