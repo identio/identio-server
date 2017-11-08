@@ -103,15 +103,15 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
     }
 
     @Bean
-    public RefreshTokenRepository getRefreshTokenRepository() {
+    public TokenRepository getRefreshTokenRepository() {
         AutowireCapableBeanFactory factory = context.getAutowireCapableBeanFactory();
 
         switch (this.dsType) {
 
             case JDBC:
-                return factory.createBean(JdbcRefreshTokenRepository.class);
+                return factory.createBean(JdbcTokenRepository.class);
             default:
-                return factory.createBean(InMemoryRefreshTokenRepository.class);
+                return factory.createBean(InMemoryTokenRepository.class);
         }
     }
 

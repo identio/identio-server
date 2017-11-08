@@ -25,13 +25,13 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.transaction.model.TransactionData;
+import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
-import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 public class TransactionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(TransactionService.class);
+    private static final int TRANSACTION_IDENTIFIER_LENGTH = 100;
 
     private LoadingCache<String, TransactionData> transactionCache;
 
@@ -57,7 +58,7 @@ public class TransactionService {
 
         LOG.debug("Generating new transaction datas");
 
-        String transactionId = UUID.randomUUID().toString();
+        String transactionId = SecurityUtils.generateSecureIdentifier(TRANSACTION_IDENTIFIER_LENGTH);
 
         TransactionData data = new TransactionData();
         data.setTransactionId(transactionId);

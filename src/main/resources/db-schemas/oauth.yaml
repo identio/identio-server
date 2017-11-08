@@ -16,7 +16,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: code
-                  type: varchar(50)
+                  type: varchar(200)
                   constraints:
                     nullable: false
               - column:
@@ -57,7 +57,7 @@ databaseChangeLog:
                   type: varchar(50)
 
         - createTable:
-            tableName: refresh_token
+            tableName: tokens
             columns:
               - column:
                   name: id
@@ -67,8 +67,23 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: refresh_token
-                  type: varchar(50)
+                  name: hash
+                  type: varchar(64)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: varchar(2000)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: type
+                  type: varchar(20)
                   constraints:
                     nullable: false
               - column:
@@ -77,24 +92,38 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: expires_in
-                  type: int
-                  constraints:
-                    nullable: false
+                  name: expiration
+                  type: bigint
+              - column:
+                  name: issued_at
+                  type: bigint
+              - column:
+                  name: not_before
+                  type: bigint
               - column:
                   name: scope
                   type: varchar(200)
                   constraints:
                     nullable: false
               - column:
-                  name: user_id
+                  name: username
                   type: varchar(100)
-                  constraints:
-                    nullable: false
+              - column:
+                  name: subject
+                  type: varchar(100)
+              - column:
+                  name: audience
+                  type: varchar(100)
+              - column:
+                  name: issuer
+                  type: varchar(100)
+              - column:
+                  name: jwt_id
+                  type: varchar(100)
         - createIndex:
-            indexName: idx_refresh_token
-            tableName: refresh_token
+            indexName: idx_hash_token
+            tableName: tokens
             columns:
               - column:
-                  name: refresh_token
-                  type: varchar(50)
+                  name: hash
+                  type: varchar(64)

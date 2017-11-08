@@ -25,11 +25,22 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 public class SecurityUtils {
+
+    public static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    public static final String LOWERCASE = UPPERCASE.toLowerCase();
+
+    public static final String DIGITS = "0123456789";
+
+    public static final char[] ALPHANUM = (UPPERCASE + LOWERCASE + DIGITS).toCharArray();
+
+    private static final SecureRandom random = new SecureRandom();
 
     public static String escapeDN(String name) {
         StringBuilder sb = new StringBuilder();
@@ -120,9 +131,15 @@ public class SecurityUtils {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
             return (X509Certificate) cf.generateCertificate(bis);
-
         }
-
     }
 
+    public static String generateSecureIdentifier(int length) {
+
+        char[] buf = new char[length];
+
+        for (int idx = 0; idx < buf.length; ++idx)
+            buf[idx] = ALPHANUM[random.nextInt(ALPHANUM.length)];
+        return new String(buf);
+    }
 }

@@ -22,9 +22,8 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
+import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
 import net.identio.server.service.oauth.model.OAuthErrors;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +65,7 @@ public class ClientCredentialsErrorTests {
         headers.remove("Authorization");
         headers.add("Authorization", "Basic dGVzdDI6dGVzdA==");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendClientCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendClientCredentialsRequest();
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_CLIENT, response.getBody().getError());
@@ -80,7 +79,7 @@ public class ClientCredentialsErrorTests {
         headers.remove("Authorization");
         headers.add("Authorization", "Basic dGVzdDM6dGVzdDM=");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendClientCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendClientCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.UNAUTHORIZED_CLIENT, response.getBody().getError());
@@ -93,19 +92,19 @@ public class ClientCredentialsErrorTests {
 
         payload.add("scope", "scope.test.3");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendClientCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendClientCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_SCOPE, response.getBody().getError());
     }
 
-    private ResponseEntity<AccessTokenErrorResponse> sendClientCredentialsRequest() {
+    private ResponseEntity<OAuthApiErrorResponse> sendClientCredentialsRequest() {
 
         return restTemplate.exchange(
                 "/oauth/token",
                 HttpMethod.POST,
                 new HttpEntity<>(payload, headers),
-                AccessTokenErrorResponse.class);
+                OAuthApiErrorResponse.class);
     }
 
     private void initPayLoadAndHeaders() {

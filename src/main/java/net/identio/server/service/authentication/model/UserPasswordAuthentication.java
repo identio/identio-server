@@ -41,23 +41,24 @@ public class UserPasswordAuthentication implements Authentication {
         return userId;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public UserPasswordAuthentication setUserId(String userId) {
+        this.userId = userId;return this;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public UserPasswordAuthentication setPassword(String password) {
+        this.password = password;return this;
     }
 
     public String getChallengeResponse() {
         return challengeResponse;
     }
 
-    public void setChallengeResponse(String challengeResponse) {
+    public UserPasswordAuthentication setChallengeResponse(String challengeResponse) {
         this.challengeResponse = challengeResponse;
+        return this;
     }
 }

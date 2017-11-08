@@ -27,7 +27,7 @@ import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
-import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
+import net.identio.server.service.oauth.infrastructure.OAuthActorsRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeDeleteException;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.*;
@@ -50,7 +50,7 @@ public class AuthorizationCodeService {
     private static final Logger LOG = LoggerFactory.getLogger(AuthorizationCodeService.class);
 
     @Autowired
-    private OAuthClientRepository clientRepository;
+    private OAuthActorsRepository actorsRepository;
 
     @Autowired
     private AuthorizationCodeRepository authorizationCodeRepository;
@@ -68,8 +68,8 @@ public class AuthorizationCodeService {
             return Result.fail(OAuthErrors.INVALID_REQUEST);
 
         // Fetch and verify client identity
-        OAuthClient client;
-        Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
+        Client client;
+        Result<Client> oAuthClientResult = actorsRepository.getClientFromAuthorization(authorization);
 
         if (oAuthClientResult.isSuccess()) {
             client = oAuthClientResult.get();
@@ -170,7 +170,7 @@ public class AuthorizationCodeService {
         return false;
     }
 
-    private boolean isRefreshTokenAuthorized(OAuthClient client) {
+    private boolean isRefreshTokenAuthorized(Client client) {
         return client.getAllowedGrants().contains(OAuthGrants.REFRESH_TOKEN);
     }
 
@@ -184,7 +184,7 @@ public class AuthorizationCodeService {
         return true;
     }
 
-    private boolean isCodeGeneratedForClient(AuthorizationCode authorizationCode, OAuthClient client) {
+    private boolean isCodeGeneratedForClient(AuthorizationCode authorizationCode, Client client) {
 
         if (!authorizationCode.getClientId().equals(client.getClientId())) {
             LOG.error("Authorization code wasn't generated for clientId {} but for {}", client.getClientId(), authorizationCode.getClientId());
@@ -204,7 +204,7 @@ public class AuthorizationCodeService {
         return true;
     }
 
-    private boolean isAuthorizationCodeGrantAuthorizedForClient(OAuthClient client) {
+    private boolean isAuthorizationCodeGrantAuthorizedForClient(Client client) {
 
         if (!client.getAllowedGrants().contains(OAuthGrants.AUTHORIZATION_CODE)) {
             LOG.error("Client not authorized to use the authorization code grant");

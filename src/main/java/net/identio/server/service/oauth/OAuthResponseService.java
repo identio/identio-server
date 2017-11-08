@@ -29,14 +29,15 @@ import net.identio.server.model.AuthorizationScope;
 import net.identio.server.model.Result;
 import net.identio.server.model.UserSession;
 import net.identio.server.service.authorization.AuthorizationService;
-import net.identio.server.service.oauth.infrastructure.RefreshTokenRepository;
+import net.identio.server.service.oauth.infrastructure.TokenRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
 import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
-import net.identio.server.service.oauth.infrastructure.exceptions.RefreshTokenCreationException;
+import net.identio.server.service.oauth.infrastructure.exceptions.TokenCreationException;
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.ResponseData;
+import net.identio.server.utils.SecurityUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,6 +58,7 @@ public class OAuthResponseService {
 
     private static final int AT_DEFAULT_EXPIRATION_TIME = 3600;
     private static final int CODE_DEFAULT_EXPIRATION_TIME = 60;
+    private static final int TOKEN_LENGTH = 100;
 
     private RSAPrivateKey signingKey;
     private RSAPublicKey publicKey;
@@ -67,7 +69,7 @@ public class OAuthResponseService {
     private AuthorizationCodeRepository authorizationCodeRepository;
 
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private TokenRepository tokenRepository;
 
     @Autowired
     private AuthorizationService authorizationService;
@@ -119,12 +121,18 @@ public class OAuthResponseService {
 
         if (requestParsingInfo.getResponseType().equals(OAuthResponseType.TOKEN)) {
 
-            AccessToken at = generateJwtAccessToken(approvedScopes.values(), requestParsingInfo.getSourceApplication(),
+            Result<OAuthToken> atResult = generateAccessToken(approvedScopes.values(), requestParsingInfo.getSourceApplication(),
                     userSession.getUserId());
+
+            if (!atResult.isSuccess()) {
+                throw new OAuthException("Error when generating JWT Access Token");
+            }
+
+            OAuthToken at = atResult.get();
 
             responseBuilder
                     .append("#expires_in=")
-                    .append(at.getExpiresIn())
+                    .append(at.getExpiration() - at.getIssuedAt())
                     .append("&token_type=")
                     .append(at.getType())
                     .append("&access_token=")
@@ -140,7 +148,7 @@ public class OAuthResponseService {
         if (requestParsingInfo.getResponseType().equals(OAuthResponseType.CODE)) {
 
             // Generate code
-            String codeValue = UUID.randomUUID().toString();
+            String codeValue = SecurityUtils.generateSecureIdentifier(TOKEN_LENGTH);
 
             responseBuilder.append("?code=").append(codeValue);
 
@@ -195,67 +203,94 @@ public class OAuthResponseService {
 
         AccessTokenResponse response = new AccessTokenResponse();
 
-        AccessToken at = generateJwtAccessToken(scopes, sourceApplication, userId);
+        Result<OAuthToken> atResult = generateAccessToken(scopes, sourceApplication, userId);
+
+        if (!atResult.isSuccess()) return Result.serverError();
+
+        OAuthToken at = atResult.get();
 
         response.setAccessToken(at.getValue())
-                .setExpiresIn(at.getExpiresIn())
+                .setExpiresIn(at.getExpiration() - at.getIssuedAt())
                 .setScope(at.getScope())
                 .setTokenType(at.getType());
 
         if (addRefreshToken) {
 
-            Result<String> rt = generateRefreshToken(at);
+            Result<String> rtResult = generateRefreshToken(at);
 
-            if (rt.isSuccess()) {
-                response.setRefreshToken(rt.get());
+            if (rtResult.isSuccess()) {
+                response.setRefreshToken(rtResult.get());
             } else {
                 return Result.serverError();
             }
         }
+
         return Result.success(response);
     }
 
-    private Result<String> generateRefreshToken(AccessToken at) {
+    private Result<String> generateRefreshToken(OAuthToken at) {
 
-        RefreshToken rt = new RefreshToken()
-                .setValue(UUID.randomUUID().toString())
+        OAuthToken refresh = new OAuthToken()
+                .setType(OAuthToken.REFRESH_TOKEN_TYPE)
+                .setValue(SecurityUtils.generateSecureIdentifier(TOKEN_LENGTH))
                 .setClientId(at.getClientId())
-                .setExpiresIn(at.getExpiresIn())
                 .setScope(at.getScope())
-                .setUserId(at.getUserId());
+                .setUsername(at.getUsername())
+                .setIssuedAt(at.getIssuedAt())
+                .setNotBefore(at.getNotBefore())
+                .setAudience(at.getAudience())
+                .setIssuer(at.getIssuer())
+                .setSubject(at.getSubject());
 
         try {
-            refreshTokenRepository.save(rt);
-        } catch (RefreshTokenCreationException e) {
+            tokenRepository.save(refresh);
+        } catch (TokenCreationException e) {
             return Result.serverError();
         }
 
-        return Result.success(rt.getValue());
+        return Result.success(refresh.getValue());
     }
 
-    private AccessToken generateJwtAccessToken(Collection<AuthorizationScope> scopes, String sourceApplication, String userId) {
+    private Result<OAuthToken> generateAccessToken(Collection<AuthorizationScope> scopes, String sourceApplication, String userId) {
 
         int expirationTime = getMinExpirationTime(scopes);
 
         String serializedScopes = authorizationService.serializeScope(scopes);
 
         Instant now = Instant.now();
+        long epoch = now.toEpochMilli() / 1000;
 
-        return new AccessToken()
-                .setExpiresIn(expirationTime)
-                .setType("Bearer")
+        String jwtId = UUID.randomUUID().toString();
+
+        OAuthToken accessToken = new OAuthToken()
+                .setType(OAuthToken.BEARER_TOKEN_TYPE)
+                .setIssuer(globalConfiguration.getBasePublicUrl())
                 .setScope(serializedScopes)
-                .setClientId(sourceApplication).setUserId(userId)
+                .setExpiration(epoch + expirationTime)
+                .setClientId(sourceApplication)
+                .setUsername(userId)
+                .setIssuedAt(epoch)
+                .setNotBefore(epoch)
+                .setJwtId(jwtId)
+                .setSubject(userId)
                 .setValue(JWT.create()
                         .withIssuer(globalConfiguration.getBasePublicUrl())
                         .withExpiresAt(Date.from(now.plusSeconds(expirationTime)))
                         .withIssuedAt(Date.from(now))
                         .withSubject(userId)
-                        .withJWTId(UUID.randomUUID().toString())
+                        .withNotBefore(Date.from(now))
+                        .withJWTId(jwtId)
                         .withClaim("scope", serializedScopes)
                         .withClaim("client_id", sourceApplication)
                         .sign(Algorithm.RSA256(publicKey, signingKey)));
 
+        try {
+            tokenRepository.save(accessToken);
+        } catch (TokenCreationException e) {
+            return Result.serverError();
+        }
+
+        return Result.success(accessToken);
     }
 
     private int getMinExpirationTime(Collection<AuthorizationScope> scopes) {

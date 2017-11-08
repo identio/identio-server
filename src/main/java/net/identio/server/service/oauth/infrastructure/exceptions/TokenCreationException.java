@@ -19,37 +19,13 @@
  *
  */
 
-package net.identio.server.service.oauth;
+package net.identio.server.service.oauth.infrastructure.exceptions;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import java.sql.SQLException;
 
-@Configuration
-@ConfigurationProperties(prefix = "oAuthServer")
-public class OAuthConfiguration {
+public class TokenCreationException extends Exception {
 
-    // Configuration mapping handled by Spring Cloud config
-
-    private String actorsFile;
-    private String dataSource;
-
-    public String getActorsFile() {
-        return actorsFile;
+    public TokenCreationException(Exception e) {
+        super(e);
     }
-
-    public void setActorsFile(String actorsFile) {
-        this.actorsFile = actorsFile;
-    }
-
-    public String getDataSource() {
-        return dataSource;
-    }
-
-    public void setDataSource(String dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    // End: Configuration mapping handled by Spring Cloud config
-
-
 }

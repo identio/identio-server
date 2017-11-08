@@ -22,8 +22,7 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
-import net.identio.server.service.oauth.model.OAuthErrors;
+import net.identio.server.service.oauth.model.OAuthToken;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +46,7 @@ import static org.junit.Assert.assertEquals;
         "spring.cloud.config.server.native.searchLocations: file:src/test/resources/oauth-server-config",
         "logging.config: src/test/resources/oauth-server-config/logback.xml", "spring.cloud.vault.enabled: false"})
 @ActiveProfiles(profiles = {"native"})
-public class RefreshTokenErrorTests {
+public class IntrospectionSuccessTest {
 
     @LocalServerPort
     private int port;
@@ -63,7 +62,7 @@ public class RefreshTokenErrorTests {
     @Before
     public void setUp() {
 
-        requests = new OAuthRequests(port, restTemplate, "code", "test2", "test2", false);
+        requests = new OAuthRequests(port, restTemplate, "code", "test4", "test4", true);
 
         requests.authorizeRequest();
 
@@ -76,95 +75,106 @@ public class RefreshTokenErrorTests {
         requests.consent();
 
         requests.accessTokenRequest();
-
     }
 
     @Test
-    public void requestWithoutRefreshToken() {
+    public void validateAccessTokenWithoutHint() {
 
         initPayLoadAndHeaders();
 
-        payload.remove("refresh_token");
+        payload.add("token", requests.accessToken);
 
-        ResponseEntity<OAuthApiErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+        ResponseEntity<OAuthToken> introspectResponseEntity = sendIntrospectRequest();
 
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_REQUEST, refreshTokenResponse.getBody().getError());
+        OAuthToken token = introspectResponseEntity.getBody();
+
+        assertEquals(HttpStatus.OK, introspectResponseEntity.getStatusCode());
+        assertEquals("test4", token.getClientId());
+        assertEquals("scope.test.1", token.getScope());
+        assertEquals("johndoe", token.getUsername());
+        assertEquals("johndoe", token.getSubject());
+        assertEquals("https://localhost", token.getIssuer());
+        assertEquals(true, token.isActive());
     }
 
     @Test
-    public void invalidRefreshToken() {
+    public void validateRefreshTokenWithoutHint() {
 
         initPayLoadAndHeaders();
 
-        payload.remove("refresh_token");
-        payload.add("refresh_token", "123456");
+        payload.add("token", requests.refreshToken);
 
-        ResponseEntity<OAuthApiErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+        ResponseEntity<OAuthToken> introspectResponseEntity = sendIntrospectRequest();
 
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_GRANT, refreshTokenResponse.getBody().getError());
+        OAuthToken token = introspectResponseEntity.getBody();
+
+        assertEquals(HttpStatus.OK, introspectResponseEntity.getStatusCode());
+        assertEquals("test4", token.getClientId());
+        assertEquals("scope.test.1", token.getScope());
+        assertEquals("johndoe", token.getUsername());
+        assertEquals("johndoe", token.getSubject());
+        assertEquals("https://localhost", token.getIssuer());
+        assertEquals(true, token.isActive());
     }
 
     @Test
-    public void invalidScope() {
+    public void validateAccessTokenWithHint() {
 
         initPayLoadAndHeaders();
 
-        payload.add("scope", "scope.invalid");
+        payload.add("token", requests.accessToken);
+        payload.add("token_type_hint", "access_token");
 
-        ResponseEntity<OAuthApiErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+        ResponseEntity<OAuthToken> introspectResponseEntity = sendIntrospectRequest();
 
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_SCOPE, refreshTokenResponse.getBody().getError());
+        OAuthToken token = introspectResponseEntity.getBody();
+
+        assertEquals(HttpStatus.OK, introspectResponseEntity.getStatusCode());
+        assertEquals("test4", token.getClientId());
+        assertEquals("scope.test.1", token.getScope());
+        assertEquals("johndoe", token.getUsername());
+        assertEquals("johndoe", token.getSubject());
+        assertEquals("https://localhost", token.getIssuer());
+        assertEquals(true, token.isActive());
     }
 
     @Test
-    public void notGrantedScope() {
+    public void validateRefreshTokenWithHint() {
 
         initPayLoadAndHeaders();
 
-        payload.add("scope", "scope.test.2");
+        payload.add("token", requests.refreshToken);
+        payload.add("token_type_hint", "refresh_token");
 
-        ResponseEntity<OAuthApiErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
+        ResponseEntity<OAuthToken> introspectResponseEntity = sendIntrospectRequest();
 
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_SCOPE, refreshTokenResponse.getBody().getError());
+        OAuthToken token = introspectResponseEntity.getBody();
+
+        assertEquals(HttpStatus.OK, introspectResponseEntity.getStatusCode());
+        assertEquals("test4", token.getClientId());
+        assertEquals("scope.test.1", token.getScope());
+        assertEquals("johndoe", token.getUsername());
+        assertEquals("johndoe", token.getSubject());
+        assertEquals("https://localhost", token.getIssuer());
+        assertEquals(true, token.isActive());
     }
 
-    @Test
-    public void useAnotherClientId() {
-
-        initPayLoadAndHeaders();
-
-        headers.remove("Authorization");
-        headers.add("Authorization", "Basic dGVzdDQ6dGVzdDQ="); // test4:test4
-
-        ResponseEntity<OAuthApiErrorResponse> refreshTokenResponse = sendRefreshTokenRequest();
-
-        assertEquals(HttpStatus.BAD_REQUEST, refreshTokenResponse.getStatusCode());
-        assertEquals(OAuthErrors.INVALID_GRANT, refreshTokenResponse.getBody().getError());
-    }
-
-    private ResponseEntity<OAuthApiErrorResponse> sendRefreshTokenRequest() {
+    private ResponseEntity<OAuthToken> sendIntrospectRequest() {
 
         return restTemplate.exchange(
-                "/oauth/token",
+                "/oauth/introspect",
                 HttpMethod.POST,
                 new HttpEntity<>(payload, headers),
-                OAuthApiErrorResponse.class);
+                OAuthToken.class);
     }
 
     private void initPayLoadAndHeaders() {
 
         // Set up default payload and headers
         payload = new LinkedMultiValueMap<>();
-        payload.add("grant_type", "refresh_token");
-        payload.add("refresh_token", requests.refreshToken);
 
         headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test3:test3 in base64
+        headers.set("Authorization", "Basic cnMxOnJzMQ=="); // rs1:rs1 in base64
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
     }
-
 }

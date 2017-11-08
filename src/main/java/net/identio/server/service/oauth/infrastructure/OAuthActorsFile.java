@@ -19,13 +19,31 @@
  *
  */
 
-package net.identio.server.service.oauth.infrastructure.exceptions;
+package net.identio.server.service.oauth.infrastructure;
 
-import java.sql.SQLException;
+import net.identio.server.service.oauth.model.Client;
+import net.identio.server.service.oauth.model.ResourceServer;
 
-public class RefreshTokenDeleteException extends Exception {
+import java.util.List;
 
-    public RefreshTokenDeleteException(SQLException e) {
-        super(e);
+public class OAuthActorsFile {
+
+    private List<Client> clients;
+    private List<ResourceServer> resourceServers;
+
+    public List<Client> getClients() {
+        return clients;
+    }
+
+    public void setClients(List<Client> clients) {
+        this.clients = clients;
+    }
+
+    public List<ResourceServer> getResourceServers() {
+        return resourceServers;
+    }
+
+    public void setResourceServers(List<ResourceServer> resourceServers) {
+        this.resourceServers = resourceServers;
     }
 }

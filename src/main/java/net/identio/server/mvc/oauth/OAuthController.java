@@ -21,7 +21,7 @@
 package net.identio.server.mvc.oauth;
 
 import net.identio.server.model.Result;
-import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
+import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
 import net.identio.server.service.oauth.AuthorizationCodeService;
 import net.identio.server.service.oauth.ClientCredentialsService;
 import net.identio.server.service.oauth.RefreshTokenService;
@@ -140,23 +140,23 @@ public class OAuthController {
 
             default:
                 return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(OAuthErrors.UNSUPPORTED_GRANT_TYPE),
+                        new OAuthApiErrorResponse().setError(OAuthErrors.UNSUPPORTED_GRANT_TYPE),
                         HttpStatus.BAD_REQUEST);
         }
 
         switch (result.getResultStatus()) {
             case FAIL:
                 return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        new OAuthApiErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.BAD_REQUEST);
             default:
             case SERVER_ERROR:
                 return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        new OAuthApiErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.INTERNAL_SERVER_ERROR);
             case UNAUTHORIZED:
                 return new ResponseEntity<>(
-                        new AccessTokenErrorResponse().setError(result.getErrorStatus()),
+                        new OAuthApiErrorResponse().setError(result.getErrorStatus()),
                         HttpStatus.UNAUTHORIZED);
             case OK:
                 return new ResponseEntity<>(result.get(), HttpStatus.OK);
@@ -214,9 +214,9 @@ public class OAuthController {
     }
 
 
-    private ResponseEntity<AccessTokenErrorResponse> badRequest() {
+    private ResponseEntity<OAuthApiErrorResponse> badRequest() {
         return new ResponseEntity<>(
-                new AccessTokenErrorResponse().setError(OAuthErrors.INVALID_REQUEST),
+                new OAuthApiErrorResponse().setError(OAuthErrors.INVALID_REQUEST),
                 HttpStatus.BAD_REQUEST);
     }
 

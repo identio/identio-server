@@ -21,16 +21,15 @@
 
 package net.identio.server.service.oauth.infrastructure;
 
-import net.identio.server.service.oauth.infrastructure.exceptions.*;
-import net.identio.server.service.oauth.model.RefreshToken;
+import net.identio.server.model.Result;
+import net.identio.server.service.oauth.model.Client;
+import net.identio.server.service.oauth.model.ResourceServer;
 
-import java.util.Optional;
+public interface OAuthActorsRepository {
 
-public interface RefreshTokenRepository {
+    Client getClientbyId(String cliendId);
 
-    void save(RefreshToken rt) throws RefreshTokenCreationException;
+    Result<Client> getClientFromAuthorization(String authorization);
 
-    Optional<RefreshToken> getAccessTokenByRefreshTokenValue(String refreshTokenValue) throws RefreshTokenFetchException;
-
-    void delete(String refreshTokenValue) throws RefreshTokenDeleteException;
+    Result<ResourceServer> getResourceServerFromAuthorization(String authorization);
 }

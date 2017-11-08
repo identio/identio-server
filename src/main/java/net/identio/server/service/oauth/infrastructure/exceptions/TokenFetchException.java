@@ -23,9 +23,9 @@ package net.identio.server.service.oauth.infrastructure.exceptions;
 
 import java.sql.SQLException;
 
-public class RefreshTokenFetchException extends Exception {
+public class TokenFetchException extends Exception {
 
-    public RefreshTokenFetchException(SQLException e) {
+    public TokenFetchException(Exception e) {
         super(e);
     }
 }

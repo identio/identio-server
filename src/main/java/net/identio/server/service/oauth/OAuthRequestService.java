@@ -24,7 +24,7 @@ import net.identio.server.model.*;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
+import net.identio.server.service.oauth.infrastructure.OAuthActorsRepository;
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.RequestParsingStatus;
@@ -41,7 +41,7 @@ public class OAuthRequestService {
     private static final Logger LOG = LoggerFactory.getLogger(OAuthRequestService.class);
 
     @Autowired
-    private OAuthClientRepository clientRepository;
+    private OAuthActorsRepository actorsRepository;
 
     @Autowired
     private AuthorizationService authorizationService;
@@ -58,7 +58,7 @@ public class OAuthRequestService {
         }
 
         // Fetch client
-        OAuthClient client = clientRepository.getOAuthClientbyId(request.getClientId());
+        Client client = actorsRepository.getClientbyId(request.getClientId());
         if (client == null) {
             return result.setStatus(RequestParsingStatus.FATAL_ERROR).setErrorStatus(OAuthErrors.UNKNOWN_CLIENT);
         }
@@ -117,7 +117,7 @@ public class OAuthRequestService {
         return true;
     }
 
-    private boolean checkRedirectUri(OAuthClient client, String redirectUri) {
+    private boolean checkRedirectUri(Client client, String redirectUri) {
 
         if (!client.getResponseUri().contains(redirectUri)) {
             LOG.error("Unknown redirectUri: {}", redirectUri);
@@ -127,7 +127,7 @@ public class OAuthRequestService {
         return true;
     }
 
-    private boolean checkClientAuthorization(OAuthClient client, String responseType, Collection<AuthorizationScope> requestedScopes) {
+    private boolean checkClientAuthorization(Client client, String responseType, Collection<AuthorizationScope> requestedScopes) {
 
         if (responseType.equals(OAuthResponseType.TOKEN) && !client.getAllowedGrants().contains(OAuthGrants.TOKEN)
                 || responseType.equals(OAuthResponseType.CODE)
@@ -148,7 +148,7 @@ public class OAuthRequestService {
         return true;
     }
 
-    private boolean checkCodeChallengeMethod(String codeChallenge, String codeChallengeMethod, OAuthClient client) {
+    private boolean checkCodeChallengeMethod(String codeChallenge, String codeChallengeMethod, Client client) {
 
         if (codeChallengeMethod != null && !"S256".equals(codeChallengeMethod)) {
             LOG.error("Unsupported code challenge method: {}", codeChallengeMethod);

@@ -50,7 +50,7 @@ public class AuthorizationCodePkceSuccessTest {
     @Test
     public void successfulCinematic() {
 
-        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2", true);
+        OAuthRequests requests = new OAuthRequests(port, restTemplate, "code", "test2", "test2", true);
 
         requests.authorizeRequest();
 

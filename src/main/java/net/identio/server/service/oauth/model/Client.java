@@ -22,7 +22,7 @@ package net.identio.server.service.oauth.model;
 
 import java.util.List;
 
-public class OAuthClient {
+public class Client {
 
     private String name;
     private String clientId;

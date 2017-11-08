@@ -33,6 +33,7 @@ import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.oauth.model.AccessTokenResponse;
+import net.identio.server.service.oauth.model.OAuthToken;
 import org.junit.Assert;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
@@ -65,18 +66,21 @@ public class OAuthRequests {
     private String clientId;
     private boolean enablePkce;
     private String codeVerifier;
-
+    private String authorizationHeader;
 
     public String authorizationCode;
     public String accessToken;
     public String refreshToken;
 
-    public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId, boolean enablePkce) {
+    public OAuthRequests(int port, TestRestTemplate restTemplate, String responseType, String clientId, String clientSecret,
+                         boolean enablePkce) {
         this.port = port;
         this.restTemplate = restTemplate;
         this.responseType = responseType;
         this.clientId = clientId;
         this.enablePkce = enablePkce;
+        this.authorizationHeader = "Basic " +
+                Base64.getEncoder().encodeToString((clientId + ":" + clientSecret).getBytes());
     }
 
     public void authorizeRequest() {
@@ -257,7 +261,7 @@ public class OAuthRequests {
         }
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
+        headers.set("Authorization", this.authorizationHeader); // test2:test2 in base64
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = this.restTemplate.exchange(
@@ -286,7 +290,7 @@ public class OAuthRequests {
         payload.add("refresh_token", this.refreshToken);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
+        headers.set("Authorization", this.authorizationHeader); // test2:test2 in base64
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = this.restTemplate.exchange(
@@ -307,6 +311,35 @@ public class OAuthRequests {
         assertEquals("scope.test.1", accessTokenResponse.getScope());
 
         this.accessToken = accessToken;
+    }
+
+    public void introspectionRequest() {
+
+        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
+
+        payload.add("token", this.accessToken);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Basic cnMxOnJzMQ=="); // rs1:rs1 in base64
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        ResponseEntity<OAuthToken> introspectionResponseEntity = this.restTemplate.exchange(
+                "/oauth/introspect",
+                HttpMethod.POST,
+                new HttpEntity<>(payload, headers),
+                OAuthToken.class);
+
+        OAuthToken introspectionResponse = introspectionResponseEntity.getBody();
+
+        assertEquals(HttpStatus.OK, introspectionResponseEntity.getStatusCode());
+        assertNotNull(introspectionResponse);
+
+        assertEquals("test", introspectionResponse.getClientId());
+        assertEquals("scope.test.1", introspectionResponse.getScope());
+        assertEquals("johndoe", introspectionResponse.getUsername());
+        assertEquals("johndoe", introspectionResponse.getSubject());
+        assertEquals("https://localhost", introspectionResponse.getIssuer());
+        assertEquals(true, introspectionResponse.isActive());
     }
 
     private String getUrlWithPort(String url) {

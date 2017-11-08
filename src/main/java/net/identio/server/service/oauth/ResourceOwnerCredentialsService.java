@@ -31,7 +31,7 @@ import net.identio.server.service.authentication.model.UserPasswordAuthenticatio
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
+import net.identio.server.service.oauth.infrastructure.OAuthActorsRepository;
 import net.identio.server.service.oauth.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +47,7 @@ public class ResourceOwnerCredentialsService {
     private static final Logger LOG = LoggerFactory.getLogger(ResourceOwnerCredentialsService.class);
 
     @Autowired
-    private OAuthClientRepository clientRepository;
+    private OAuthActorsRepository actorsRepository;
 
     @Autowired
     private AuthorizationService authorizationService;
@@ -66,8 +66,8 @@ public class ResourceOwnerCredentialsService {
             return Result.fail(OAuthErrors.INVALID_REQUEST);
 
         // Fetch and verify client identity
-        OAuthClient client;
-        Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
+        Client client;
+        Result<Client> oAuthClientResult = actorsRepository.getClientFromAuthorization(authorization);
 
         if (oAuthClientResult.isSuccess()) {
             client = oAuthClientResult.get();
@@ -124,7 +124,7 @@ public class ResourceOwnerCredentialsService {
         return true;
     }
 
-    private boolean isResourceOwnerCredentialsGrantAuthorizedForClient(OAuthClient client) {
+    private boolean isResourceOwnerCredentialsGrantAuthorizedForClient(Client client) {
 
         if (!client.getAllowedGrants().contains(OAuthGrants.PASSWORD)) {
             LOG.error("Client not authorized to use the password grant");

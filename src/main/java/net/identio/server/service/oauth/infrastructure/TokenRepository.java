@@ -21,20 +21,17 @@
 
 package net.identio.server.service.oauth.infrastructure;
 
-import net.identio.server.service.oauth.model.OAuthClient;
+import net.identio.server.service.oauth.infrastructure.exceptions.*;
+import net.identio.server.service.oauth.model.OAuthToken;
 
-import java.util.List;
+import java.util.Optional;
 
-public class OAuthClientFile {
+public interface TokenRepository {
 
-    private List<OAuthClient> oAuthClients;
+    void save(OAuthToken token) throws TokenCreationException;
 
-    public List<OAuthClient> getoAuthClients() {
-        return oAuthClients;
-    }
+    Optional<OAuthToken> getTokenByValue(String tokenValue, String type) throws TokenFetchException;
+    Optional<OAuthToken> getTokenByValue(String tokenValue) throws TokenFetchException;
 
-    public void setoAuthClients(List<OAuthClient> oAuthClients) {
-        this.oAuthClients = oAuthClients;
-    }
-
+    void delete(String tokenValue) throws TokenDeleteException;
 }

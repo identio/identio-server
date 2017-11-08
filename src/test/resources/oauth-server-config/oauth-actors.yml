@@ -1,4 +1,4 @@
-oAuthClients:
+clients:
   - name: Test Client
     clientId: test
     clientSecret: test
@@ -52,3 +52,8 @@ oAuthClients:
       - refresh_token
     consentNeeded: true
     forcePkce: true
+
+resourceServers:
+  - name: Test API
+    clientId: rs1
+    clientSecret: rs1

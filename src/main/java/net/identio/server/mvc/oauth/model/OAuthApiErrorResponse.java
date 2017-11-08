@@ -19,14 +19,18 @@
  *
  */
 
-package net.identio.server.service.oauth.infrastructure;
+package net.identio.server.mvc.oauth.model;
 
-import net.identio.server.model.Result;
-import net.identio.server.service.oauth.model.OAuthClient;
+public class OAuthApiErrorResponse {
 
-public interface OAuthClientRepository {
+    private String error;
 
-    OAuthClient getOAuthClientbyId(String cliendId);
+    public String getError() {
+        return error;
+    }
 
-    Result<OAuthClient> getClientFromAuthorization(String authorization);
+    public OAuthApiErrorResponse setError(String error) {
+        this.error = error;
+        return this;
+    }
 }

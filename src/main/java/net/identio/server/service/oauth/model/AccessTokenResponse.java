@@ -25,7 +25,7 @@ public class AccessTokenResponse {
 
     private String accessToken;
     private String tokenType;
-    private int expiresIn;
+    private long expiresIn;
     private String refreshToken;
     private String scope;
 
@@ -47,11 +47,11 @@ public class AccessTokenResponse {
         return this;
     }
 
-    public int getExpiresIn() {
+    public long getExpiresIn() {
         return expiresIn;
     }
 
-    public AccessTokenResponse setExpiresIn(int expiresIn) {
+    public AccessTokenResponse setExpiresIn(long expiresIn) {
         this.expiresIn = expiresIn;
         return this;
     }

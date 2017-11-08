@@ -26,9 +26,9 @@ import net.identio.server.model.Result;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
-import net.identio.server.service.oauth.infrastructure.RefreshTokenRepository;
-import net.identio.server.service.oauth.infrastructure.exceptions.RefreshTokenFetchException;
+import net.identio.server.service.oauth.infrastructure.OAuthActorsRepository;
+import net.identio.server.service.oauth.infrastructure.TokenRepository;
+import net.identio.server.service.oauth.infrastructure.exceptions.TokenFetchException;
 import net.identio.server.service.oauth.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +44,10 @@ public class RefreshTokenService {
     private static final Logger LOG = LoggerFactory.getLogger(RefreshTokenService.class);
 
     @Autowired
-    private OAuthClientRepository clientRepository;
+    private OAuthActorsRepository actorsRepository;
 
     @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
+    private TokenRepository tokenRepository;
 
     @Autowired
     private OAuthResponseService oAuthResponseService;
@@ -62,8 +62,8 @@ public class RefreshTokenService {
             return Result.fail(OAuthErrors.INVALID_REQUEST);
 
         // Fetch and verify client identity
-        OAuthClient client;
-        Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
+        Client client;
+        Result<Client> oAuthClientResult = actorsRepository.getClientFromAuthorization(authorization);
 
         if (oAuthClientResult.isSuccess()) {
             client = oAuthClientResult.get();
@@ -76,9 +76,9 @@ public class RefreshTokenService {
             return Result.fail(OAuthErrors.UNAUTHORIZED_CLIENT);
 
         // Fetch the refresh token code data
-        RefreshToken refreshToken;
+        OAuthToken refreshToken;
         try {
-            Optional<RefreshToken> result = refreshTokenRepository.getAccessTokenByRefreshTokenValue(request.getRefreshToken());
+            Optional<OAuthToken> result = tokenRepository.getTokenByValue(request.getRefreshToken(), OAuthToken.REFRESH_TOKEN_TYPE);
 
             if (!result.isPresent()) {
                 LOG.error("Unknown refresh token");
@@ -87,7 +87,7 @@ public class RefreshTokenService {
 
             refreshToken = result.get();
 
-        } catch (RefreshTokenFetchException e) {
+        } catch (TokenFetchException e) {
             return Result.serverError();
         }
 
@@ -104,7 +104,7 @@ public class RefreshTokenService {
 
         // Everything's ok, generate response
         Result<AccessTokenResponse> accessTokenResponse = oAuthResponseService.generateTokenResponse(scopeResult.get().values(),
-                refreshToken.getClientId(), refreshToken.getUserId(), false);
+                refreshToken.getClientId(), refreshToken.getUsername(), false);
 
         if (!accessTokenResponse.isSuccess())
             return Result.serverError();
@@ -140,7 +140,7 @@ public class RefreshTokenService {
         }
     }
 
-    private boolean isRefreshTokenGeneratedForClient(RefreshToken refreshToken, OAuthClient client) {
+    private boolean isRefreshTokenGeneratedForClient(OAuthToken refreshToken, Client client) {
 
         if (!refreshToken.getClientId().equals(client.getClientId())) {
             LOG.error("Refresh token wasn't generated for clientId {} but for {}", client.getClientId(), refreshToken.getClientId());
@@ -150,7 +150,7 @@ public class RefreshTokenService {
         return true;
     }
 
-    private boolean isRefreshTokenGrantAuthorizedForClient(OAuthClient client) {
+    private boolean isRefreshTokenGrantAuthorizedForClient(Client client) {
 
         if (!client.getAllowedGrants().contains(OAuthGrants.REFRESH_TOKEN)) {
             LOG.error("Client not authorized to use the authorization code grant");

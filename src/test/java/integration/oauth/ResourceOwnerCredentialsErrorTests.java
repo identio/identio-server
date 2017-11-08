@@ -22,7 +22,7 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
+import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
 import net.identio.server.service.oauth.model.OAuthErrors;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,7 +64,7 @@ public class ResourceOwnerCredentialsErrorTests {
 
         payload.remove("username");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendResourceOwnerCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendResourceOwnerCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_REQUEST, response.getBody().getError());
@@ -77,7 +77,7 @@ public class ResourceOwnerCredentialsErrorTests {
 
         payload.remove("password");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendResourceOwnerCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendResourceOwnerCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_REQUEST, response.getBody().getError());
@@ -91,7 +91,7 @@ public class ResourceOwnerCredentialsErrorTests {
         payload.remove("password");
         payload.add("password", "wrong");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendResourceOwnerCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendResourceOwnerCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_GRANT, response.getBody().getError());
@@ -105,7 +105,7 @@ public class ResourceOwnerCredentialsErrorTests {
         headers.remove("Authorization");
         headers.add("Authorization", "Basic dGVzdDM6dGVzdDM="); // test3:test3
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendResourceOwnerCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendResourceOwnerCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.UNAUTHORIZED_CLIENT, response.getBody().getError());
@@ -119,7 +119,7 @@ public class ResourceOwnerCredentialsErrorTests {
         headers.remove("Authorization");
         headers.add("Authorization", "Basic dGVzdD\\6dGVzdDM="); // test2:test3
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendResourceOwnerCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendResourceOwnerCredentialsRequest();
 
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_CLIENT, response.getBody().getError());
@@ -132,7 +132,7 @@ public class ResourceOwnerCredentialsErrorTests {
 
         payload.add("scope", "scope.test.3");
 
-        ResponseEntity<AccessTokenErrorResponse> response = sendResourceOwnerCredentialsRequest();
+        ResponseEntity<OAuthApiErrorResponse> response = sendResourceOwnerCredentialsRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         assertEquals(OAuthErrors.INVALID_SCOPE, response.getBody().getError());
@@ -140,13 +140,13 @@ public class ResourceOwnerCredentialsErrorTests {
     }
 
 
-    private ResponseEntity<AccessTokenErrorResponse> sendResourceOwnerCredentialsRequest() {
+    private ResponseEntity<OAuthApiErrorResponse> sendResourceOwnerCredentialsRequest() {
 
         return restTemplate.exchange(
                 "/oauth/token",
                 HttpMethod.POST,
                 new HttpEntity<>(payload, headers),
-                AccessTokenErrorResponse.class);
+                OAuthApiErrorResponse.class);
     }
 
     private void initPayLoadAndHeaders() {

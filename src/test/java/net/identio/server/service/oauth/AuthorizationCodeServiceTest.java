@@ -23,7 +23,7 @@ package net.identio.server.service.oauth;
 
 import net.identio.server.model.Result;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
-import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
+import net.identio.server.service.oauth.infrastructure.OAuthActorsRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeFetchException;
 import net.identio.server.service.oauth.model.*;
 import org.junit.Test;
@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 public class AuthorizationCodeServiceTest {
 
     @Mock
-    private OAuthClientRepository clientRepository;
+    private OAuthActorsRepository clientRepository;
 
     @Mock
     private AuthorizationCodeRepository authorizationCodeRepository;
@@ -57,7 +57,7 @@ public class AuthorizationCodeServiceTest {
         AuthorizationCodeRequest request = new AuthorizationCodeRequest()
                 .setCode("1234").setRedirectUri("http://example.com/cb");
 
-        OAuthClient client = new OAuthClient();
+        Client client = new Client();
         client.setClientId("test");
         client.setAllowedGrants(Collections.singletonList("implicit"));
         client.setClientSecret("test");
@@ -77,7 +77,7 @@ public class AuthorizationCodeServiceTest {
         AuthorizationCodeRequest request = new AuthorizationCodeRequest()
                 .setCode("1234").setRedirectUri("http://example.com/cb");
 
-        OAuthClient client = new OAuthClient();
+        Client client = new Client();
         client.setClientId("test");
         client.setAllowedGrants(Collections.singletonList("authorization_code"));
         client.setClientSecret("test");

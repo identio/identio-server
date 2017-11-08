@@ -64,7 +64,7 @@ public class RefreshTokenTests {
     @Before
     public void setUp() {
 
-        requests = new OAuthRequests(port, restTemplate, "code", "test3", false);
+        requests = new OAuthRequests(port, restTemplate, "code", "test3", "test3", false);
 
         requests.authorizeRequest();
 

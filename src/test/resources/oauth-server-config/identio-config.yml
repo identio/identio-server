@@ -38,7 +38,7 @@ authorization:
       expirationTime: 3600
 
 oAuthServer:
-  clientFile: src/test/resources/oauth-server-config/oauth-clients.yml
+  actorsFile: src/test/resources/oauth-server-config/oauth-actors.yml
   dataSource: Local
 
 samlIdp:

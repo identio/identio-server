@@ -24,6 +24,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import net.identio.server.model.UserSession;
+import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,7 @@ import java.util.concurrent.TimeUnit;
 public class UserSessionService {
 
     private static final Logger LOG = LoggerFactory.getLogger(UserSessionService.class);
+    private static final int SESSION_IDENTIFIER_LENGTH = 100;
 
     private LoadingCache<String, UserSession> sessionCache;
 
@@ -63,7 +65,7 @@ public class UserSessionService {
     public UserSession createUserSession() {
         LOG.debug("Creating new session");
 
-        String sessionId = UUID.randomUUID().toString();
+        String sessionId = SecurityUtils.generateSecureIdentifier(SESSION_IDENTIFIER_LENGTH);
 
         UserSession session = new UserSession();
         session.setId(sessionId);

@@ -18,19 +18,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+package net.identio.server.service.oauth.model;
 
-package net.identio.server.mvc.oauth.model;
+public class ResourceServer {
 
-public class AccessTokenErrorResponse {
+    private String name;
+    private String clientId;
+    private String clientSecret;
 
-    private String error;
-
-    public String getError() {
-        return error;
+    public String getName() {
+        return name;
     }
 
-    public AccessTokenErrorResponse setError(String error) {
-        this.error = error;
-        return this;
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
     }
 }

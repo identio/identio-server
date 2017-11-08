@@ -26,7 +26,7 @@ import net.identio.server.model.Result;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.oauth.infrastructure.OAuthClientRepository;
+import net.identio.server.service.oauth.infrastructure.OAuthActorsRepository;
 import net.identio.server.service.oauth.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +42,7 @@ public class ClientCredentialsService {
     private static final Logger LOG = LoggerFactory.getLogger(ClientCredentialsService.class);
 
     @Autowired
-    private OAuthClientRepository clientRepository;
+    private OAuthActorsRepository actorsRepository;
 
     @Autowired
     private OAuthResponseService oAuthResponseService;
@@ -54,8 +54,8 @@ public class ClientCredentialsService {
             ClientCredentialsRequest request, String authorization) {
 
         // Fetch and verify client identity
-        OAuthClient client;
-        Result<OAuthClient> oAuthClientResult = clientRepository.getClientFromAuthorization(authorization);
+        Client client;
+        Result<Client> oAuthClientResult = actorsRepository.getClientFromAuthorization(authorization);
 
         if (oAuthClientResult.isSuccess()) {
             client = oAuthClientResult.get();
@@ -112,7 +112,7 @@ public class ClientCredentialsService {
         }
     }
 
-    private boolean isClientCredentialsGrantAuthorizedForClient(OAuthClient client) {
+    private boolean isClientCredentialsGrantAuthorizedForClient(Client client) {
 
         if (!client.getAllowedGrants().contains(OAuthGrants.CLIENT_CREDENTIALS)) {
             LOG.error("Client not authorized to use the client credentials grant");

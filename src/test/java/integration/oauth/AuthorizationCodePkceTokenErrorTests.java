@@ -22,7 +22,7 @@
 package integration.oauth;
 
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.mvc.oauth.model.AccessTokenErrorResponse;
+import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
 import net.identio.server.service.oauth.model.OAuthErrors;
 import org.junit.Before;
 import org.junit.Test;
@@ -63,7 +63,7 @@ public class AuthorizationCodePkceTokenErrorTests {
     @Before
     public void setUp() {
 
-        requests = new OAuthRequests(port, restTemplate, "code", "test4", true);
+        requests = new OAuthRequests(port, restTemplate, "code", "test4", "test4", true);
 
         requests.authorizeRequest();
 
@@ -84,7 +84,7 @@ public class AuthorizationCodePkceTokenErrorTests {
 
         payload.add("code_verifier", "invalid_code_verifier");
 
-        ResponseEntity<AccessTokenErrorResponse> accessTokenResponseEntity = sendTokenRequest();
+        ResponseEntity<OAuthApiErrorResponse> accessTokenResponseEntity = sendTokenRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, accessTokenResponseEntity.getStatusCode());
         assertEquals(OAuthErrors.INVALID_GRANT, accessTokenResponseEntity.getBody().getError());
@@ -95,7 +95,7 @@ public class AuthorizationCodePkceTokenErrorTests {
 
         initPayLoadAndHeaders();
 
-        ResponseEntity<AccessTokenErrorResponse> accessTokenResponseEntity = sendTokenRequest();
+        ResponseEntity<OAuthApiErrorResponse> accessTokenResponseEntity = sendTokenRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, accessTokenResponseEntity.getStatusCode());
         assertEquals(OAuthErrors.INVALID_GRANT, accessTokenResponseEntity.getBody().getError());
@@ -108,19 +108,19 @@ public class AuthorizationCodePkceTokenErrorTests {
 
         payload.add("code_verifier", "invalid_code_verifier");
 
-        ResponseEntity<AccessTokenErrorResponse> accessTokenResponseEntity = sendTokenRequest();
+        ResponseEntity<OAuthApiErrorResponse> accessTokenResponseEntity = sendTokenRequest();
 
         assertEquals(HttpStatus.BAD_REQUEST, accessTokenResponseEntity.getStatusCode());
         assertEquals(OAuthErrors.INVALID_GRANT, accessTokenResponseEntity.getBody().getError());
     }
 
-    private ResponseEntity<AccessTokenErrorResponse> sendTokenRequest() {
+    private ResponseEntity<OAuthApiErrorResponse> sendTokenRequest() {
 
         return restTemplate.exchange(
                 "/oauth/token",
                 HttpMethod.POST,
                 new HttpEntity<>(payload, headers),
-                AccessTokenErrorResponse.class);
+                OAuthApiErrorResponse.class);
     }
 
     private void initPayLoadAndHeaders() {
