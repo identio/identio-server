@@ -135,8 +135,6 @@ public class BootConfiguration {
 
         application.setAdditionalProfiles("native");
 
-        Path configPath = Paths.get(configOptions.get(FILE_CONFIG_OPTION));
-
         System.setProperty("spring.cloud.config.server.bootstrap", "true");
 
         System.setProperty("spring.cloud.config.server.native.searchLocations", "file:" +

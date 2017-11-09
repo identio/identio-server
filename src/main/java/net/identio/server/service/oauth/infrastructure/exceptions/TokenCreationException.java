@@ -21,8 +21,6 @@
 
 package net.identio.server.service.oauth.infrastructure.exceptions;
 
-import java.sql.SQLException;
-
 public class TokenCreationException extends Exception {
 
     public TokenCreationException(Exception e) {
