@@ -42,7 +42,6 @@ public class GlobalConfiguration implements InitializingBean {
     private static final int DEFAULT_HTTPS_PORT = 10443;
     private static final String DEFAULT_KEYSTORE_PASSWORD = "password";
     private static final String DEFAULT_KEYSTORE_PATH = "config/default-sign-certificate.p12";
-    private static final String DEFAULT_WORK_DIRECTORY = "config/work";
     private static final String DEFAULT_STATIC_RESOURCE_PATH = "ui/";
 
     /// Configuration mapping handled by Spring Cloud config
@@ -54,7 +53,6 @@ public class GlobalConfiguration implements InitializingBean {
     private String sslKeystorePassword;
     private String signatureKeystorePath;
     private String signatureKeystorePassword;
-    private String workDirectory;
     private String staticResourcesPath;
 
     public String getBasePublicUrl() {
@@ -113,14 +111,6 @@ public class GlobalConfiguration implements InitializingBean {
         this.signatureKeystorePassword = nullIfEmpty(signatureKeystorePassword);
     }
 
-    public String getWorkDirectory() {
-        return workDirectory;
-    }
-
-    public void setWorkDirectory(String workDirectory) {
-        this.workDirectory = nullIfEmpty(workDirectory);
-    }
-
     public String getStaticResourcesPath() {
         return staticResourcesPath;
     }
@@ -151,8 +141,6 @@ public class GlobalConfiguration implements InitializingBean {
         signatureKeystorePassword = signatureKeystorePassword != null ? signatureKeystorePassword : DEFAULT_KEYSTORE_PASSWORD;
         signatureKeystorePath = signatureKeystorePath != null ? signatureKeystorePath : DEFAULT_KEYSTORE_PATH;
 
-        workDirectory = workDirectory != null ? workDirectory : DEFAULT_WORK_DIRECTORY;
-
         staticResourcesPath = staticResourcesPath != null ? staticResourcesPath : DEFAULT_STATIC_RESOURCE_PATH;
     }
 
@@ -169,10 +157,6 @@ public class GlobalConfiguration implements InitializingBean {
         if (!FileUtils.fileExists(signatureKeystorePath))
             IdentioServerApplication.quitOnConfigurationError(LOG,
                     "Global configuration error: Signature Keystore file " + sslKeystorePath + " doesn't exist");
-
-        if (!FileUtils.fileExists(workDirectory))
-            IdentioServerApplication.quitOnConfigurationError(LOG,
-                    "Global configuration error: Work directory " + workDirectory + " doesn't exist");
 
         if (!FileUtils.fileExists(staticResourcesPath))
             IdentioServerApplication.quitOnConfigurationError(LOG,

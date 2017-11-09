@@ -28,6 +28,7 @@ import org.apache.coyote.http11.AbstractHttp11Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
 import org.springframework.boot.context.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
@@ -36,6 +37,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -55,6 +58,9 @@ public class BootCustomizationBean {
 
     @Autowired
     private X509AuthenticationProvider x509AuthenticationProvider;
+
+    @Value("${identio.work.directory}")
+    private String workDirectory;
 
     @Bean
     public EmbeddedServletContainerFactory servletContainer() {
@@ -99,8 +105,12 @@ public class BootCustomizationBean {
         if (x509methods.size() > 0) {
 
             try (FileOutputStream fos = new FileOutputStream(
-                    config.getWorkDirectory()
-                            + "/identio-trust.jks")) {
+                    workDirectory + "/identio-trust.jks")) {
+
+                // Tomcat is finicky about the format of paths, and especially doesn't like '\' on windows
+                // So here comes this beautiful hack...
+                String trustPath = Paths.get(workDirectory + "/identio-trust.jks").toString()
+                        .replaceAll("\\\\", "/");
 
                 KeyStore ks = KeyStore.getInstance("JKS");
                 ks.load(null, null);
@@ -116,8 +126,7 @@ public class BootCustomizationBean {
 
                 connector.setAttribute("clientAuth", "want");
                 connector.setAttribute("truststoreFile",
-                        "file:///" + config.getWorkDirectory()
-                                + "/identio-trust.jks");
+                        "file:" + trustPath);
                 connector.setAttribute("truststorePass", trustPassword);
                 connector.setAttribute("truststoreType", "JKS");
 

@@ -44,15 +44,23 @@ public class BootConfiguration {
     private static final String VAULT_CONFIG_ROLE_ID_OPTION = "identio.config.vault.role-id";
     private static final String VAULT_CONFIG_SECRET_ID_OPTION = "identio.config.vault.secret-id";
 
+    private static final String WORK_DIRECTORY_OPTION = "identio.work.directory";
+
+    // Default values
+    private static final String DEFAULT_WORK_DIRECTORY = "config/work";
+    private static final String DEFAULT_STATIC_RESOURCES_CACHE_PERIOD = "500000";
 
     public static void setupDefaultConfigurationValue() {
 
         // Add a default cache period for static resources
-        System.setProperty("spring.resources.cache-period", "500000");
+        System.setProperty("spring.resources.cache-period", DEFAULT_STATIC_RESOURCES_CACHE_PERIOD);
 
         // By default, disable Vault integration as it will try to autoconnect to a potentially non-existent
         // Vault server
         System.setProperty("spring.cloud.vault.enabled", "false");
+
+        // Set application name
+        System.setProperty("spring.application.name", "identio");
     }
 
     public static void setupConfiguration(String[] args, SpringApplication application) {
@@ -61,6 +69,8 @@ public class BootConfiguration {
 
         // First we read the config options from the system env
         addConfigOptionsFromSysEnv(configOptions);
+
+        setupWorkDirectory(configOptions);
 
         if (args != null && args.length != 0)
             addConfigOptionsFromCmdLine(configOptions, args);
@@ -76,6 +86,15 @@ public class BootConfiguration {
 
         if (configOptions.containsKey(VAULT_CONFIG_OPTION))
             setupVaultConfiguration(configOptions);
+
+    }
+
+    private static void setupWorkDirectory(HashMap<String, String> configOptions) {
+
+        if (!configOptions.containsKey(WORK_DIRECTORY_OPTION)) {
+            configOptions.put(WORK_DIRECTORY_OPTION, DEFAULT_WORK_DIRECTORY);
+            System.setProperty(WORK_DIRECTORY_OPTION, DEFAULT_WORK_DIRECTORY);
+        }
     }
 
     private static void addConfigOptionsFromSysEnv(HashMap<String, String> configOptions) {
@@ -92,6 +111,7 @@ public class BootConfiguration {
 
         addOptionFromSysEnv(VAULT_CONFIG_OPTION, configOptions);
 
+        addOptionFromSysEnv(WORK_DIRECTORY_OPTION, configOptions);
     }
 
     private static void addOptionFromSysEnv(String optionName, HashMap<String, String> configOptions) {
@@ -118,22 +138,24 @@ public class BootConfiguration {
         Path configPath = Paths.get(configOptions.get(FILE_CONFIG_OPTION));
 
         System.setProperty("spring.cloud.config.server.bootstrap", "true");
-        System.setProperty("spring.config.name",
-                configPath.getFileName().toString().replaceAll(".yml", ""));
+
         System.setProperty("spring.cloud.config.server.native.searchLocations", "file:" +
-                configPath.getParent().toString());
+                configOptions.get(FILE_CONFIG_OPTION));
+
     }
 
     private static void setupGitConfiguration(HashMap<String, String> configOptions) {
 
         System.setProperty("spring.cloud.config.server.bootstrap", "true");
         System.setProperty("spring.cloud.config.server.git.uri", configOptions.get(GIT_CONFIG_OPTION));
-        System.setProperty("spring.config.name", "identio-config");
 
         if (configOptions.get(GIT_CONFIG_USERNAME_OPTION) != null && configOptions.get(GIT_CONFIG_PASSWORD_OPTION) != null) {
             System.setProperty("spring.cloud.config.server.git.username", configOptions.get(GIT_CONFIG_USERNAME_OPTION));
             System.setProperty("spring.cloud.config.server.git.password", configOptions.get(GIT_CONFIG_PASSWORD_OPTION));
         }
+
+        // Setup local path where the repository is cloned
+        System.setProperty("spring.cloud.config.server.git.basedir", configOptions.get(WORK_DIRECTORY_OPTION));
     }
 
     private static void setupConfigServerConfiguration(HashMap<String, String> configOptions) {
