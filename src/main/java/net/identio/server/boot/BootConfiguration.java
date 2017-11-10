@@ -24,8 +24,6 @@ package net.identio.server.boot;
 import org.springframework.boot.SpringApplication;
 
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 
 public class BootConfiguration {
@@ -43,6 +41,8 @@ public class BootConfiguration {
     private static final String VAULT_CONFIG_OPTION = "identio.config.vault.uri";
     private static final String VAULT_CONFIG_ROLE_ID_OPTION = "identio.config.vault.role-id";
     private static final String VAULT_CONFIG_SECRET_ID_OPTION = "identio.config.vault.secret-id";
+    private static final String VAULT_CONFIG_TRUST_PATH = "identio.config.vault.trust-store.path";
+    private static final String VAULT_CONFIG_TRUST_PASSWORD = "identio.config.vault.trust-store.password";
 
     private static final String WORK_DIRECTORY_OPTION = "identio.work.directory";
 
@@ -110,6 +110,10 @@ public class BootConfiguration {
         addOptionFromSysEnv(CONFIG_SERVER_PASSWORD_OPTION, configOptions);
 
         addOptionFromSysEnv(VAULT_CONFIG_OPTION, configOptions);
+        addOptionFromSysEnv(VAULT_CONFIG_ROLE_ID_OPTION, configOptions);
+        addOptionFromSysEnv(VAULT_CONFIG_SECRET_ID_OPTION, configOptions);
+        addOptionFromSysEnv(VAULT_CONFIG_TRUST_PATH, configOptions);
+        addOptionFromSysEnv(VAULT_CONFIG_TRUST_PASSWORD, configOptions);
 
         addOptionFromSysEnv(WORK_DIRECTORY_OPTION, configOptions);
     }
@@ -182,5 +186,10 @@ public class BootConfiguration {
         System.setProperty("spring.cloud.vault.authentication", "APPROLE");
         System.setProperty("spring.cloud.vault.app-role.role-id", configOptions.get(VAULT_CONFIG_ROLE_ID_OPTION));
         System.setProperty("spring.cloud.vault.app-role.secret-id", configOptions.get(VAULT_CONFIG_SECRET_ID_OPTION));
+
+        if ("https".equals(vaultUri.getScheme())) {
+            System.setProperty("spring.cloud.vault.ssl.trust-store", configOptions.get(VAULT_CONFIG_TRUST_PATH));
+            System.setProperty("spring.cloud.vault.ssl.trust-store-password", configOptions.get(VAULT_CONFIG_TRUST_PASSWORD));
+        }
     }
 }
