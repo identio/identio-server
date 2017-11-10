@@ -24,6 +24,7 @@ package net.identio.server.service.oauth.infrastructure;
 import liquibase.Contexts;
 import liquibase.LabelExpression;
 import liquibase.Liquibase;
+import liquibase.database.Database;
 import liquibase.database.DatabaseFactory;
 import liquibase.database.jvm.JdbcConnection;
 import liquibase.exception.LiquibaseException;
@@ -119,11 +120,17 @@ public class OAuthInfrastructureConfiguration implements InitializingBean {
 
         try (Connection connection = jdbcDataService.getDataSource(config.getDataSource()).getConnection()) {
 
+            // Find database and specify changelog tables in order to avoid destroying existing
+            // liquibase configuration
+            Database database = DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection));
+
+            database.setDatabaseChangeLogTableName("oauth_cl");
+            database.setDatabaseChangeLogLockTableName("oauth_cl_lock");
+
             Liquibase liquibase = new Liquibase("db-schemas/oauth.yaml",
                     new ClassLoaderResourceAccessor(),
-                    DatabaseFactory.getInstance().findCorrectDatabaseImplementation(new JdbcConnection(connection)));
+                    database);
             liquibase.update(new Contexts(), new LabelExpression());
-
         } catch (SQLException | LiquibaseException e) {
             throw new InitializationException("Error initializing authorization code database", e);
         }
