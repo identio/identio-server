@@ -42,10 +42,10 @@ public class PasswordUtils {
         Console console = System.console();
 
         char[] password = console.readPassword("Enter password: ");
-        // String password = "password";
+
         String hashedPassword = BCrypt.hashpw(new String(password), BCrypt.gensalt(rounds));
 
-        System.out.println("Hashed password: " + hashedPassword);
+        System.out.println("Hashed password: {bcrypt}" + hashedPassword);
     }
 
 }

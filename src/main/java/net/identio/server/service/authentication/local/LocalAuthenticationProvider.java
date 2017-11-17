@@ -118,12 +118,12 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
                     .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
         }
 
-        String hashedPassword = user.getPassword();
+        String refPassword = user.getPassword();
 
-        // If the password doesn't start with $, it is not hashed
-        // $2a indicates a Bcrypt hash
-        if (hashedPassword.charAt(0) != '$' && hashedPassword.equals(password)
-                || hashedPassword.startsWith("$2a") && BCrypt.checkpw(password, hashedPassword)) {
+        // If the password starts with {plain}, it is not hashed
+        // {bcrypt} indicates a Bcrypt hash
+        if (refPassword.startsWith("{plain}") && refPassword.substring(7).equals(password)
+                || refPassword.startsWith("{bcrypt}") && BCrypt.checkpw(password, refPassword.substring(8))) {
 
             LOG.info("User {} successfully authenticated with {} method", user.getUserId(), fileAuthMethod.getName());
 
