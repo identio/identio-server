@@ -21,12 +21,22 @@
 
 package net.identio.server.boot;
 
+import net.identio.server.utils.SecurityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Paths;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Collections;
 import java.util.HashMap;
 
 public class BootConfiguration {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BootConfiguration.class);
 
     private static final String FILE_CONFIG_OPTION = "identio.config";
 
@@ -41,9 +51,7 @@ public class BootConfiguration {
     private static final String VAULT_CONFIG_OPTION = "identio.config.vault.uri";
     private static final String VAULT_CONFIG_ROLE_ID_OPTION = "identio.config.vault.role-id";
     private static final String VAULT_CONFIG_SECRET_ID_OPTION = "identio.config.vault.secret-id";
-    private static final String VAULT_CONFIG_TRUST_PATH = "identio.config.vault.trust-store.path";
-    private static final String VAULT_CONFIG_TRUST_PASSWORD = "identio.config.vault.trust-store.password";
-
+    private static final String VAULT_CONFIG_TRUST_PATH = "identio.config.vault.trust.path";
     private static final String WORK_DIRECTORY_OPTION = "identio.work.directory";
 
     // Default values
@@ -113,7 +121,6 @@ public class BootConfiguration {
         addOptionFromSysEnv(VAULT_CONFIG_ROLE_ID_OPTION, configOptions);
         addOptionFromSysEnv(VAULT_CONFIG_SECRET_ID_OPTION, configOptions);
         addOptionFromSysEnv(VAULT_CONFIG_TRUST_PATH, configOptions);
-        addOptionFromSysEnv(VAULT_CONFIG_TRUST_PASSWORD, configOptions);
 
         addOptionFromSysEnv(WORK_DIRECTORY_OPTION, configOptions);
     }
@@ -188,8 +195,25 @@ public class BootConfiguration {
         System.setProperty("spring.cloud.vault.app-role.secret-id", configOptions.get(VAULT_CONFIG_SECRET_ID_OPTION));
 
         if ("https".equals(vaultUri.getScheme())) {
+
+            String trustPath = Paths.get(configOptions.get(WORK_DIRECTORY_OPTION), "vault-trust.jks").toString();
+            String trustPassword = SecurityUtils.generateSecureIdentifier(16);
+
+            X509Certificate cert;
+
+            try {
+                cert = SecurityUtils.parseCertificate(configOptions.get(VAULT_CONFIG_TRUST_PATH));
+            } catch (IOException | CertificateException e) {
+                IdentioServerApplication.quitOnConfigurationError(LOG, "Impossible to import Vault trust certificate");
+                return;
+            }
+
+            if (!SecurityUtils.createKeyStoreWithCertificates(trustPath, trustPassword, Collections.singletonList(cert))) {
+                IdentioServerApplication.quitOnConfigurationError(LOG, "Impossible to create Vault trust store");
+            }
+
             System.setProperty("spring.cloud.vault.ssl.trust-store", configOptions.get(VAULT_CONFIG_TRUST_PATH));
-            System.setProperty("spring.cloud.vault.ssl.trust-store-password", configOptions.get(VAULT_CONFIG_TRUST_PASSWORD));
+            System.setProperty("spring.cloud.vault.ssl.trust-store-password", trustPassword);
         }
     }
 }

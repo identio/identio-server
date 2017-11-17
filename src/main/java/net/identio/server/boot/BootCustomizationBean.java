@@ -35,16 +35,8 @@ import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletCon
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.nio.file.Paths;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -103,39 +95,25 @@ public class BootCustomizationBean {
 
         if (x509methods.size() > 0) {
 
-            try (FileOutputStream fos = new FileOutputStream(
-                    workDirectory + "/identio-trust.jks")) {
+            // Tomcat is finicky about the format of paths, and especially doesn't like '\' on windows
+            // So here comes this beautiful hack...
+            String trustPath = Paths.get(workDirectory ,"identio-trust.jks").toString()
+                    .replaceAll("\\\\", "/");
 
-                // Tomcat is finicky about the format of paths, and especially doesn't like '\' on windows
-                // So here comes this beautiful hack...
-                String trustPath = Paths.get(workDirectory + "/identio-trust.jks").toString()
-                        .replaceAll("\\\\", "/");
+            // Password here is irrelevant as the trust store contains only public certificates
+            String trustPassword = SecurityUtils.generateSecureIdentifier(16);
 
-                KeyStore ks = KeyStore.getInstance("JKS");
-                ks.load(null, null);
-
-                for (X509Certificate cert : x509AuthenticationProvider.getServerTrusts()) {
-                    SecurityUtils.addCertificateToKeyStore(ks, cert, UUID.randomUUID().toString());
-                }
-
-                // As the keystore contains only public certs, the password here
-                // is not relevant
-                String trustPassword = UUID.randomUUID().toString();
-                ks.store(fos, trustPassword.toCharArray());
-
-                connector.setAttribute("clientAuth", "want");
-                connector.setAttribute("truststoreFile",
-                        "file:" + trustPath);
-                connector.setAttribute("truststorePass", trustPassword);
-                connector.setAttribute("truststoreType", "JKS");
-
-            } catch (KeyStoreException | NoSuchAlgorithmException e) {
+            if (!SecurityUtils.createKeyStoreWithCertificates(trustPath, trustPassword,
+                    x509AuthenticationProvider.getServerTrusts())) {
                 LOG.error("Impossible to create temporary key store. Client authentication certs NOT loaded");
-                LOG.debug("* Detailed Stacktrace:", e);
-            } catch (CertificateException | IOException e) {
-                LOG.error("Error when parsing client authentication certificate");
-                LOG.debug("* Detailed Stacktrace:", e);
+                return;
             }
+
+            connector.setAttribute("clientAuth", "want");
+            connector.setAttribute("truststoreFile",
+                    "file:" + trustPath);
+            connector.setAttribute("truststorePass", trustPassword);
+            connector.setAttribute("truststoreType", "JKS");
         }
     }
 

@@ -22,13 +22,17 @@ package net.identio.server.utils;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.UUID;
 
 public class SecurityUtils {
 
@@ -121,6 +125,27 @@ public class SecurityUtils {
             throws KeyStoreException {
 
         ks.setCertificateEntry(alias, cert);
+    }
+
+    public static boolean createKeyStoreWithCertificates(String keystorePath, String keystorePassword,
+                                                         List<X509Certificate> certificates) {
+
+        try (FileOutputStream fos = new FileOutputStream(keystorePath)) {
+
+            KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(null, null);
+
+            for (X509Certificate cert : certificates) {
+                SecurityUtils.addCertificateToKeyStore(ks, cert, UUID.randomUUID().toString());
+            }
+
+            ks.store(fos, keystorePassword.toCharArray());
+
+            return true;
+
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
+            return false;
+        }
     }
 
     public static X509Certificate parseCertificate(String path)
