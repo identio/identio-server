@@ -1,0 +1,21 @@
+clients:
+  - name: Client
+    clientId: client
+    clientSecret: client
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - token
+      - authorization_code
+      - refresh_token
+      - client_credentials
+    consentNeeded: true
+    forcePkce: false
+
+resourceServers:
+  - name: Resource server
+    clientId: resource
+    clientSecret: resource
