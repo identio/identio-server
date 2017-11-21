@@ -5,13 +5,13 @@ angular.module('identioUiApp')
        .directive('samlResponder', SamlResponder);
 
   SamlResponder.$inject = ['$timeout'];
-  
+
   function SamlResponder($timeout) {
     return {
         replace: true,
         scope: {},
-        template: '<form action="{{formData.destinationUrl}}" method="POST">'+
-                      '<input type="hidden" name="SAMLResponse" value="{{ formData.samlResponse }}" />'+
+        template: '<form action="{{formData.url}}" method="POST">'+
+                      '<input type="hidden" name="SAMLResponse" value="{{ formData.data }}" />'+
                       '<input type="hidden" name="RelayState" value="{{ formData.relayState }}" />'+
                   '</form>',
         link: function($scope, element, $attrs) {

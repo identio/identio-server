@@ -2,6 +2,7 @@
 /build/
 /.gradle/
 /.settings/
+/.idea/
 /.project
 /.classpath
 .DS_Store

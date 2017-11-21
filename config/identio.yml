@@ -1,0 +1,33 @@
+global:
+  basePublicUrl: http://<your_hostname>:10080
+
+authPolicy:
+  authLevels:
+    - name: low
+      urn: urn:identio:auth-level:low
+    - name: medium
+      urn: urn:identio:auth-level:medium
+    - name: strong
+      urn: urn:identio:auth-level:strong
+  defaultAuthLevel:
+    authLevel: medium
+    comparison: minimum
+
+samlIdp:
+  allowUnsecureRequests: true
+  allowedTimeOffset: 1
+  certificateCheckEnabled: true
+  contactPersonEmail: support@identio.net
+  contactPersonSurname: Ident.io Support
+  organizationDisplayName: Ident.io Identity Provider
+  organizationName: Ident.io
+  organizationUrl: http://identio.net
+  tokenValidityLength: 3
+
+session:
+  duration: 120
+  
+authMethods:
+  local:
+  - name: Local
+    authLevel: medium

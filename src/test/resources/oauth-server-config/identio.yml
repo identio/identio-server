@@ -1,0 +1,63 @@
+global:
+  basePublicUrl: https://localhost
+  staticResourcesPath: ui/app
+  signatureKeystorePath: src/test/resources/oauth-server-config/default-sign-certificate.p12
+  signatureKeystorePassword: password
+
+data:
+  dataSources:
+    - name: Local
+      type: jdbc
+      driver: org.h2.Driver
+      url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+      username: sa
+      password: sa
+
+authPolicy:
+  authLevels:
+    - name: low
+      urn: urn:identio:auth-level:low
+    - name: medium
+      urn: urn:identio:auth-level:medium
+    - name: strong
+      urn: urn:identio:auth-level:strong
+  defaultAuthLevel:
+    authLevel: medium
+    comparison: minimum
+
+authorization:
+  scopes:
+    - name: scope.test.1
+      authLevel: medium
+      expirationTime: 2400
+      description:
+        fr: Accéder à scope test 1
+        en: Access scope test 1
+    - name: scope.test.2
+      authLevel: strong
+      expirationTime: 3600
+
+oAuthServer:
+  actorsFile: src/test/resources/oauth-server-config/oauth-actors.yml
+  dataSource: Local
+  jwtToken: true
+
+samlIdp:
+  allowUnsecureRequests: true
+  allowedTimeOffset: 1
+  certificateCheckEnabled: true
+  contactPersonEmail: support@identio.net
+  contactPersonSurname: Ident.io Support
+  organizationDisplayName: Ident.io Identity Provider
+  organizationName: Ident.io
+  organizationUrl: http://identio.net
+  tokenValidityLength: 3
+
+session:
+  duration: 120
+  
+authMethods:
+  local:
+  - name: Local
+    authLevel: medium
+    userFilePath: src/test/resources/oauth-server-config/users.yml

@@ -5,7 +5,7 @@
 	 * @ngdoc overview
 	 * @name identioUiApp
 	 * @description # identioUiApp
-	 * 
+	 *
 	 * Main module of the application.
 	 */
 	angular.module(
@@ -13,7 +13,7 @@
 			[ 'ngAnimate', 'ngCookies', 'ngResource', 'ui.router',
 					'ngSanitize', 'ngTouch', 'pascalprecht.translate' ]).config(
 			function($stateProvider, $urlRouterProvider, $translateProvider) {
-				
+
 				// ** Routing configuration
 				// For any unmatched url, redirect to /state1
 				$urlRouterProvider.otherwise('/error/');
@@ -36,10 +36,17 @@
 				}).state('logout', {
 					url : '/logout',
 					templateUrl : 'views/logout.html',
-				});
-				
+				}).state('consent', {
+         	url : '/consent/:transactionId',
+          templateUrl : 'views/consent.html',
+          controller: 'ConsentController as consent'
+       	});
+
 				// ** I18N
 				$translateProvider.translations('en', {
+
+				  // UI
+
 					IDENTIO_SIGN_IN: 'Sign in to Ident.io',
 					AUTHENTICATION_METHOD: 'Authentication method',
 					USERNAME: 'Username or email address',
@@ -50,16 +57,25 @@
 					SUBMIT: 'Submit',
 					SUBMIT_IN_PROGRESS: 'Submit in progress...',
 					SAML_SECTION_HEADER: 'Alternatively you can login with:',
-					AUTH_INVALID_CREDENTIALS: 'Invalid username or password',
-					AUTH_TECHNICAL_ERROR: 'An error occured when validating authentication.' +
+          ERROR: 'An error occured',
+          CONSENT_TITLE: 'Authorize application',
+          CONSENT_MESSAGE: '{{applicationName}} would like permission to access your account',
+          AUTHORIZE: 'Authorize',
+          AUTHORIZE_IN_PROGRESS: 'Please wait...',
+
+					// Errors
+					'invalid.credentials': 'Invalid username or password',
+					'technical.error': 'An error occured when validating authentication.' +
 									      'Please wait a few seconds and try again',
-					AUTH_USER_ID_MISMATCH: 'The username doesn&rsquo;t match the one in session',
-				    AUTH_USER_NOT_UNIQUE: 'The username is not unique in the authentication source', 
-				    AUTH_METHOD_UNKNOWN: 'The authentication method is unknown',
-				    AUTH_NO_CREDENTIALS: 'No credentials provided',
-				    AUTH_METHOD_NOT_ALLOWED: 'The authentication method is not allowed'
-				})
+					'unknown.client': 'The client application is unknown',
+					'server.error': 'A server-side error occured',
+					'auth.method.unknown': 'The authentication method is unknown',
+				  'auth.method.not.allowed': 'The authentication method is not allowed',
+				  'invalid.transaction': 'The transaction identifier is invalid or expired',
+          })
 			    .translations('fr', {
+
+			    // UI
 					IDENTIO_SIGN_IN: 'Identifiez-vous sur Ident.io',
 					AUTHENTICATION_METHOD: 'Moyen d&rsquo;authentification',
 					USERNAME: 'Identifiant',
@@ -70,16 +86,21 @@
 					SUBMIT: 'Connexion',
 					SUBMIT_IN_PROGRESS: 'Connexion en cours...',
 					SAML_SECTION_HEADER: 'Alternativement, vous pouvez vous identifier sur:',
-			    	AUTH_INVALID_CREDENTIALS: 'Identifiant ou mot de passe invalide',
-			    	AUTH_TECHNICAL_ERROR: 'Une erreur s&rsquo;est produite pendant l&rsquo;authentification. ' + 
-			    						  'Patientez quelques secondes et r&eacute;essayez',
-					AUTH_USER_ID_MISMATCH: 'L&rsquo;identifiant ne correspond pas &agrave; celui en session',
-					AUTH_USER_NOT_UNIQUE: 'L&rsquo;identifiant n&rsquo;est pas unique dans la source ' +
-										  'd&rsquo;authentification', 
-					AUTH_METHOD_UNKNOWN: 'La m&eacute;thode d&rsquo;authentification est inconnue',
-					AUTH_NO_CREDENTIALS: 'Aucun identifiant fourni',
-					AUTH_METHOD_NOT_ALLOWED: 'La m&eacute;thode d&rsquo;authentification n&rsquo;est pas ' + 
-											 'autoris&eacute;e'
+          ERROR: 'Une erreur s&rsquo;est produite',
+          CONSENT_TITLE: 'Autorisation d&rsquo;une application',
+          CONSENT_MESSAGE: 'souhaite obtenir la permission d&rsquo;acc&eacute;der &agrave; votre compte',
+          AUTHORIZE: 'Autoriser',
+          AUTHORIZE_IN_PROGRESS: 'Patientez...',
+
+					// Errors
+					'invalid.credentials': 'Identifiant ou mot de passe invalide',
+    			'technical.error': 'Une erreur s&rsquo;est produite pendant l&rsquo;authentification. ' +
+                             			    						  'Patientez quelques secondes et r&eacute;essayez',
+     			'unknown.client': 'L&rsquo;application cliente est inconnue',
+     			'server.error': 'Une erreur serveur s&rsquo;est produite',
+     			'auth.method.unknown': 'La m&eacute;thode d&rsquo;authentification est inconnue',
+     		  'auth.method.not.allowed': 'La m&eacute;thode d&rsquo;authentification est invalide',
+     		  'invalid.transaction': 'L&rsquo;identifiant de transaction est invalide ou expir&eacute;',
 			    })
 			    .registerAvailableLanguageKeys(['en', 'fr'], {
 			    	'en_US': 'en',

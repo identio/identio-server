@@ -1,49 +1,30 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.service.authentication.radius;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.zip.DataFormatException;
-
-import org.apache.xml.security.exceptions.Base64DecodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
-
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.Authentication;
-import net.identio.server.model.AuthenticationResult;
-import net.identio.server.model.AuthenticationResultStatus;
-import net.identio.server.model.ErrorStatus;
-import net.identio.server.model.RadiusAuthMethod;
-import net.identio.server.model.TransactionData;
-import net.identio.server.model.UserPasswordAuthentication;
+import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
-import net.identio.server.service.configuration.ConfigurationService;
+import net.identio.server.service.authentication.model.*;
+import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.DecodeUtils;
 import net.sourceforge.jradiusclient.RadiusAttribute;
 import net.sourceforge.jradiusclient.RadiusAttributeValues;
@@ -52,209 +33,214 @@ import net.sourceforge.jradiusclient.RadiusPacket;
 import net.sourceforge.jradiusclient.exception.InvalidParameterException;
 import net.sourceforge.jradiusclient.exception.RadiusException;
 import net.sourceforge.jradiusclient.packets.PapAccessRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.zip.DataFormatException;
 
 @Service
 @Scope("singleton")
 public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
-	private static final Logger LOG = LoggerFactory.getLogger(RadiusAuthenticationProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(RadiusAuthenticationProvider.class);
 
-	private HashMap<String, RadiusAuthMethod> radiusAuthMethodsMap = new HashMap<String, RadiusAuthMethod>();
+    private int currentHostIndex;
 
-	private int currentHostIndex;
+    @Autowired
+    public RadiusAuthenticationProvider(RadiusAuthenticationProviderConfiguration config,
+                                        AuthenticationService authenticationService) {
 
-	@Autowired
-	public RadiusAuthenticationProvider(ConfigurationService configurationService,
-			AuthenticationService authenticationService) throws InitializationException {
+        List<RadiusAuthMethod> authMethods = config.getAuthMethods();
 
-		List<RadiusAuthMethod> authMethods = configurationService.getConfiguration().getAuthMethodConfiguration()
-				.getRadiusAuthMethods();
+        if (authMethods == null || authMethods.size() == 0)
+            return;
 
-		if (authMethods == null)
-			return;
+        LOG.debug("Initializing Radius Authentication Service");
 
-		LOG.debug("Initializing Radius Authentication Service");
+        for (RadiusAuthMethod radiusAuthMethod : authMethods) {
 
-		for (RadiusAuthMethod radiusAuthMethod : authMethods) {
+            LOG.debug("* Data Source: {}", radiusAuthMethod.getName());
 
-			LOG.debug("* Data Source: {}", radiusAuthMethod.getName());
+        }
 
-			radiusAuthMethodsMap.put(radiusAuthMethod.getName(), radiusAuthMethod);
-		}
+        register(authMethods, authenticationService);
 
-		register(authMethods, authenticationService);
+        LOG.info("* Radius Authentication Service initialized");
 
-		LOG.info("* Radius Authentication Service initialized");
+    }
 
-	}
+    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
+                                         TransactionData transactionData) {
 
-	public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-			TransactionData transactionData) {
+        RadiusAuthMethod radiusAuthMethod = (RadiusAuthMethod) authMethod;
+        UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;
 
-		RadiusAuthMethod radiusAuthMethod = (RadiusAuthMethod) authMethod;
-		UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;
+        String userId = userPwAuthentication.getUserId();
+        String password = userPwAuthentication.getPassword();
+        String challengeResponse = userPwAuthentication.getChallengeResponse();
 
-		String userId = userPwAuthentication.getUserId();
-		String password = userPwAuthentication.getPassword();
-		String challengeResponse = userPwAuthentication.getChallengeResponse();
+        try {
+            return authenticate(radiusAuthMethod, userId, password, challengeResponse);
+        } catch (RadiusException e) {
+            try {
+                LOG.error("Error when contacting RadiusServer server {}",
+                        radiusAuthMethod.getRadiusHost().get(currentHostIndex));
 
-		try {
-			return authenticate(radiusAuthMethod, userId, password, challengeResponse);
-		} catch (RadiusException e) {
-			try {
-				LOG.error("Error when contacting RadiusServer server {}",
-						radiusAuthMethod.getRadiusHost()[currentHostIndex]);
+                if (radiusAuthMethod.getRadiusHost().size() > 1) {
+                    // Try another server if available
+                    currentHostIndex = currentHostIndex < radiusAuthMethod.getRadiusHost().size() - 1
+                            ? currentHostIndex + 1 : 0;
 
-				if (radiusAuthMethod.getRadiusHost().length > 1) {
-					// Try another server if available
-					currentHostIndex = currentHostIndex < radiusAuthMethod.getRadiusHost().length - 1
-							? currentHostIndex + 1 : 0;
+                    LOG.error("Switching to Radius server {}", radiusAuthMethod.getRadiusHost().get(currentHostIndex));
+                }
 
-					LOG.error("Switching to Radius server {}", radiusAuthMethod.getRadiusHost()[currentHostIndex]);
-				}
+                return authenticate(radiusAuthMethod, userId, password, challengeResponse);
+            } catch (RadiusException ex) {
+                LOG.error("An error occurend when authenticating user");
+                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                        .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+            }
+        }
+    }
 
-				return authenticate(radiusAuthMethod, userId, password, challengeResponse);
-			} catch (RadiusException ex) {
-				LOG.error("An error occurend when authenticating user");
-				return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_TECHNICAL_ERROR);
-			}
-		}
-	}
+    private AuthenticationResult authenticate(RadiusAuthMethod radiusAuthMethod, String userId, String password,
+                                              String challenge) throws RadiusException {
 
-	private AuthenticationResult authenticate(RadiusAuthMethod radiusAuthMethod, String userId, String password,
-			String challenge) throws RadiusException {
+        try {
 
-		try {
+            RadiusClient client = new RadiusClient(radiusAuthMethod.getRadiusHost().get(currentHostIndex),
+                    radiusAuthMethod.getAuthPort(), radiusAuthMethod.getAccountPort(),
+                    radiusAuthMethod.getSharedSecret(), radiusAuthMethod.getTimeout());
 
-			RadiusClient client = new RadiusClient(radiusAuthMethod.getRadiusHost()[currentHostIndex],
-					radiusAuthMethod.getAuthPort(), radiusAuthMethod.getAccountPort(),
-					radiusAuthMethod.getSharedSecret(), radiusAuthMethod.getTimeout());
+            RadiusPacket accessRequest = new PapAccessRequest(userId, password);
 
-			RadiusPacket accessRequest = null;
+            if (challenge != null) {
+                accessRequest.setAttribute(deserializeAttribute(challenge));
+            }
 
-			accessRequest = new PapAccessRequest(userId, password);
+            // Send access request
+            RadiusPacket accessResponse = client.authenticate(accessRequest);
 
-			if (challenge != null) {
-				accessRequest.setAttribute(deserializeAttribute(challenge));
-			}
+            if (accessResponse.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
 
-			// Send access request
-			RadiusPacket accessResponse = client.authenticate(accessRequest);
+                LOG.info("User {} successfully authenticated with {}", userId, radiusAuthMethod.getName());
+                return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS).setUserId(userId)
+                        .setAuthMethod(radiusAuthMethod).setAuthLevel(radiusAuthMethod.getAuthLevel());
+            }
 
-			if (accessResponse.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
+            if (accessResponse.getPacketType() == RadiusPacket.ACCESS_CHALLENGE) {
 
-				LOG.info("User {} successfully authenticated with {}", userId, radiusAuthMethod.getName());
-				return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS).setUserId(userId)
-						.setAuthMethod(radiusAuthMethod).setAuthLevel(radiusAuthMethod.getAuthLevel());
-			}
+                String message = new String(
+                        accessResponse.getAttribute(RadiusAttributeValues.REPLY_MESSAGE).getValue());
 
-			if (accessResponse.getPacketType() == RadiusPacket.ACCESS_CHALLENGE) {
+                String radiusState = serializeAttribute(accessResponse.getAttribute(RadiusAttributeValues.STATE));
+                String challengeType = null;
 
-				String message = new String(
-						accessResponse.getAttribute(RadiusAttributeValues.REPLY_MESSAGE).getValue());
+                LOG.debug("Received challenge: {}", message);
 
-				String radiusState = serializeAttribute(accessResponse.getAttribute(RadiusAttributeValues.STATE));
-				String challengeType = null;
+                // We have to parse the reply message from the radius server to
+                // know what to do
 
-				LOG.debug("Received challenge: {}", message);
+                // Next token mode
+                if (message.contains("enter the new tokencode")) {
 
-				// We have to parse the reply message from the radius server to
-				// know what to do
+                    LOG.debug("Radius server asked for the next token code");
+                    challengeType = "RADIUS_NEXT_TOKEN";
+                }
+                // Next passcode
+                if (message.contains("enter the new passcode")) {
 
-				// Next token mode
-				if (message.contains("enter the new tokencode")) {
+                    LOG.debug("Radius server asked for the next passcode");
+                    challengeType = "RADIUS_NEXT_PASSCODE";
+                }
+                // New PIN mode
+                if (message.contains("Enter a new PIN")) {
+                    LOG.debug("Radius server asked for a new PIN");
+                    challengeType = "RADIUS_NEW_PIN";
+                }
 
-					LOG.debug("Radius server asked for the next token code");
-					challengeType = "RADIUS_NEXT_TOKEN";
-				}
-				// Next passcode
-				if (message.contains("enter the new passcode")) {
+                return new AuthenticationResult().setStatus(AuthenticationResultStatus.CHALLENGE)
+                        .setChallengeType(challengeType).setChallengeValue(radiusState).setUserId(userId);
+            }
 
-					LOG.debug("Radius server asked for the next passcode");
-					challengeType = "RADIUS_NEXT_PASSCODE";
-				}
-				// New PIN mode
-				if (message.contains("Enter a new PIN")) {
-					LOG.debug("Radius server asked for a new PIN");
-					challengeType = "RADIUS_NEW_PIN";
-				}
+            if (accessResponse.getPacketType() == RadiusPacket.ACCESS_REJECT) {
 
-				return new AuthenticationResult().setStatus(AuthenticationResultStatus.CHALLENGE)
-						.setChallengeType(challengeType).setChallengeValue(radiusState).setUserId(userId);
-			}
+                if (accessResponse.hasAttribute(RadiusAttributeValues.REPLY_MESSAGE)) {
+                    String message = new String(
+                            accessResponse.getAttribute(RadiusAttributeValues.REPLY_MESSAGE).getValue());
 
-			if (accessResponse.getPacketType() == RadiusPacket.ACCESS_REJECT) {
+                    LOG.error("Authentication failed for user {} with {}: {}", userId, radiusAuthMethod.getName(),
+                            message);
+                } else {
+                    LOG.error("Authentication failed for user {} with {}", userId, radiusAuthMethod.getName());
+                }
+                new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                        .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+            }
 
-				if (accessResponse.hasAttribute(RadiusAttributeValues.REPLY_MESSAGE)) {
-					String message = new String(
-							accessResponse.getAttribute(RadiusAttributeValues.REPLY_MESSAGE).getValue());
+        } catch (InvalidParameterException | IOException | DataFormatException ex) {
+            LOG.error("Error when contacting RadiusServer server {}",
+                    radiusAuthMethod.getRadiusHost().get(currentHostIndex));
+        }
 
-					LOG.error("Authentication failed for user {} with {}: {}", userId, radiusAuthMethod.getName(),
-							message);
-				} else {
-					LOG.error("Authentication failed for user {} with {}", userId, radiusAuthMethod.getName());
-				}
-				new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-						.setErrorStatus(ErrorStatus.AUTH_INVALID_CREDENTIALS);
-			}
+        return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+    }
 
-		} catch (InvalidParameterException | IOException | Base64DecodingException | DataFormatException ex) {
-			LOG.error("Error when contacting RadiusServer server {}",
-					radiusAuthMethod.getRadiusHost()[currentHostIndex]);
-		}
+    private RadiusAttribute deserializeAttribute(String data)
+            throws IOException, DataFormatException, InvalidParameterException {
 
-		return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-				.setErrorStatus(ErrorStatus.AUTH_TECHNICAL_ERROR);
-	}
 
-	private RadiusAttribute deserializeAttribute(String data)
-			throws Base64DecodingException, IOException, DataFormatException, InvalidParameterException {
+        byte[] dataBytes = DecodeUtils.decode(data, false);
 
-		byte[] dataBytes = DecodeUtils.decode(data, false);
+        int type = dataBytes[0];
 
-		int type = dataBytes[0];
+        int valueLength = dataBytes.length - 2; // HEADER_LENGTH = 2
+        byte[] valueBytes = new byte[valueLength];
+        System.arraycopy(dataBytes, 2, valueBytes, 0, valueLength);
 
-		int valueLength = dataBytes.length - 2; // HEADER_LENGTH = 2
-		byte[] valueBytes = new byte[valueLength];
-		System.arraycopy(dataBytes, 2, valueBytes, 0, valueLength);
+        return new RadiusAttribute(type, valueBytes);
+    }
 
-		return new RadiusAttribute(type, valueBytes);
-	}
+    private String serializeAttribute(RadiusAttribute attribute) throws InvalidParameterException, IOException {
 
-	private String serializeAttribute(RadiusAttribute attribute) throws InvalidParameterException, IOException {
+        int type = attribute.getType();
+        byte[] value = attribute.getValue();
 
-		int type = attribute.getType();
-		byte[] value = attribute.getValue();
+        byte[] data;
 
-		byte[] data;
+        int length = 2 + value.length;// 2 bytes header
+        try (ByteArrayOutputStream temp = new ByteArrayOutputStream(length)) {
+            temp.write(type);
+            temp.write(length);
+            temp.write(value);
+            temp.flush();
+            data = temp.toByteArray();
+        } catch (IOException ex) {
+            throw new InvalidParameterException("Error constructing RadiusAttribute");
+        }
 
-		int length = 2 + value.length;// 2 bytes header
-		try (ByteArrayOutputStream temp = new ByteArrayOutputStream(length)) {
-			temp.write(type);
-			temp.write(length);
-			temp.write(value);
-			temp.flush();
-			data = temp.toByteArray();
-		} catch (IOException ex) {
-			throw new InvalidParameterException("Error constructing RadiusAttribute");
-		}
+        return DecodeUtils.encode(data, false);
+    }
 
-		return DecodeUtils.encode(data, false);
-	}
+    private void register(List<RadiusAuthMethod> authMethods, AuthenticationService authenticationService) {
 
-	private void register(List<RadiusAuthMethod> authMethods, AuthenticationService authenticationService) {
+        for (RadiusAuthMethod authMethod : authMethods) {
 
-		for (RadiusAuthMethod authMethod : authMethods) {
+            LOG.debug("* Registering authentication method {}", authMethod.getName());
 
-			LOG.debug("* Registering authentication method {}", authMethod.getName());
+            authenticationService.registerExplicit(authMethod, this);
+        }
+    }
 
-			authenticationService.registerExplicit(authMethod, this);
-		}
-	}
-
-	@Override
-	public boolean accepts(Authentication authentication) {
-		return authentication instanceof UserPasswordAuthentication;
-	}
+    @Override
+    public boolean accepts(Authentication authentication) {
+        return authentication instanceof UserPasswordAuthentication;
+    }
 }

@@ -1,0 +1,3 @@
+users:
+  - userId: johndoe
+    password: "{bcrypt}$2a$10$txi/CWyeIEOWcXvrIWjpVuoqBXFRteq1TTeAaW.mWZ/3BYDRByDje"

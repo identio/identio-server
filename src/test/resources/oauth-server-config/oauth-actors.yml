@@ -1,0 +1,59 @@
+clients:
+  - name: Test Client
+    clientId: test
+    clientSecret: "{plain}test"
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - token
+    consentNeeded: true
+  - name: Test Client 2
+    clientId: test2
+    clientSecret: "{plain}test2"
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - token
+      - authorization_code
+      - refresh_token
+      - client_credentials
+      - password
+    consentNeeded: true
+    resourceOwnerAuthMethod: Local
+  - name: Test Client 3
+    clientId: test3
+    clientSecret: "{plain}test3"
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - token
+      - authorization_code
+    consentNeeded: true
+  - name: Test Client 4
+    clientId: test4
+    clientSecret: "{plain}test4"
+    allowedScopes:
+      - scope.test.1
+      - scope.test.2
+    responseUri:
+      - http://example.com/cb
+    allowedGrants:
+      - token
+      - authorization_code
+      - refresh_token
+    consentNeeded: true
+    forcePkce: true
+
+resourceServers:
+  - name: Test API
+    clientId: rs1
+    clientSecret: "{plain}rs1"

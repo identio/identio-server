@@ -1,147 +1,162 @@
 /*
- This file is part of Ident.io
-
- Ident.io - A flexible authentication server
- Copyright (C) Loeiz TANGUY
-
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation, either version 3 of the
- License, or (at your option) any later version.
-
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
-
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * This file is part of Ident.io.
+ *
+ * Ident.io - A flexible authentication server
+ * Copyright (c) 2017 Loeiz TANGUY
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 package net.identio.server.mvc.common;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import net.identio.server.exceptions.SamlException;
+import net.identio.server.service.orchestration.exceptions.ServerException;
+import net.identio.server.service.orchestration.exceptions.ValidationException;
+import net.identio.server.service.orchestration.exceptions.WebSecurityException;
+import net.identio.server.model.AuthMethod;
+import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
+import net.identio.server.mvc.common.model.*;
+import net.identio.server.service.authentication.model.UserPasswordAuthentication;
+import net.identio.server.service.orchestration.AuthOrchestrationService;
+import net.identio.server.service.orchestration.ProxyAuthOrchestrationService;
+import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.ServletRequestBindingException;
-import org.springframework.web.bind.annotation.CookieValue;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import net.identio.server.exceptions.SamlException;
-import net.identio.server.exceptions.ServerException;
-import net.identio.server.exceptions.ValidationException;
-import net.identio.server.model.AuthMethod;
-import net.identio.server.model.SamlAuthRequestGenerationResult;
-import net.identio.server.model.State;
-import net.identio.server.model.UserPasswordAuthentication;
-import net.identio.server.model.ValidationResult;
-import net.identio.server.model.api.ApiErrorResponse;
-import net.identio.server.model.api.AuthMethodResponse;
-import net.identio.server.model.api.AuthSubmitRequest;
-import net.identio.server.model.api.AuthSubmitResponse;
-import net.identio.server.model.api.LaunchSamlAuthenticationResponse;
-import net.identio.server.service.validation.ValidationService;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 @RestController
 public class AuthentController {
 
-	private static final Logger LOG = LoggerFactory.getLogger(AuthentController.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AuthentController.class);
 
-	@Autowired
-	private ValidationService validationService;
+    @Autowired
+    private AuthOrchestrationService authOrchestrationService;
 
-	@RequestMapping(value = "/api/auth/submit/password", method = RequestMethod.POST)
-	public AuthSubmitResponse authenticationSubmit(HttpServletRequest httpRequest,
-			@RequestBody AuthSubmitRequest authSubmitRequest, HttpServletResponse httpResponse,
-			@RequestHeader(value = "X-Transaction-ID") String transactionId,
-			@CookieValue("identioSession") String sessionId) throws ValidationException {
+    @Autowired
+    private ProxyAuthOrchestrationService proxyAuthOrchestrationService;
 
-		LOG.debug("Received authentication form");
-		LOG.debug("* TransactionId: {}", transactionId);
+    @RequestMapping(value = "/api/auth/submit/password", method = RequestMethod.POST)
+    public AuthSubmitResponse authenticationSubmit(HttpServletRequest httpRequest,
+                                                   @RequestBody AuthSubmitRequest authSubmitRequest, HttpServletResponse httpResponse,
+                                                   @RequestHeader(value = "X-Transaction-ID") String transactionId,
+                                                   @CookieValue("identioSession") String sessionId)
+            throws ValidationException, WebSecurityException, ServerException {
 
-		UserPasswordAuthentication authentication = new UserPasswordAuthentication(authSubmitRequest.getLogin(),
-				authSubmitRequest.getPassword(), authSubmitRequest.getChallengeResponse());
+        LOG.debug("Received authentication form");
+        LOG.debug("* TransactionId: {}", transactionId);
 
-		ValidationResult result = validationService.validateExplicitAuthentication(transactionId, sessionId,
-				authSubmitRequest.getMethod(), authentication);
+        AuthSubmitResponse response = new AuthSubmitResponse();
 
-		if (result.getState() == State.RESPONSE) {
+        UserPasswordAuthentication authentication = new UserPasswordAuthentication(authSubmitRequest.getLogin(),
+                authSubmitRequest.getPassword(), authSubmitRequest.getChallengeResponse());
 
-			return new AuthSubmitResponse().setState(State.RESPONSE)
-					.setDestinationUrl(result.getArValidationResult().getResponseUrl())
-					.setRelayState(result.getArValidationResult().getRelayState())
-					.setSamlResponse(result.getResponseData());
-		}
+        AuthenticationValidationResult result = authOrchestrationService
+                .handleExplicitAuthentication(transactionId, sessionId, authSubmitRequest.getMethod(), authentication);
 
-		// Default response: authentication failed
-		return new AuthSubmitResponse().setState(result.getState()).setChallengeType(result.getChallengeType())
-				.setChallengeValue(result.getChallengeValue()).setErrorStatus(result.getErrorStatus());
-	}
+        switch (result.getValidationStatus()) {
 
-	@RequestMapping(value = "/api/auth/submit/saml", method = RequestMethod.POST)
-	public LaunchSamlAuthenticationResponse launchSamlAuthentication(HttpServletRequest httpRequest,
-			@RequestBody AuthSubmitRequest authSubmitRequest, HttpServletResponse httpResponse,
-			@RequestHeader(value = "X-Transaction-ID") String transactionId,
-			@CookieValue("identioSession") String sessionId) throws ValidationException {
+            case RESPONSE:
 
-		LOG.debug("* Received authentication request to IDP {}", authSubmitRequest.getMethod());
+                response.setStatus(ApiResponseStatus.RESPONSE)
+                        .setResponseData(result.getResponseData())
+                        .setProtocolType(result.getProtocolType());
+                break;
 
-		SamlAuthRequestGenerationResult result = validationService.initSamlRequest(transactionId, sessionId,
-				authSubmitRequest.getMethod());
+            case CHALLENGE:
 
-		if (result.isSuccess()) {
-			return new LaunchSamlAuthenticationResponse().setDestinationUrl(result.getTargetEndpoint().getLocation())
-					.setBinding(result.getTargetEndpoint().getBinding()).setRelayState(result.getRelayState())
-					.setSamlRequest(result.getSerializedRequest()).setSigAlg(result.getSignatureAlgorithm())
-					.setSignature(result.getSignature());
-		}
+                response.setStatus(ApiResponseStatus.CHALLENGE)
+                        .setChallengeType(result.getChallengeType())
+                        .setChallengeValue(result.getChallengeValue());
+                break;
 
-		return new LaunchSamlAuthenticationResponse().setErrorStatus(result.getErrorStatus());
-	}
+            case ERROR:
 
-	@RequestMapping(value = "/api/auth/methods", method = RequestMethod.GET)
-	public List<AuthMethodResponse> getAuthMethods(@RequestHeader(value = "X-Transaction-ID") String transactionId,
-			@CookieValue("identioSession") String sessionId) throws ValidationException {
+                response.setStatus(ApiResponseStatus.ERROR)
+                        .setErrorStatus(result.getErrorStatus());
+                break;
 
-		LOG.debug("Received authmethods list");
+            case CONSENT:
 
-		List<AuthMethodResponse> list = new ArrayList<AuthMethodResponse>();
+                response.setStatus(ApiResponseStatus.CONSENT);
+                break;
 
-		for (AuthMethod authMethod : validationService.getAuthMethods(transactionId, sessionId)) {
-			list.add(new AuthMethodResponse().setName(authMethod.getName()).setType(authMethod.getType()));
-		}
+        }
 
-		return list;
-	}
+        return response;
+    }
 
-	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-	@ExceptionHandler(ServerException.class)
-	public ApiErrorResponse handleServerException(SamlException e) {
-		return new ApiErrorResponse("error.server", e.getMessage());
-	}
+    @RequestMapping(value = "/api/auth/submit/saml", method = RequestMethod.POST)
+    public LaunchSamlAuthenticationResponse launchSamlAuthentication(HttpServletRequest httpRequest,
+                                                                     @RequestBody AuthSubmitRequest authSubmitRequest, HttpServletResponse httpResponse,
+                                                                     @RequestHeader(value = "X-Transaction-ID") String transactionId,
+                                                                     @CookieValue("identioSession") String sessionId)
+            throws ValidationException, WebSecurityException, ServerException {
 
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	@ExceptionHandler(ValidationException.class)
-	public ApiErrorResponse handleValidationException(ValidationException e) {
-		return new ApiErrorResponse("error.validation", e.getMessage());
-	}
+        LOG.debug("* Received authentication request to IDP {}", authSubmitRequest.getMethod());
 
-	@ResponseStatus(HttpStatus.BAD_REQUEST)
-	@ExceptionHandler(ServletRequestBindingException.class)
-	public ApiErrorResponse handleServletRequestBindingException(ServletRequestBindingException e) {
-		return new ApiErrorResponse("error.mssing.parameter", e.getMessage());
-	}
-	
+        SamlAuthRequestGenerationResult result = proxyAuthOrchestrationService
+                .initSamlRequest(transactionId, sessionId, authSubmitRequest.getMethod());
+
+        if (result.isSuccess()) {
+            return new LaunchSamlAuthenticationResponse().setDestinationUrl(result.getTargetEndpoint().getLocation())
+                    .setBinding(result.getTargetEndpoint().getBinding()).setRelayState(result.getRelayState())
+                    .setSamlRequest(result.getSerializedRequest()).setSigAlg(result.getSignatureAlgorithm())
+                    .setSignature(result.getSignature());
+        }
+
+        return new LaunchSamlAuthenticationResponse().setErrorStatus(result.getErrorStatus());
+    }
+
+    @RequestMapping(value = "/api/auth/methods", method = RequestMethod.GET)
+    public List<AuthMethodResponse> getAuthMethods(@RequestHeader(value = "X-Transaction-ID") String transactionId,
+                                                   @CookieValue("identioSession") String sessionId)
+            throws WebSecurityException {
+
+        LOG.debug("Received authmethods list");
+
+        List<AuthMethodResponse> list = new ArrayList<>();
+
+        for (AuthMethod authMethod : authOrchestrationService.getAuthMethods(transactionId, sessionId)) {
+            list.add(new AuthMethodResponse().setName(authMethod.getName()).setType(authMethod.getType()));
+        }
+
+        return list;
+    }
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(ServerException.class)
+    public ApiErrorResponse handleServerException(SamlException e) {
+        return new ApiErrorResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(ValidationException.class)
+    public ApiErrorResponse handleValidationException(ValidationException e) {
+        return new ApiErrorResponse(e.getMessage());
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(WebSecurityException.class)
+    public ApiErrorResponse handleWebSecurityException(WebSecurityException e) {
+        return new ApiErrorResponse(e.getMessage());
+    }
+
 }

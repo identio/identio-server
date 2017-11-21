@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        springBootVersion = '1.4.0.RELEASE'
+        springBootVersion = '1.5.8.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -11,21 +11,25 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath 'org.owasp:dependency-check-gradle:3.0.1'
+        classpath "io.spring.gradle:dependency-management-plugin:0.5.2.RELEASE"
     }
 }
 
 plugins {
-  id 'com.moowork.node' version '0.13'
-  id 'com.moowork.grunt' version '0.13'    
-  id 'com.github.ben-manes.versions' version '0.13.0'
+    id 'com.moowork.node' version '0.13'
+    id 'com.moowork.grunt' version '0.13'
+    id 'com.github.ben-manes.versions' version '0.15.0'
+    id 'org.springframework.boot' version '1.5.4.RELEASE'
+    id 'org.owasp.dependencycheck' version '3.0.1'
+    id 'io.spring.dependency-management' version '0.5.2.RELEASE'
 }
 
 apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'idea'
-apply plugin: 'spring-boot' 
-apply plugin: 'war'
 apply plugin: 'application'
+apply plugin: 'jacoco'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -41,64 +45,79 @@ configurations {
     providedRuntime
 }
 
-dependencies {
-    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}") {
-    	exclude group: 'org.hibernate', module: 'hibernate-validator'
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.cloud:spring-cloud-vault-dependencies:1.0.2.RELEASE'
     }
-    compile("org.springframework.boot:spring-boot-devtools:${springBootVersion}")
+}
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    compile("com.zaxxer:HikariCP:2.7.1")
+    compile("org.liquibase:liquibase-core")
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
+    compile("org.springframework.cloud:spring-cloud-config-server:1.3.3.RELEASE")
+    compile("org.springframework.cloud:spring-cloud-starter-vault-config")
     compile('org.apache.commons:commons-pool2:2.4.2')
-	compile('com.github.identio:identio-saml:1.0.2')
-	compile('com.google.guava:guava:19.0')
-    compile('com.github.detiber:jradius-client:-SNAPSHOT')
-	providedRuntime("org.springframework.boot:spring-boot-starter-tomcat:${springBootVersion}")
-	providedRuntime('ch.qos.logback:logback-core:1.1.7')
-	providedRuntime('ch.qos.logback:logback-classic:1.1.7')
-    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}") 
+    compile('com.github.identio:identio-saml:1.0.3')
+    compile('com.google.guava:guava:23.0')
+    compile('com.github.identio:jradius-client:-SNAPSHOT')
+    compile('com.auth0:java-jwt:3.2.0')
+    compile('ch.qos.logback:logback-core:1.2.3')
+    compile('ch.qos.logback:logback-classic:1.2.3')
+    testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
+    testCompile("org.apache.httpcomponents:httpclient:4.5.3")
+    testRuntime("com.h2database:h2:1.4.196")
 }
 
 eclipse {
     wtp {
-      facet {
+        facet {
             facet name: 'java', version: '1.8'
             facet name: 'jst.web', version: '3.1'
-      }
+        }
     }
     project
-    {
-   		 natures "org.springsource.ide.eclipse.gradle.core.nature"
-    }
+            {
+                natures "org.springsource.ide.eclipse.gradle.core.nature"
+            }
 }
 
 springBoot {
-  mainClass = "net.identio.server.boot.IdentioServerApplication"
+    mainClass = "net.identio.server.boot.IdentioServerApplication"
 }
 
 bootRun {
-    systemProperties = ['logging.config':'file:./config/logback.xml']
+    systemProperties = ['logging.config': 'file:./config/logback.xml']
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled = true
+    }
 }
 
 /// *** UI *** ///
 
 node {
-  // Version of node to use.
-  version = '5.1.0'
+    // Version of node to use.
+    version = '6.11.3'
 
-  // Version of npm to use.
-  npmVersion = '3.9.6'
+    // Version of npm to use.
+    npmVersion = '5.4.2'
 
-  // Base URL for fetching node distributions (change if you have a mirror).
-  distBaseUrl = 'https://nodejs.org/dist'
+    // Base URL for fetching node distributions (change if you have a mirror).
+    distBaseUrl = 'https://nodejs.org/dist'
 
-  // If true, it will download node using above parameters.
-  // If false, it will try to use globally installed node.
-  download = true
+    // If true, it will download node using above parameters.
+    // If false, it will try to use globally installed node.
+    download = true
 
-  // Set the work directory for unpacking node
-  workDir = file("${project.buildDir}/ui")
+    // Set the work directory for unpacking node
+    workDir = file("${project.buildDir}/ui")
 
-  // Set the work directory where node_modules should be located
-  nodeModulesDir = file("${project.projectDir}/ui")
+    // Set the work directory where node_modules should be located
+    nodeModulesDir = file("${project.projectDir}/ui")
 }
 
 grunt {
@@ -113,37 +132,37 @@ grunt {
 }
 
 task bowerInstall(type: NodeTask) {
-  script = file('ui/node_modules/bower/lib/bin/bower.js')
-  args = ['install', '--allow-root']
-  execOverrides {
-    it.ignoreExitValue = true
-    it.workingDir = file("${project.projectDir}/ui")
-  }
+    script = file('ui/node_modules/bower/lib/bin/bower.js')
+    args = ['install', '--allow-root']
+    execOverrides {
+        it.ignoreExitValue = true
+        it.workingDir = file("${project.projectDir}/ui")
+    }
 }
 
 /// *** Packaging *** ///
 
 def distributionsCopySpec = copySpec {
     into("identio-server") {
-    
-    	from 'README.md'
+
+        from 'README.md'
         from 'LICENSE'
-        
+
         into('bin') {
-           	from 'scripts/password-generator'
-           	from 'scripts/start'
-           	fileMode 0755
+            from 'scripts/password-generator'
+            from 'scripts/start'
+            fileMode 0755
         }
         into('lib') {
-           	from(jar)
-       		from(project.configurations.runtime)
-       		exclude 'spring-boot-devtools-*'
+            from(jar)
+            from(project.configurations.runtime)
+            exclude 'spring-boot-devtools-*'
         }
         into('config') {
-        	from 'sample-config'
+            from 'config'
         }
         into('ui') {
-        	from 'ui/dist'
+            from 'ui/dist'
         }
     }
 }
@@ -153,19 +172,23 @@ bowerInstall.mustRunAfter npmInstall
 npmInstall.mustRunAfter clean
 jar.mustRunAfter clean
 
-task releaseZip(type: Zip, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
-   description 'Build a release in zip format'
-   with distributionsCopySpec
-   archiveName = "identio-server.zip"
+task releaseZip(type: Zip, dependsOn: ['clean', 'test', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
+    description 'Build a release in zip format'
+    with distributionsCopySpec
+    archiveName = "identio-server.zip"
 }
 
-task releaseTarGz(type: Tar, dependsOn: ['clean', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) { 
-   description 'Build a release in tar.gz format'
-   compression = Compression.GZIP
-   with distributionsCopySpec
-   archiveName = "identio-server.tar.gz"
+task releaseTarGz(type: Tar, dependsOn: ['clean', 'test', 'jar', 'bowerInstall', 'npmInstall', 'grunt_build']) {
+    description 'Build a release in tar.gz format'
+    compression = Compression.GZIP
+    with distributionsCopySpec
+    archiveName = "identio-server.tar.gz"
+}
+
+task release(dependsOn: ['releaseTarGz', 'releaseZip']) {
+    description 'Build release in zip and tar.gz format'
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.14'
+    gradleVersion = '4.2'
 }
