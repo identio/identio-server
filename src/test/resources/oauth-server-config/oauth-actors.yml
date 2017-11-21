@@ -1,7 +1,7 @@
 clients:
   - name: Test Client
     clientId: test
-    clientSecret: test
+    clientSecret: "{plain}test"
     allowedScopes:
       - scope.test.1
       - scope.test.2
@@ -12,7 +12,7 @@ clients:
     consentNeeded: true
   - name: Test Client 2
     clientId: test2
-    clientSecret: test2
+    clientSecret: "{plain}test2"
     allowedScopes:
       - scope.test.1
       - scope.test.2
@@ -28,7 +28,7 @@ clients:
     resourceOwnerAuthMethod: Local
   - name: Test Client 3
     clientId: test3
-    clientSecret: test3
+    clientSecret: "{plain}test3"
     allowedScopes:
       - scope.test.1
       - scope.test.2
@@ -40,7 +40,7 @@ clients:
     consentNeeded: true
   - name: Test Client 4
     clientId: test4
-    clientSecret: test4
+    clientSecret: "{plain}test4"
     allowedScopes:
       - scope.test.1
       - scope.test.2
@@ -56,4 +56,4 @@ clients:
 resourceServers:
   - name: Test API
     clientId: rs1
-    clientSecret: rs1
+    clientSecret: "{plain}rs1"

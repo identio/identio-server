@@ -1,7 +1,7 @@
 clients:
   - name: Client
     clientId: client
-    clientSecret: client
+    clientSecret: "{plain}client"
     allowedScopes:
       - scope.test.1
       - scope.test.2

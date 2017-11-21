@@ -31,6 +31,7 @@ import net.identio.server.utils.DecodeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
@@ -103,7 +104,13 @@ public class FileOAuthActorsRepository implements OAuthActorsRepository {
 
             Client client = clients.get(credentials.getUserId());
 
-            if (client != null && client.getClientSecret().equals(credentials.getPassword())) {
+            if (client == null) return Result.fail();
+
+            String refPassword = client.getClientSecret();
+            String password = credentials.getPassword();
+
+            if (refPassword.startsWith("{plain}") && refPassword.substring(7).equals(password)
+                    || refPassword.startsWith("{bcrypt}") && BCrypt.checkpw(password, refPassword.substring(8))) {
                 return Result.success(client);
             }
         }
@@ -124,7 +131,13 @@ public class FileOAuthActorsRepository implements OAuthActorsRepository {
 
             ResourceServer rs = resourceServers.get(credentials.getUserId());
 
-            if (rs != null && rs.getClientSecret().equals(credentials.getPassword())) {
+            if (rs == null) return Result.fail();
+
+            String refPassword = rs.getClientSecret();
+            String password = credentials.getPassword();
+
+            if (refPassword.startsWith("{plain}") && refPassword.substring(7).equals(password)
+                    || refPassword.startsWith("{bcrypt}") && BCrypt.checkpw(password, refPassword.substring(8))) {
                 return Result.success(rs);
             }
         }
