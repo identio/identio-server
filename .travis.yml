@@ -6,8 +6,7 @@ jdk:
 script:
 - ./gradlew release
 after_success:
-- if [ -e ./gradlew ]; then ./gradlew jacocoTestReport; else gradle jacocoTestReport;fi
-- bash <(curl -s https://codecov.io/bash)
+- scripts/ci/upload_test_coverage.sh
 deploy:
   provider: releases
   api_key:
@@ -18,4 +17,5 @@ deploy:
   - build/distributions/identio-server.zip  
   on:
     tags: true
+    jdk: oraclejdk9
  
