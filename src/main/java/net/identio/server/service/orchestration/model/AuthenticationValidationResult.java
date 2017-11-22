@@ -25,6 +25,7 @@ import net.identio.server.model.ProtocolType;
 public class AuthenticationValidationResult {
 
     private ValidationStatus validationStatus;
+    private String transactionId;
     private String errorStatus;
     private ResponseData responseData;
     private ProtocolType protocolType;
@@ -37,6 +38,15 @@ public class AuthenticationValidationResult {
 
     public AuthenticationValidationResult setValidationStatus(ValidationStatus state) {
         this.validationStatus = state;
+        return this;
+    }
+
+    public String getTransactionId() {
+        return transactionId;
+    }
+
+    public AuthenticationValidationResult setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
         return this;
     }
 

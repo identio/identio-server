@@ -29,6 +29,5 @@ public interface AuthenticationProvider {
 
     boolean accepts(Authentication authentication);
 
-    AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-                                  TransactionData transactionData);
+    AuthenticationResult validate(AuthMethod authMethod, Authentication authentication);
 }

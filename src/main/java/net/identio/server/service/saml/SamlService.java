@@ -34,6 +34,7 @@ import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
 import net.identio.server.utils.DecodeUtils;
+import net.identio.server.utils.SecurityUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -435,8 +436,8 @@ public class SamlService {
         return selectedEndpoint;
     }
 
-    public SamlAuthRequestGenerationResult generateAuthentRequest(Metadata remoteIdpMetadata,
-                                                                  ArrayList<String> requestedAuthnContext, String comparison, String transactionId) throws SamlException {
+    public SamlAuthRequestGenerationResult generateAuthentRequest(Metadata remoteIdpMetadata, ArrayList<String> requestedAuthnContext,
+                                                                  String comparison, String transactionId, String authMethodName) throws SamlException {
 
         LOG.debug("Generating a new SAML Request");
 
@@ -457,7 +458,7 @@ public class SamlService {
             if (remoteEndpoint.getBinding().equals(SamlConstants.BINDING_HTTP_POST)) {
                 signer.signEmbedded(authentRequest);
                 result.setSerializedRequest(DecodeUtils.encode(authentRequest.toString().getBytes(), false))
-                        .setRelayState(transactionId);
+                        .setRelayState(generateRelayState(transactionId, authMethodName, authentRequest.getId()));
             } else {
                 // Generate the information to sign
                 String encodedSamlRequest = UriUtils
@@ -484,7 +485,10 @@ public class SamlService {
             LOG.error("{}: {}", message, ex.getMessage());
             throw new SamlException(message, ex);
         }
-
     }
 
+    private String generateRelayState(String transactionId, String authMethodName, String requestId) {
+
+        return SecurityUtils.encrypt(transactionId + ":" + authMethodName + ":" + requestId);
+    }
 }

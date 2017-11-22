@@ -27,15 +27,12 @@ import net.identio.server.exceptions.SamlException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
-import net.identio.server.service.authentication.model.Authentication;
-import net.identio.server.service.authentication.model.AuthenticationResult;
-import net.identio.server.service.authentication.model.AuthenticationResultStatus;
-import net.identio.server.service.authentication.model.AuthenticationErrorStatus;
+import net.identio.server.service.authentication.model.*;
 import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
 import net.identio.server.service.saml.MetadataService;
 import net.identio.server.service.saml.SamlService;
-import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.DecodeUtils;
+import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,11 +130,10 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
         }
 
         return samlService.generateAuthentRequest(remoteMetadata, requestedAuthContext, SamlConstants.COMPARISON_EXACT,
-                transactionId);
+                transactionId, authMethod.getName());
     }
 
-    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-                                         TransactionData transactionData) {
+    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication) {
 
         LOG.info("Validating SAML response from proxy IDP");
 
@@ -172,16 +168,8 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
             }
 
             // Check inResponseTo attribute coherence
-            if (!transactionData.getSamlProxyRequestId().equals(assertion.getInResponseTo())) {
+            if (!samlAuthentication.getRequestId().equals(assertion.getInResponseTo())) {
                 LOG.error("* InResponseTo ID doesn't match request ID");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
-            }
-
-            // Check that the response user ID matches the ID in session
-            if (assertion.getSubjectNameID() == null
-                    || !assertion.getSubjectNameID().equals(transactionData.getUserSession().getUserId())) {
-                LOG.error("* Audience in assertion doesn't match IDP EntityID");
                 return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
                         .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
@@ -285,4 +273,11 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
         return authentication instanceof SamlAuthentication;
     }
 
+    public ProxyAuthContext getContextFromRelayState(String relayState) {
+
+        String decryptedRelayState = SecurityUtils.decrypt(relayState);
+        String[] contextElements = decryptedRelayState.split(":");
+
+        return new ProxyAuthContext().setTransactionId(contextElements[0]).setAuthMethodName(contextElements[1]).setRequestId(contextElements[2]);
+    }
 }

@@ -22,9 +22,11 @@
 package net.identio.server.service.oauth;
 
 import net.identio.server.exceptions.UnknownAuthMethodException;
+import net.identio.server.model.AuthMethod;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.model.Result;
 import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authentication.model.AuthenticationResultStatus;
 import net.identio.server.service.authentication.model.UserPasswordAuthentication;
@@ -89,8 +91,11 @@ public class ResourceOwnerCredentialsService {
         // Authenticate the resource owner
         AuthenticationResult result;
         try {
-            result = authenticationService.validateExplicit(authenticationService.getAuthMethodByName(client.getResourceOwnerAuthMethod()),
-                    new UserPasswordAuthentication(request.getUsername(), request.getPassword()), null);
+            AuthMethod authMethod = authenticationService.getAuthMethodByName(client.getResourceOwnerAuthMethod());
+            Authentication authentication = new UserPasswordAuthentication(request.getUsername(), request.getPassword());
+
+            result = authenticationService.validateExplicit(authMethod, authentication);
+
         } catch (UnknownAuthMethodException e) {
             LOG.error("Unknown authentication method: {}", client.getResourceOwnerAuthMethod());
             return Result.serverError();

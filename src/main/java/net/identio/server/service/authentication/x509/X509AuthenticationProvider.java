@@ -26,7 +26,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -135,8 +134,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
         }
     }
 
-    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-                                         TransactionData transactionData) {
+    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication) {
 
         X509AuthMethod x509AuthMethod = (X509AuthMethod) authMethod;
         X509Authentication x509Authentication = (X509Authentication) authentication;

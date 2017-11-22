@@ -25,7 +25,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,8 +94,7 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
     }
 
-    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-                                         TransactionData transactionData) {
+    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication) {
 
         LocalAuthMethod fileAuthMethod = (LocalAuthMethod) authMethod;
         UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;

@@ -20,6 +20,12 @@
  */
 package net.identio.server.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -36,15 +42,20 @@ import java.util.UUID;
 
 public class SecurityUtils {
 
-    public static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    private static final Logger LOG = LoggerFactory.getLogger(SecurityUtils.class);
 
-    public static final String LOWERCASE = UPPERCASE.toLowerCase();
+    private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    public static final String DIGITS = "0123456789";
+    private static final String LOWERCASE = UPPERCASE.toLowerCase();
 
-    public static final char[] ALPHANUM = (UPPERCASE + LOWERCASE + DIGITS).toCharArray();
+    private static final String DIGITS = "0123456789";
+
+    private static final char[] ALPHANUM = (UPPERCASE + LOWERCASE + DIGITS).toCharArray();
 
     private static final SecureRandom random = new SecureRandom();
+
+    private static final TextEncryptor encryptor = Encryptors.text(KeyGenerators.string().generateKey(),
+            KeyGenerators.string().generateKey());
 
     public static String escapeDN(String name) {
         StringBuilder sb = new StringBuilder();
@@ -166,5 +177,13 @@ public class SecurityUtils {
         for (int idx = 0; idx < buf.length; ++idx)
             buf[idx] = ALPHANUM[random.nextInt(ALPHANUM.length)];
         return new String(buf);
+    }
+
+    public static String encrypt(String plain) {
+        return encryptor.encrypt(plain);
+    }
+
+    public static String decrypt(String encrypted) {
+        return encryptor.decrypt(encrypted);
     }
 }

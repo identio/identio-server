@@ -21,6 +21,8 @@
 package net.identio.server.mvc.saml;
 
 import net.identio.server.boot.GlobalConfiguration;
+import net.identio.server.model.ProtocolType;
+import net.identio.server.service.orchestration.ProxyAuthOrchestrationService;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -29,6 +31,7 @@ import net.identio.server.service.orchestration.AuthOrchestrationService;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
 import net.identio.server.service.orchestration.model.ValidationStatus;
 import net.identio.server.utils.HttpUtils;
+import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +51,7 @@ public class AssertionConsumerController {
     private static final Logger LOG = LoggerFactory.getLogger(AssertionConsumerController.class);
 
     @Autowired
-    private AuthOrchestrationService authOrchestrationService;
+    private ProxyAuthOrchestrationService proxyAuthOrchestrationService;
 
     @Autowired
     private GlobalConfiguration config;
@@ -67,11 +70,12 @@ public class AssertionConsumerController {
         LOG.debug("* RelayState: {}", usRelayState);
 
         // To prevent XSS attacks, we escape the RelayState value
-        String transactionId = HtmlUtils.htmlEscape(usRelayState);
+        String relayState = HtmlUtils.htmlEscape(usRelayState);
+
         SamlAuthentication authentication = new SamlAuthentication(usSamlResponse);
 
-        AuthenticationValidationResult result = authOrchestrationService
-                .handleExplicitAuthentication(transactionId, identioSession, null, authentication);
+        AuthenticationValidationResult result = proxyAuthOrchestrationService
+                .handleProxyAuthentication(identioSession, ProtocolType.SAML, authentication, relayState);
 
         if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
 
@@ -84,7 +88,7 @@ public class AssertionConsumerController {
 
             HttpUtils.setSessionCookie(httpResponse, identioSession, config.isSecure());
 
-            return "redirect:/#!/auth/" + transactionId;
+            return "redirect:/#!/auth/" + result.getTransactionId();
         }
 
     }

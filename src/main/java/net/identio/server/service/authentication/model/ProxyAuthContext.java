@@ -18,25 +18,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.service.authentication.saml;
 
-import net.identio.server.service.authentication.model.Authentication;
+package net.identio.server.service.authentication.model;
 
-public class SamlAuthentication implements Authentication {
+public class ProxyAuthContext {
 
-    private String response;
+    private String transactionId;
+    private String authMethodName;
     private String requestId;
 
-    public SamlAuthentication(String response) {
-        this.setResponse(response);
+    public String getTransactionId() {
+        return transactionId;
     }
 
-    public String getResponse() {
-        return response;
+    public ProxyAuthContext setTransactionId(String transactionId) {
+        this.transactionId = transactionId;
+        return this;
     }
 
-    public SamlAuthentication setResponse(String response) {
-        this.response = response;
+    public String getAuthMethodName() {
+        return authMethodName;
+    }
+
+    public ProxyAuthContext setAuthMethodName(String authMethodName) {
+        this.authMethodName = authMethodName;
         return this;
     }
 
@@ -44,7 +49,7 @@ public class SamlAuthentication implements Authentication {
         return requestId;
     }
 
-    public SamlAuthentication setRequestId(String requestId) {
+    public ProxyAuthContext setRequestId(String requestId) {
         this.requestId = requestId;
         return this;
     }

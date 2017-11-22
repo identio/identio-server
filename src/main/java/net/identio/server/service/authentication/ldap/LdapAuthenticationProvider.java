@@ -25,7 +25,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.SecurityUtils;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.slf4j.Logger;
@@ -76,8 +75,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
     }
 
-    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-                                         TransactionData transactionData) {
+    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication) {
 
         LdapAuthMethod ldapAuthMethod = (LdapAuthMethod) authMethod;
         UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;

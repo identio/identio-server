@@ -24,8 +24,8 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.utils.DecodeUtils;
+import net.identio.server.utils.SecurityUtils;
 import net.sourceforge.jradiusclient.RadiusAttribute;
 import net.sourceforge.jradiusclient.RadiusAttributeValues;
 import net.sourceforge.jradiusclient.RadiusClient;
@@ -75,8 +75,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
     }
 
-    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication,
-                                         TransactionData transactionData) {
+    public AuthenticationResult validate(AuthMethod authMethod, Authentication authentication) {
 
         RadiusAuthMethod radiusAuthMethod = (RadiusAuthMethod) authMethod;
         UserPasswordAuthentication userPwAuthentication = (UserPasswordAuthentication) authentication;
@@ -121,7 +120,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
             RadiusPacket accessRequest = new PapAccessRequest(userId, password);
 
             if (challenge != null) {
-                accessRequest.setAttribute(deserializeAttribute(challenge));
+                accessRequest.setAttribute(deserializeAttribute(SecurityUtils.decrypt(challenge)));
             }
 
             // Send access request
@@ -166,7 +165,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                 }
 
                 return new AuthenticationResult().setStatus(AuthenticationResultStatus.CHALLENGE)
-                        .setChallengeType(challengeType).setChallengeValue(radiusState).setUserId(userId);
+                        .setChallengeType(challengeType).setChallengeValue(SecurityUtils.encrypt(radiusState)).setUserId(userId);
             }
 
             if (accessResponse.getPacketType() == RadiusPacket.ACCESS_REJECT) {

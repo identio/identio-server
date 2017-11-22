@@ -72,7 +72,7 @@ public class AuthenticationService {
         authMethods.put(authMethod.getName(), authMethod);
     }
 
-    public AuthenticationResult validateTransparent(Authentication authentication, TransactionData transactionData) {
+    public AuthenticationResult validateTransparent(Authentication authentication) {
 
         AuthenticationResult result = null;
 
@@ -81,7 +81,7 @@ public class AuthenticationService {
             AuthenticationProvider provider = transparentAuthenticationProviders.get(authMethod);
 
             if (provider.accepts(authentication)) {
-                result = provider.validate(authMethod, authentication, transactionData);
+                result = provider.validate(authMethod, authentication);
 
                 if (result.getStatus() != AuthenticationResultStatus.FAIL) {
                     break;
@@ -93,15 +93,14 @@ public class AuthenticationService {
         return result;
     }
 
-    public AuthenticationResult validateExplicit(AuthMethod authMethod, Authentication authentication,
-                                                 TransactionData transactionData) {
+    public AuthenticationResult validateExplicit(AuthMethod authMethod, Authentication authentication) {
 
         AuthenticationResult result = null;
 
         AuthenticationProvider provider = explicitAuthenticationProviders.get(authMethod);
 
         if (provider.accepts(authentication)) {
-            result = provider.validate(authMethod, authentication, transactionData);
+            result = provider.validate(authMethod, authentication);
         }
 
         return result;

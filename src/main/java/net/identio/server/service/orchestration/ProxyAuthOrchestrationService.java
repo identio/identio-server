@@ -23,11 +23,16 @@ package net.identio.server.service.orchestration;
 
 import net.identio.server.exceptions.*;
 import net.identio.server.model.AuthMethod;
+import net.identio.server.model.ProtocolType;
 import net.identio.server.service.authentication.AuthenticationService;
+import net.identio.server.service.authentication.model.Authentication;
+import net.identio.server.service.authentication.model.ProxyAuthContext;
 import net.identio.server.service.authentication.saml.SamlAuthMethod;
+import net.identio.server.service.authentication.saml.SamlAuthentication;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
+import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
 import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.service.authentication.saml.SamlAuthenticationProvider;
@@ -56,6 +61,9 @@ public class ProxyAuthOrchestrationService {
 
     @Autowired
     private AuthenticationService authenticationService;
+
+    @Autowired
+    private AuthOrchestrationService authOrchestrationService;
 
     public SamlAuthRequestGenerationResult initSamlRequest(String transactionId, String sessionId,
                                                            String authMethodName)
@@ -95,5 +103,26 @@ public class ProxyAuthOrchestrationService {
         } finally {
             transactionService.removeTransactionData(transactionData);
         }
+    }
+
+    public AuthenticationValidationResult handleProxyAuthentication(String sessionId, ProtocolType protocol, Authentication authentication, String relayState) throws WebSecurityException, ServerException, ValidationException {
+
+        ProxyAuthContext context;
+
+        // Send the state to the proxy auth method to get the transactionId, authentication method and
+        switch (protocol) {
+            case SAML:
+                context = samlAuthenticationProvider.getContextFromRelayState(relayState);
+                ((SamlAuthentication) authentication).setRequestId(context.getRequestId());
+                break;
+
+            default:
+                throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
+        }
+
+        AuthenticationValidationResult result = authOrchestrationService.handleExplicitAuthentication(context.getTransactionId(), sessionId, context.getAuthMethodName(), authentication);
+        result.setTransactionId(context.getTransactionId());
+
+        return result;
     }
 }

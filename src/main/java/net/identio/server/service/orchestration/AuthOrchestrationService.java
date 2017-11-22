@@ -76,7 +76,7 @@ public class AuthOrchestrationService {
 
         TransactionData transactionData = transactionService.getTransaction(sessionId, transactionId);
 
-        AuthenticationResult authResult = authenticationService.validateTransparent(authentication, transactionData);
+        AuthenticationResult authResult = authenticationService.validateTransparent(authentication);
 
         return decideResponse(authResult, transactionData);
     }
@@ -116,8 +116,7 @@ public class AuthOrchestrationService {
             throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
         }
 
-        AuthenticationResult authResult = authenticationService.validateExplicit(authMethod, authentication,
-                transactionData);
+        AuthenticationResult authResult = authenticationService.validateExplicit(authMethod, authentication);
 
         return decideResponse(authResult, transactionData);
     }
