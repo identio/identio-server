@@ -6,28 +6,24 @@ buildscript {
     }
     repositories {
         mavenCentral()
-        maven { url "http://repo.spring.io/snapshot" }
-        maven { url "http://repo.spring.io/milestone" }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath 'org.owasp:dependency-check-gradle:3.0.1'
-        classpath "io.spring.gradle:dependency-management-plugin:0.5.2.RELEASE"
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
     }
 }
 
 plugins {
-    id 'com.moowork.node' version '0.13'
-    id 'com.moowork.grunt' version '0.13'
-    id 'com.github.ben-manes.versions' version '0.15.0'
-    id 'org.springframework.boot' version '1.5.4.RELEASE'
+    id 'com.moowork.node' version '1.2.0'
+    id 'com.moowork.grunt' version '1.2.0'
+    id 'com.github.ben-manes.versions' version '0.17.0'
+    id 'org.springframework.boot' version '1.5.8.RELEASE'
     id 'org.owasp.dependencycheck' version '3.0.1'
-    id 'io.spring.dependency-management' version '0.5.2.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.3.RELEASE'
 }
 
 apply plugin: 'java'
-apply plugin: 'eclipse-wtp'
-apply plugin: 'idea'
 apply plugin: 'application'
 apply plugin: 'jacoco'
 
@@ -36,8 +32,6 @@ targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
-    maven { url "http://repo.spring.io/snapshot" }
-    maven { url "http://repo.spring.io/milestone" }
     maven { url "https://jitpack.io" }
 }
 
@@ -53,34 +47,21 @@ dependencyManagement {
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
-    compile("com.zaxxer:HikariCP:2.7.1")
+    compile("com.zaxxer:HikariCP:2.7.3")
     compile("org.liquibase:liquibase-core")
     compile("org.springframework.security:spring-security-web:4.1.2.RELEASE")
     compile("org.springframework.cloud:spring-cloud-config-server:1.3.3.RELEASE")
     compile("org.springframework.cloud:spring-cloud-starter-vault-config")
-    compile('org.apache.commons:commons-pool2:2.4.2')
+    compile('org.apache.commons:commons-pool2:2.4.3')
     compile('com.github.identio:identio-saml:1.0.3')
-    compile('com.google.guava:guava:23.0')
+    compile('com.google.guava:guava:23.5-jre')
     compile('com.github.identio:jradius-client:-SNAPSHOT')
-    compile('com.auth0:java-jwt:3.2.0')
+    compile('com.auth0:java-jwt:3.3.0')
     compile('ch.qos.logback:logback-core:1.2.3')
     compile('ch.qos.logback:logback-classic:1.2.3')
     testCompile("org.springframework.boot:spring-boot-starter-test:${springBootVersion}")
     testCompile("org.apache.httpcomponents:httpclient:4.5.3")
     testRuntime("com.h2database:h2:1.4.196")
-}
-
-eclipse {
-    wtp {
-        facet {
-            facet name: 'java', version: '1.8'
-            facet name: 'jst.web', version: '3.1'
-        }
-    }
-    project
-            {
-                natures "org.springsource.ide.eclipse.gradle.core.nature"
-            }
 }
 
 springBoot {
@@ -101,7 +82,7 @@ jacocoTestReport {
 
 node {
     // Version of node to use.
-    version = '6.11.3'
+    version = '8.9.1'
 
     // Version of npm to use.
     npmVersion = '5.4.2'
@@ -190,5 +171,5 @@ task release(dependsOn: ['releaseTarGz', 'releaseZip']) {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.2'
+    gradleVersion = '4.3.1'
 }
