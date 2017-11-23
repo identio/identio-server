@@ -42,8 +42,6 @@ import java.util.UUID;
 
 public class SecurityUtils {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SecurityUtils.class);
-
     private static final String UPPERCASE = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     private static final String LOWERCASE = UPPERCASE.toLowerCase();

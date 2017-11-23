@@ -20,9 +20,14 @@
  */
 package net.identio.server.utils;
 
+import net.identio.server.model.Result;
+import org.springframework.util.MultiValueMap;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.List;
 
 public class HttpUtils {
 
@@ -47,4 +52,12 @@ public class HttpUtils {
         return header;
     }
 
+    public static Result<String> getUniqueParam(MultiValueMap<String, String> allParams, String param) {
+
+        List<String> paramList = allParams.getOrDefault(param, new ArrayList<>());
+
+        if (paramList.size() > 1) return Result.fail();
+
+        return paramList.size() == 1 ? Result.success(paramList.get(0)) : Result.success(null);
+    }
 }
