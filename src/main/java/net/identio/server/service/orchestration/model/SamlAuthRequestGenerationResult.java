@@ -31,7 +31,6 @@ public class SamlAuthRequestGenerationResult {
     private String relayState;
     private String signature;
     private String signatureAlgorithm;
-    private String requestId;
 
     public boolean isSuccess() {
         return success;
@@ -95,14 +94,4 @@ public class SamlAuthRequestGenerationResult {
         this.signatureAlgorithm = signatureAlgorithm;
         return this;
     }
-
-    public String getRequestId() {
-        return requestId;
-    }
-
-    public SamlAuthRequestGenerationResult setRequestId(String requestId) {
-        this.requestId = requestId;
-        return this;
-    }
-
 }

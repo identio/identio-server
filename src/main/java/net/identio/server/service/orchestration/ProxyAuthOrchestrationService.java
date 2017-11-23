@@ -83,16 +83,10 @@ public class ProxyAuthOrchestrationService {
         try {
             AuthMethod authMethod = authenticationService.getAuthMethodByName(authMethodName);
 
-            transactionData.setSelectedAuthMethod(authMethod);
-
             authPolicyService.checkAllowedAuthMethods(transactionData.getTargetAuthMethods(), authMethod);
 
-            SamlAuthRequestGenerationResult result = samlAuthenticationProvider.initRequest((SamlAuthMethod) authMethod,
+            return samlAuthenticationProvider.initRequest((SamlAuthMethod) authMethod,
                     transactionData.getTargetAuthLevels(), transactionId);
-
-            transactionData.setSamlProxyRequestId(result.getRequestId());
-
-            return result;
 
         } catch (UnknownAuthMethodException e) {
             throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_UNKNOWN);

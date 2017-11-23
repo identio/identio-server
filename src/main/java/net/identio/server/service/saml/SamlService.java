@@ -453,17 +453,17 @@ public class SamlService {
                     .setDestination(remoteEndpoint.getLocation()).setForceAuthent(false).setIsPassive(false)
                     .setRequestedAuthnContext(requestedAuthnContext, comparison).build();
 
-            result.setRequestId(authentRequest.getId());
+            String relayState = generateRelayState(transactionId, authMethodName, authentRequest.getId());
 
             if (remoteEndpoint.getBinding().equals(SamlConstants.BINDING_HTTP_POST)) {
                 signer.signEmbedded(authentRequest);
                 result.setSerializedRequest(DecodeUtils.encode(authentRequest.toString().getBytes(), false))
-                        .setRelayState(generateRelayState(transactionId, authMethodName, authentRequest.getId()));
+                        .setRelayState(relayState);
             } else {
                 // Generate the information to sign
                 String encodedSamlRequest = UriUtils
                         .encode(DecodeUtils.encode(authentRequest.toString().getBytes(), true), StandardCharsets.UTF_8.name());
-                String encodedRelayState = UriUtils.encode(transactionId, StandardCharsets.UTF_8.name());
+                String encodedRelayState = UriUtils.encode(relayState, StandardCharsets.UTF_8.name());
                 String encodedSigAlg = UriUtils.encode(SamlConstants.SIGNATURE_ALG_RSA_SHA256, StandardCharsets.UTF_8.name());
 
                 String signedInfo = "SAMLRequest=" + encodedSamlRequest + "&RelayState=" + encodedRelayState

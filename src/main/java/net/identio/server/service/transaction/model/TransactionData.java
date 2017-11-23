@@ -33,9 +33,7 @@ public class TransactionData {
     private RequestParsingInfo requestParsingInfo;
     private ArrayList<AuthLevel> targetAuthLevels;
     private HashSet<AuthMethod> targetAuthMethods = new HashSet<>();
-    private AuthMethod selectedAuthMethod;
     private TransactionState transactionState;
-    private String samlProxyRequestId;
     private ProtocolType protocolType;
 
     public String getTransactionId() {
@@ -78,28 +76,12 @@ public class TransactionData {
         this.targetAuthMethods = targetAuthMethods;
     }
 
-    public AuthMethod getSelectedAuthMethod() {
-        return selectedAuthMethod;
-    }
-
-    public void setSelectedAuthMethod(AuthMethod selectedAuthMethod) {
-        this.selectedAuthMethod = selectedAuthMethod;
-    }
-
     public TransactionState getState() {
         return transactionState;
     }
 
     public void setState(TransactionState transactionState) {
         this.transactionState = transactionState;
-    }
-
-    public String getSamlProxyRequestId() {
-        return samlProxyRequestId;
-    }
-
-    public void setSamlProxyRequestId(String samlProxyRequestId) {
-        this.samlProxyRequestId = samlProxyRequestId;
     }
 
     public ProtocolType getProtocolType() {
