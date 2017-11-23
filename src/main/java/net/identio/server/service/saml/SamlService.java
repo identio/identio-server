@@ -218,14 +218,7 @@ public class SamlService {
 
         LOG.debug("Validate query parameters of HTTP-Redirect Binding");
 
-        byte[] signature;
-        try {
-            signature = DecodeUtils.decode(request.getSignatureValue(), false);
-        } catch (IOException | DataFormatException e) {
-            result.setStatus(RequestParsingStatus.RESPONSE_ERROR)
-                    .setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
-            return false;
-        }
+        String signature = request.getSignatureValue();
         String signedInfo = request.getSignedInfo();
         String sigAlg = request.getSignatureAlgorithm();
 
@@ -233,8 +226,17 @@ public class SamlService {
 
             LOG.debug("* Request is signed");
 
+            byte[] decodedSignature;
             try {
-                validator.validate(signedInfo, signature, sigAlg);
+                decodedSignature = DecodeUtils.decode(request.getSignatureValue(), false);
+            } catch (IOException | DataFormatException e) {
+                result.setStatus(RequestParsingStatus.RESPONSE_ERROR)
+                        .setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
+                return false;
+            }
+
+            try {
+                validator.validate(signedInfo, decodedSignature, sigAlg);
             } catch (NoSuchAlgorithmException | TechnicalException | InvalidSignatureException e) {
                 LOG.error("Request signature is invalid");
                 result.setStatus(RequestParsingStatus.RESPONSE_ERROR)
