@@ -122,11 +122,11 @@ public class FileOAuthActorsRepository implements OAuthActorsRepository {
 
         if (authorization != null && authorization.startsWith("Basic ")) {
 
-            UserPasswordAuthentication credentials = null;
+            UserPasswordAuthentication credentials;
             try {
                 credentials = getCredentialsFromAuthorization(authorization);
             } catch (IOException | DataFormatException e) {
-                Result.fail();
+                return Result.fail();
             }
 
             ResourceServer rs = resourceServers.get(credentials.getUserId());

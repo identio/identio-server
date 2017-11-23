@@ -23,10 +23,10 @@ package net.identio.server.service.authentication;
 import net.identio.server.exceptions.UnknownAuthMethodException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.model.Authentication;
+import net.identio.server.service.authentication.model.AuthenticationErrorStatus;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authentication.model.AuthenticationResultStatus;
 import net.identio.server.service.authentication.saml.SamlAuthMethod;
-import net.identio.server.service.transaction.model.TransactionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -95,15 +95,15 @@ public class AuthenticationService {
 
     public AuthenticationResult validateExplicit(AuthMethod authMethod, Authentication authentication) {
 
-        AuthenticationResult result = null;
-
         AuthenticationProvider provider = explicitAuthenticationProviders.get(authMethod);
 
         if (provider.accepts(authentication)) {
-            result = provider.validate(authMethod, authentication);
+            return provider.validate(authMethod, authentication);
         }
-
-        return result;
+        else {
+            return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                    .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+        }
     }
 
     public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {
