@@ -360,7 +360,7 @@ public class OAuthRequests {
     private RSAPublicKey getPublicSigningKey() throws Exception {
 
         FileInputStream fis = new FileInputStream(
-                "src/test/resources/oauth-server-config/default-sign-certificate.p12");
+                "src/test/resources/server-config/default-sign-certificate.p12");
 
         KeyStore ks = KeyStore.getInstance("PKCS12");
         ks.load(fis, "password".toCharArray());

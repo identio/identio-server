@@ -19,10 +19,19 @@
  *
  */
 
-package integration.oauth;
+package integration.saml;
 
+import integration.oauth.OAuthRequests;
+import net.identio.saml.*;
+import net.identio.saml.exceptions.TechnicalException;
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.service.oauth.model.AccessTokenResponse;
+import net.identio.server.exceptions.InitializationException;
+import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
+import net.identio.server.service.authentication.model.Authentication;
+import net.identio.server.service.oauth.model.OAuthErrors;
+import net.identio.server.service.oauth.model.OAuthToken;
+import net.identio.server.utils.DecodeUtils;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +45,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.*;
+
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -48,7 +66,9 @@ import static org.junit.Assert.assertNull;
         "identio.work.directory: config/work",
         "logging.config: src/test/resources/server-config/logback.xml", "spring.cloud.vault.enabled: false"})
 @ActiveProfiles(profiles = {"native"})
-public class ResourceOwnerCredentialsSuccessTest {
+public class SPInitiatedSuccessTest {
+
+    private static final String AUTHENTICATION_URL = "/#!/auth/";
 
     @LocalServerPort
     private int port;
@@ -56,34 +76,33 @@ public class ResourceOwnerCredentialsSuccessTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    private MultiValueMap<String, String> payload;
+    private HttpHeaders headers;
+
     @Test
-    public void successfulCinematic() {
+    public void successfulCinematic() throws TechnicalException, IOException {
 
-        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
+        AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/Redirect")
+                .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
+                .build();
 
-        payload.add("grant_type", "password");
-        payload.add("username", "johndoe");
-        payload.add("password", "password");
-        payload.add("scope", "scope.test.1 scope.test.2");
+        String url = "/SAML2/SSO/Redirect?SAMLRequest=" + DecodeUtils.encode(ar.toString().getBytes(), true);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Basic dGVzdDI6dGVzdDI="); // test2:test2 in base64
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        ResponseEntity<String> request = this.restTemplate.exchange(
+                url,
+                HttpMethod.GET,
+                null,
+                String.class);
 
-        ResponseEntity<AccessTokenResponse> accessTokenResponseEntity = this.restTemplate.exchange(
-                "/oauth/token",
-                HttpMethod.POST,
-                new HttpEntity<>(payload, headers),
-                AccessTokenResponse.class);
+        String redirectUrl = request.getHeaders().getFirst(HttpHeaders.LOCATION);
 
-        AccessTokenResponse accessTokenResponse = accessTokenResponseEntity.getBody();
+        assertEquals(HttpStatus.FOUND, request.getStatusCode());
+        assertTrue(redirectUrl.startsWith(getUrlWithPort(AUTHENTICATION_URL)));
 
-        String accessToken = accessTokenResponse.getAccessToken();
+    }
 
-        assertEquals(HttpStatus.OK, accessTokenResponseEntity.getStatusCode());
-        assertNotNull(accessToken);
-        assertNull(accessTokenResponse.getRefreshToken());
-        assertEquals(2400, accessTokenResponse.getExpiresIn());
-        assertEquals("scope.test.1 scope.test.2", accessTokenResponse.getScope());
+    private String getUrlWithPort(String url) {
+
+        return "http://localhost:" + this.port + url;
     }
 }

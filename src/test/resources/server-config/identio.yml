@@ -1,7 +1,7 @@
 global:
   basePublicUrl: https://localhost
   staticResourcesPath: ui/app
-  signatureKeystorePath: src/test/resources/oauth-server-config/default-sign-certificate.p12
+  signatureKeystorePath: src/test/resources/server-config/default-sign-certificate.p12
   signatureKeystorePassword: password
 
 data:
@@ -38,7 +38,7 @@ authorization:
       expirationTime: 3600
 
 oAuthServer:
-  actorsFile: src/test/resources/oauth-server-config/oauth-actors.yml
+  actorsFile: src/test/resources/server-config/oauth-actors.yml
   dataSource: Local
   jwtToken: true
 
@@ -52,6 +52,7 @@ samlIdp:
   organizationName: Ident.io
   organizationUrl: http://identio.net
   tokenValidityLength: 3
+  spMetadataDirectory: src/test/resources/server-config/trusted-sp/
 
 session:
   duration: 120
@@ -60,4 +61,4 @@ authMethods:
   local:
   - name: Local
     authLevel: medium
-    userFilePath: src/test/resources/oauth-server-config/users.yml
+    userFilePath: src/test/resources/server-config/users.yml
