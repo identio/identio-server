@@ -21,42 +21,19 @@
 
 package integration.saml;
 
-import integration.oauth.OAuthRequests;
-import net.identio.saml.*;
 import net.identio.saml.exceptions.TechnicalException;
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.exceptions.InitializationException;
-import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
-import net.identio.server.service.authentication.model.Authentication;
-import net.identio.server.service.oauth.model.OAuthErrors;
-import net.identio.server.service.oauth.model.OAuthToken;
-import net.identio.server.utils.DecodeUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -68,41 +45,61 @@ import static org.junit.Assert.assertTrue;
 @ActiveProfiles(profiles = {"native"})
 public class SPInitiatedSuccessTest {
 
-    private static final String AUTHENTICATION_URL = "/#!/auth/";
-
     @LocalServerPort
     private int port;
 
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private MultiValueMap<String, String> payload;
-    private HttpHeaders headers;
-
     @Test
-    public void successfulCinematic() throws TechnicalException, IOException {
+    public void successfulUnsignedHttpRedirectCinematic() throws TechnicalException, IOException {
 
-        AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/Redirect")
-                .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
-                .build();
+        SamlRequests requests = new SamlRequests(port, restTemplate);
 
-        String url = "/SAML2/SSO/Redirect?SAMLRequest=" + DecodeUtils.encode(ar.toString().getBytes(), true);
+        requests.httpRedirectSamlRequest(false);
 
-        ResponseEntity<String> request = this.restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                String.class);
+        requests.getAuthMethods();
 
-        String redirectUrl = request.getHeaders().getFirst(HttpHeaders.LOCATION);
-
-        assertEquals(HttpStatus.FOUND, request.getStatusCode());
-        assertTrue(redirectUrl.startsWith(getUrlWithPort(AUTHENTICATION_URL)));
+        requests.authenticateLocal();
 
     }
 
-    private String getUrlWithPort(String url) {
+    @Test
+    public void successfulUnsignedHttpPostCinematic() throws TechnicalException, IOException {
 
-        return "http://localhost:" + this.port + url;
+        SamlRequests requests = new SamlRequests(port, restTemplate);
+
+        requests.httpPostSamlRequest(false);
+
+        requests.getAuthMethods();
+
+        requests.authenticateLocal();
+
+    }
+
+    @Test
+    public void successfulSignedHttpRedirectCinematic() throws TechnicalException, IOException {
+
+        SamlRequests requests = new SamlRequests(port, restTemplate);
+
+        requests.httpRedirectSamlRequest(true);
+
+        requests.getAuthMethods();
+
+        requests.authenticateLocal();
+
+    }
+
+    @Test
+    public void successfulSignedHttpPostCinematic() throws TechnicalException, IOException {
+
+        SamlRequests requests = new SamlRequests(port, restTemplate);
+
+        requests.httpPostSamlRequest(true);
+
+        requests.getAuthMethods();
+
+        requests.authenticateLocal();
+
     }
 }
