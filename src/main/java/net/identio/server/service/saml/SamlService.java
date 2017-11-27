@@ -35,7 +35,6 @@ import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
 import net.identio.server.utils.DecodeUtils;
 import net.identio.server.utils.SecurityUtils;
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +44,7 @@ import org.springframework.web.util.UriUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.zip.DataFormatException;
 
@@ -304,7 +304,7 @@ public class SamlService {
         String userId = userSession.getUserId();
         AuthSession authSession = decision.getValidatedAuthSession();
         String authnLevel = authSession.getAuthLevel().getUrn();
-        DateTime authnInstant = authSession.getAuthInstant();
+        Instant authnInstant = authSession.getAuthInstant();
         String sessionId = userSession.getId();
         String destinationUrl = requestParsingInfo.getResponseUrl();
 

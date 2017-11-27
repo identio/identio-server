@@ -20,26 +20,26 @@
  */
 package net.identio.server.model;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
+
+import java.time.Instant;
 
 public class AuthSession {
 
-    private DateTime authInstant;
+    private Instant authInstant;
     private AuthMethod authMethod;
     private AuthLevel authLevel;
 
     public AuthSession(AuthMethod authMethod, AuthLevel authLevel) {
-        this.authInstant = new DateTime(DateTimeZone.UTC);
+        this.authInstant = Instant.now();
         this.authMethod = authMethod;
         this.authLevel = authLevel;
     }
 
-    public DateTime getAuthInstant() {
+    public Instant getAuthInstant() {
         return authInstant;
     }
 
-    public void setAuthInstant(DateTime authInstant) {
+    public void setAuthInstant(Instant authInstant) {
         this.authInstant = authInstant;
     }
 

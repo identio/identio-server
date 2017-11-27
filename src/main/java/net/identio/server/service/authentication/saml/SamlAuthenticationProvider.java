@@ -224,7 +224,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
             }
 
             try {
-                validation = remoteValidator.validate(response);
+                remoteValidator.validate(response);
 
             } catch (UnsignedSAMLObjectException | NoSuchAlgorithmException | UntrustedSignerException
                     | InvalidSignatureException ex) {
@@ -237,17 +237,16 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
             }
 
             // If the assertion is valid
-            if (validation) {
-                LOG.info("* Response is valid");
+            LOG.info("* Response is valid");
 
-                // Mapping the authentication level
-                AuthLevel authLevel = samlAuthMethod.getSamlAuthMap().getIn().get(assertion.getAuthnContext());
+            // Mapping the authentication level
+            AuthLevel authLevel = samlAuthMethod.getSamlAuthMap().getIn().get(assertion.getAuthnContext());
 
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS)
-                        .setUserId(assertion.getSubjectNameID()).setAuthMethod(samlAuthMethod).setAuthLevel(authLevel);
-            }
+            return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS)
+                    .setUserId(assertion.getSubjectNameID()).setAuthMethod(samlAuthMethod).setAuthLevel(authLevel);
+
         } catch (IOException | DataFormatException | TechnicalException
-                | InvalidAuthentResponseException | InvalidAssertionException ex) {
+                | InvalidAuthentResponseException ex) {
             LOG.error("* Error when parsing SAML Response: {}", ex.getMessage());
         }
         return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
