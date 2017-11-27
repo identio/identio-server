@@ -236,7 +236,9 @@ public class SamlService {
             }
 
             try {
-                validator.validate(signedInfo, decodedSignature, sigAlg);
+                if (!validator.validate(signedInfo, decodedSignature, sigAlg)) {
+                    return false;
+                }
             } catch (NoSuchAlgorithmException | TechnicalException | InvalidSignatureException e) {
                 LOG.error("Request signature is invalid");
                 result.setStatus(RequestParsingStatus.RESPONSE_ERROR)

@@ -35,8 +35,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.util.UriComponentsBuilder;
+import org.yaml.snakeyaml.util.UriEncoder;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 
 import static org.junit.Assert.*;
 
@@ -58,24 +61,30 @@ public class SamlRequests {
 
         this.headers = new HttpHeaders();
 
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
+
         AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/Redirect")
                 .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
                 .build();
 
-        String requestParams = "SAMLRequest=" + DecodeUtils.encode(ar.toString().getBytes(), true);
+        builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true));
 
         if (signedRequest) {
-            requestParams += "&SigAlg=" + SamlConstants.SIGNATURE_ALG_RSA_SHA256;
-            Signer signer = new Signer("src/test/resources/server-config/default-sign-certificate.p12",
+
+            builder.queryParam("SigAlg", SamlConstants.SIGNATURE_ALG_RSA_SHA256);
+
+            Signer signer = new Signer("src/test/resources/saml-sp-config/certificate.p12",
                     "password", false, SamlConstants.SIGNATURE_ALG_RSA_SHA256);
 
-            byte[] signature = signer.signExternal(requestParams);
-            requestParams += "Signature=" + DecodeUtils.encode(signature, false);
+            String signedInfo = builder.build().encode().toUri().getRawQuery();
+
+            byte[] signature = signer.signExternal(signedInfo);
+            builder.queryParam("Signature", DecodeUtils.encode(signature, false));
+
         }
 
-
         ResponseEntity<String> request = this.restTemplate.exchange(
-                "/SAML2/SSO/Redirect?" + requestParams,
+                builder.build().encode().toUri(),
                 HttpMethod.GET,
                 null,
                 String.class);
@@ -106,11 +115,10 @@ public class SamlRequests {
                 .build();
 
         if (signedRequest) {
-            Signer signer = new Signer("src/test/resources/server-config/default-sign-certificate.p12",
+            Signer signer = new Signer("src/test/resources/saml-sp-config/certificate.p12",
                     "password", false, SamlConstants.SIGNATURE_ALG_RSA_SHA256);
 
-            // TODO: migration to identio-saml 2.0.0 to fix the test
-            //signer.signEmbedded(ar);
+            signer.signEmbedded(ar);
         }
 
         MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
