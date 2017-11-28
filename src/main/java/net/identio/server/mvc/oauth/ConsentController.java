@@ -20,6 +20,7 @@
  */
 package net.identio.server.mvc.oauth;
 
+import net.identio.server.model.Result;
 import net.identio.server.mvc.common.model.ApiErrorResponse;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -29,6 +30,7 @@ import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.oauth.ConsentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,22 +49,21 @@ public class ConsentController {
     }
 
     @RequestMapping(value = "/api/authz/consent", method = RequestMethod.POST)
-    public ConsentResponse receiveConsent(@RequestBody ConsentRequest consentRequest,
-                                          @RequestHeader(value = "X-Transaction-ID") String transactionId,
-                                          @CookieValue("identioSession") String sessionId) throws WebSecurityException, ServerException {
+    public ResponseEntity<?> receiveConsent(@RequestBody ConsentRequest consentRequest,
+                                         @RequestHeader(value = "X-Transaction-ID") String transactionId,
+                                         @CookieValue("identioSession") String sessionId) throws WebSecurityException {
 
-        return consentService.validateConsent(consentRequest, transactionId, sessionId);
+        Result<ConsentResponse> result = consentService.validateConsent(consentRequest, transactionId, sessionId);
+
+        if (result.isSuccess()) return new ResponseEntity<>(result.get(), HttpStatus.OK);
+        else {
+            return new ResponseEntity<>(new ApiErrorResponse(result.getErrorStatus()), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(WebSecurityException.class)
     public ApiErrorResponse handleWebSecurityException(WebSecurityException e) {
-        return new ApiErrorResponse(e.getMessage());
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(ServerException.class)
-    public ApiErrorResponse handleServerException(ServerException e) {
         return new ApiErrorResponse(e.getMessage());
     }
 }

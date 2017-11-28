@@ -22,39 +22,19 @@ package net.identio.server.service.orchestration.model;
 
 import net.identio.saml.Endpoint;
 
-public class SamlAuthRequestGenerationResult {
+public class SamlAuthRequest {
 
-    private boolean success;
-    private String errorStatus;
     private Endpoint targetEndpoint;
     private String serializedRequest;
     private String relayState;
     private String signature;
     private String signatureAlgorithm;
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public SamlAuthRequestGenerationResult setSuccess(boolean success) {
-        this.success = success;
-        return this;
-    }
-
-    public String getErrorStatus() {
-        return errorStatus;
-    }
-
-    public SamlAuthRequestGenerationResult setErrorStatus(String errorStatus) {
-        this.errorStatus = errorStatus;
-        return this;
-    }
-
     public Endpoint getTargetEndpoint() {
         return targetEndpoint;
     }
 
-    public SamlAuthRequestGenerationResult setTargetEndpoint(Endpoint targetEndpoint) {
+    public SamlAuthRequest setTargetEndpoint(Endpoint targetEndpoint) {
         this.targetEndpoint = targetEndpoint;
         return this;
     }
@@ -63,7 +43,7 @@ public class SamlAuthRequestGenerationResult {
         return serializedRequest;
     }
 
-    public SamlAuthRequestGenerationResult setSerializedRequest(String serializedRequest) {
+    public SamlAuthRequest setSerializedRequest(String serializedRequest) {
         this.serializedRequest = serializedRequest;
         return this;
     }
@@ -72,7 +52,7 @@ public class SamlAuthRequestGenerationResult {
         return relayState;
     }
 
-    public SamlAuthRequestGenerationResult setRelayState(String relayState) {
+    public SamlAuthRequest setRelayState(String relayState) {
         this.relayState = relayState;
         return this;
     }
@@ -81,7 +61,7 @@ public class SamlAuthRequestGenerationResult {
         return signature;
     }
 
-    public SamlAuthRequestGenerationResult setSignature(String signature) {
+    public SamlAuthRequest setSignature(String signature) {
         this.signature = signature;
         return this;
     }
@@ -90,7 +70,7 @@ public class SamlAuthRequestGenerationResult {
         return signatureAlgorithm;
     }
 
-    public SamlAuthRequestGenerationResult setSignatureAlgorithm(String signatureAlgorithm) {
+    public SamlAuthRequest setSignatureAlgorithm(String signatureAlgorithm) {
         this.signatureAlgorithm = signatureAlgorithm;
         return this;
     }

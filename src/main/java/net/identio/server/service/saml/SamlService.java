@@ -24,7 +24,6 @@ import net.identio.saml.*;
 import net.identio.saml.exceptions.*;
 import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.exceptions.SamlException;
 import net.identio.server.exceptions.UnknownAuthLevelException;
 import net.identio.server.model.*;
 import net.identio.server.service.authpolicy.AuthPolicyService;
@@ -32,7 +31,7 @@ import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
-import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
+import net.identio.server.service.orchestration.model.SamlAuthRequest;
 import net.identio.server.utils.DecodeUtils;
 import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
@@ -41,12 +40,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.UriUtils;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.zip.DataFormatException;
 
 @Service
 public class SamlService {
@@ -226,17 +224,16 @@ public class SamlService {
 
             LOG.debug("* Request is signed");
 
-            byte[] decodedSignature;
-            try {
-                decodedSignature = DecodeUtils.decode(request.getSignatureValue(), false);
-            } catch (IOException | DataFormatException e) {
+            Result<byte[]> decodedSignature = DecodeUtils.decode(request.getSignatureValue(), false);
+
+            if (!decodedSignature.isSuccess()) {
                 result.setStatus(RequestParsingStatus.RESPONSE_ERROR)
                         .setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
                 return false;
             }
 
             try {
-                if (!validator.validate(signedInfo, decodedSignature, sigAlg)) {
+                if (!validator.validate(signedInfo, decodedSignature.get(), sigAlg)) {
                     return false;
                 }
             } catch (NoSuchAlgorithmException | TechnicalException | InvalidSignatureException e) {
@@ -296,8 +293,8 @@ public class SamlService {
         return true;
     }
 
-    public ResponseData generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo requestParsingInfo,
-                                                UserSession userSession) throws SamlException {
+    public Result<ResponseData> generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo requestParsingInfo,
+                                                        UserSession userSession) {
 
         LOG.debug("Generating a new SAML Response");
 
@@ -343,30 +340,25 @@ public class SamlService {
 
             LOG.debug("* SAML response signed");
 
-            String data = DecodeUtils.encode(response.toString().getBytes(), false);
+            Result<String> data = DecodeUtils.encode(response.toString().getBytes(), false);
 
-            return new ResponseData().setUrl(requestParsingInfo.getResponseUrl())
-                    .setData(data)
-                    .setRelayState(requestParsingInfo.getRelayState());
+            if (!data.isSuccess()) return Result.serverError();
 
-        } catch (TechnicalException | IOException ex) {
-            String message = "Technical error when building SAML response";
-            LOG.error("{}: {}", message, ex.getMessage());
-            throw new SamlException(message, ex);
+            return Result.success(new ResponseData().setUrl(requestParsingInfo.getResponseUrl())
+                    .setData(data.get())
+                    .setRelayState(requestParsingInfo.getRelayState()));
+
+        } catch (TechnicalException e) {
+            LOG.error("Technical error when building SAML response: {}", e.getMessage());
+            return Result.serverError();
         }
     }
 
-    public ResponseData generateErrorResponse(RequestParsingInfo requestParsingInfo) throws SamlException {
+    public Result<ResponseData> generateErrorResponse(RequestParsingInfo requestParsingInfo) {
 
         LOG.debug("Generating a new SAML Error Response");
 
         String destinationUrl = requestParsingInfo.getResponseUrl();
-
-        if (destinationUrl == null) {
-            String message = "* Destination URL cannot be null";
-            LOG.error(message);
-            throw new SamlException(message);
-        }
 
         // Build the response
         try {
@@ -378,16 +370,17 @@ public class SamlService {
 
             LOG.debug("* SAML response built");
 
-            String data = DecodeUtils.encode(response.toString().getBytes(), false);
+            Result<String> data = DecodeUtils.encode(response.toString().getBytes(), false);
 
-            return new ResponseData().setUrl(requestParsingInfo.getResponseUrl())
-                    .setData(data)
-                    .setRelayState(requestParsingInfo.getRelayState());
+            if (!data.isSuccess()) return Result.serverError();
 
-        } catch (TechnicalException | IOException ex) {
-            String message = "Technical error when building SAML response";
-            LOG.error("{}: {}", message, ex.getMessage());
-            throw new SamlException(message, ex);
+            return Result.success(new ResponseData().setUrl(requestParsingInfo.getResponseUrl())
+                    .setData(data.get())
+                    .setRelayState(requestParsingInfo.getRelayState()));
+
+        } catch (TechnicalException ex) {
+            LOG.error("Technical error when building SAML response: {}", ex.getMessage());
+            return Result.serverError();
         }
     }
 
@@ -440,18 +433,19 @@ public class SamlService {
         return selectedEndpoint;
     }
 
-    public SamlAuthRequestGenerationResult generateAuthentRequest(Metadata remoteIdpMetadata, ArrayList<String> requestedAuthnContext,
-                                                                  String comparison, String transactionId, String authMethodName) throws SamlException {
+    public Result<SamlAuthRequest> generateAuthentRequest(Metadata remoteIdpMetadata, ArrayList<String> requestedAuthnContext,
+                                                          String comparison, String transactionId, String authMethodName) {
 
         LOG.debug("Generating a new SAML Request");
 
-        SamlAuthRequestGenerationResult result = new SamlAuthRequestGenerationResult();
+        SamlAuthRequest samlAuthRequest = new SamlAuthRequest();
+
+        Metadata idpMetadata = metadataService.getIdpMetadata();
+
+        Endpoint remoteEndpoint = findRequestEndpoint(remoteIdpMetadata);
+        samlAuthRequest.setTargetEndpoint(remoteEndpoint);
 
         try {
-            Metadata idpMetadata = metadataService.getIdpMetadata();
-
-            Endpoint remoteEndpoint = findRequestEndpoint(remoteIdpMetadata);
-            result.setTargetEndpoint(remoteEndpoint);
 
             AuthentRequest authentRequest = AuthentRequestBuilder.getInstance().setIssuer(idpMetadata.getEntityID())
                     .setDestination(remoteEndpoint.getLocation()).setForceAuthent(false).setIsPassive(false)
@@ -460,34 +454,44 @@ public class SamlService {
             String relayState = generateRelayState(transactionId, authMethodName, authentRequest.getId());
 
             if (remoteEndpoint.getBinding().equals(SamlConstants.BINDING_HTTP_POST)) {
+
                 signer.signEmbedded(authentRequest);
-                result.setSerializedRequest(DecodeUtils.encode(authentRequest.toString().getBytes(), false))
-                        .setRelayState(relayState);
+
+                Result<String> serializedRequest = DecodeUtils.encode(authentRequest.toString().getBytes(), false);
+
+                if (!serializedRequest.isSuccess()) return Result.serverError();
+
+                samlAuthRequest.setSerializedRequest(serializedRequest.get()).setRelayState(relayState);
+
             } else {
+
                 // Generate the information to sign
-                String encodedSamlRequest = UriUtils
-                        .encode(DecodeUtils.encode(authentRequest.toString().getBytes(), true), StandardCharsets.UTF_8.name());
+                Result<String> serializedRequest = DecodeUtils.encode(authentRequest.toString().getBytes(), true);
+
+                if (!serializedRequest.isSuccess()) return Result.serverError();
+
+                String encodedSamlRequest = UriUtils.encode(serializedRequest.get(), StandardCharsets.UTF_8.name());
                 String encodedRelayState = UriUtils.encode(relayState, StandardCharsets.UTF_8.name());
                 String encodedSigAlg = UriUtils.encode(SamlConstants.SIGNATURE_ALG_RSA_SHA256, StandardCharsets.UTF_8.name());
 
                 String signedInfo = "SAMLRequest=" + encodedSamlRequest + "&RelayState=" + encodedRelayState
                         + "&SigAlg=" + encodedSigAlg;
-                String encodedSignature = UriUtils.encode(DecodeUtils.encode(signer.signExternal(signedInfo), false),
-                        StandardCharsets.UTF_8.name());
 
-                result.setSignature(encodedSignature).setSerializedRequest(encodedSamlRequest)
+                Result<String> base64Signature = DecodeUtils.encode(signer.signExternal(signedInfo), false);
+
+                if (!base64Signature.isSuccess()) return Result.serverError();
+
+                String encodedSignature = UriUtils.encode(base64Signature.get(), StandardCharsets.UTF_8.name());
+
+                samlAuthRequest.setSignature(encodedSignature).setSerializedRequest(encodedSamlRequest)
                         .setRelayState(encodedRelayState).setSignatureAlgorithm(encodedSigAlg);
             }
 
-            LOG.debug("* SAML request built");
-            result.setSuccess(true);
+            return Result.success(samlAuthRequest);
 
-            return result;
-
-        } catch (TechnicalException | IOException ex) {
-            String message = "Technical error when building SAML request";
-            LOG.error("{}: {}", message, ex.getMessage());
-            throw new SamlException(message, ex);
+        } catch (TechnicalException | UnsupportedEncodingException ex) {
+            LOG.error("Technical error when building SAML request: {}", ex.getMessage());
+            return Result.fail();
         }
     }
 

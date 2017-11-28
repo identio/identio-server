@@ -20,6 +20,7 @@
  */
 package net.identio.server.utils;
 
+import net.identio.server.model.Result;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,50 +35,42 @@ public class DecodeUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(DecodeUtils.class);
 
-    public static byte[] decode(String data, boolean inflate)
-            throws IOException, DataFormatException {
+    public static Result<byte[]> decode(String data, boolean inflate) {
 
         LOG.debug("Decoding string {} with inflate = {}", data, inflate);
 
         // First, we decode the B64 string
         byte[] decodedBytes;
-        try {
-             decodedBytes = Base64.getDecoder().decode(data);
-        }
-        catch(IllegalArgumentException ex) {
-            throw new IOException(ex);
-        }
 
-        if (inflate) {
-            try {
+        try {
+            decodedBytes = Base64.getDecoder().decode(data);
+
+            if (inflate) {
                 // try DEFLATE (rfc 1951) -- according to SAML spec
                 decodedBytes = inflate(decodedBytes, true);
-
-            } catch (IOException ze) {
-                // try zlib (rfc 1950)
-                decodedBytes = inflate(decodedBytes, false);
             }
+        } catch (IllegalArgumentException | IOException | DataFormatException ex) {
+            return Result.fail();
         }
 
-        LOG.debug("Finished decoding string");
-
-        return decodedBytes;
+        return Result.success(decodedBytes);
     }
 
-    public static String encode(byte[] data, boolean deflate) throws IOException {
-
-        LOG.debug("Encoding data in base 64 with deflate = {}", deflate);
+    public static Result<String> encode(byte[] data, boolean deflate) {
 
         String encodedString;
 
-        byte[] deflatedData = deflate ? deflate(data, true) : data;
+        byte[] deflatedData;
+        try {
+            deflatedData = deflate ? deflate(data, true) : data;
+        } catch (IOException e) {
+            return Result.fail();
+        }
 
         // First, we decode the B64 string
         encodedString = Base64.getEncoder().encodeToString(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
 
-        LOG.debug("Encoded string: {}", encodedString);
-
-        return encodedString;
+        return Result.success(encodedString);
     }
 
     private static byte[] inflate(byte[] data, boolean nowrap) throws IOException, DataFormatException {
@@ -101,7 +94,7 @@ public class DecodeUtils {
             return out.toByteArray();
 
         } finally {
-                decompressor.end();
+            decompressor.end();
         }
     }
 
@@ -126,7 +119,7 @@ public class DecodeUtils {
 
             return outputStream.toByteArray();
         } finally {
-                deflater.end();
+            deflater.end();
         }
     }
 }

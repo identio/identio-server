@@ -23,12 +23,11 @@ package net.identio.server.service.authentication.saml;
 import net.identio.saml.*;
 import net.identio.saml.exceptions.*;
 import net.identio.server.exceptions.InitializationException;
-import net.identio.server.exceptions.SamlException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.*;
-import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
+import net.identio.server.service.orchestration.model.SamlAuthRequest;
 import net.identio.server.service.saml.MetadataService;
 import net.identio.server.service.saml.SamlService;
 import net.identio.server.utils.DecodeUtils;
@@ -39,13 +38,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @Service
 public class SamlAuthenticationProvider implements AuthenticationProvider {
@@ -109,8 +106,8 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
         }
     }
 
-    public SamlAuthRequestGenerationResult initRequest(SamlAuthMethod authMethod, ArrayList<AuthLevel> targetAuthLevels,
-                                                       String transactionId) throws SamlException {
+    public Result<SamlAuthRequest> initRequest(SamlAuthMethod authMethod, ArrayList<AuthLevel> targetAuthLevels,
+                                       String transactionId) {
 
         Metadata remoteMetadata = remoteIdpMetadatasByName.get(authMethod.getName());
 
@@ -139,16 +136,18 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 
         SamlAuthentication samlAuthentication = (SamlAuthentication) authentication;
 
-        String decodedSamlResponse;
         try {
-            decodedSamlResponse = new String(DecodeUtils.decode(samlAuthentication.getResponse(), false));
+            Result<byte[]> decodedSamlResponse = DecodeUtils.decode(samlAuthentication.getResponse(), false);
+
+            if (!decodedSamlResponse.isSuccess()) return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                    .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
 
             SamlAuthMethod samlAuthMethod = (SamlAuthMethod) authMethod;
 
             Metadata idpMetadata = metadataService.getIdpMetadata();
             Validator remoteValidator = remoteIdpValidators.get(samlAuthMethod.getName());
 
-            AuthentResponse response = AuthentResponseBuilder.getInstance().build(decodedSamlResponse);
+            AuthentResponse response = AuthentResponseBuilder.getInstance().build(new String(decodedSamlResponse.get()));
             Assertion assertion = response.getAssertion();
 
             // Verify the status of the response
@@ -245,7 +244,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
             return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS)
                     .setUserId(assertion.getSubjectNameID()).setAuthMethod(samlAuthMethod).setAuthLevel(authLevel);
 
-        } catch (IOException | DataFormatException | TechnicalException
+        } catch (TechnicalException
                 | InvalidAuthentResponseException ex) {
             LOG.error("* Error when parsing SAML Response: {}", ex.getMessage());
         }

@@ -21,6 +21,7 @@
 package net.identio.server.mvc.saml;
 
 import net.identio.saml.SamlConstants;
+import net.identio.server.model.Result;
 import net.identio.server.model.SamlInboundRequest;
 import net.identio.server.mvc.common.TransparentAuthController;
 import net.identio.server.service.orchestration.RequestOrchestrationService;
@@ -29,11 +30,14 @@ import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.orchestration.model.ValidationStatus;
 import net.identio.server.service.orchestration.model.RequestValidationResult;
+import net.identio.server.service.saml.model.SamlErrors;
 import net.identio.server.utils.DecodeUtils;
+import net.identio.server.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -59,26 +63,34 @@ public class RequestConsumerController {
 
     @RequestMapping(value = "/SAML2/SSO/POST", method = RequestMethod.POST)
     public String samlConsumerPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-                                   @RequestParam("SAMLRequest") String usSamlRequest,
-                                   @RequestParam(value = "RelayState", required = false) String usRelayState,
+                                   @RequestParam MultiValueMap<String, String> allParams,
                                    @CookieValue(required = false) String identioSession) throws ServerException, ValidationException, WebSecurityException {
 
         String decodedSamlRequest;
         String decodedRelayState;
 
-        LOG.debug("Received request on /SAML2/SSO/POST");
-        LOG.debug("* SAMLRequest: {}", usSamlRequest);
-        LOG.debug("* RelayState: {}", usRelayState);
+        Result<String> samlRequest = HttpUtils.getUniqueParam(allParams, "SAMLRequest");
+        Result<String> relayState = HttpUtils.getUniqueParam(allParams, "RelayState");
+
+        if (!samlRequest.isSuccess() ||
+                !relayState.isSuccess()
+                )
+            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+
+        if (samlRequest.get() == null) return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
 
         // The SAML request is Base-64 encoded
-        try {
-            decodedSamlRequest = new String(DecodeUtils.decode(usSamlRequest, false));
-        } catch (IOException | DataFormatException e) {
-            throw new ServerException("Error when decoding SAML Request", e);
+        Result<byte[]> samlRequestDecodeResult = DecodeUtils.decode(samlRequest.get(), false);
+
+        if (samlRequestDecodeResult.isSuccess()) {
+            decodedSamlRequest = new String(samlRequestDecodeResult.get());
+        }
+        else {
+            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
         }
 
         // To prevent XSS attacks, we escape the RelayState value
-        decodedRelayState = HtmlUtils.htmlEscape(usRelayState);
+        decodedRelayState = HtmlUtils.htmlEscape(relayState.get());
 
         return processRequest(httpRequest, httpResponse, SamlConstants.BINDING_HTTP_POST, decodedSamlRequest,
                 decodedRelayState, null, null, null, identioSession);
@@ -87,23 +99,28 @@ public class RequestConsumerController {
 
     @RequestMapping(value = "/SAML2/SSO/Redirect", method = RequestMethod.GET)
     public String samlConsumerRedirect(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
-                                       @RequestParam("SAMLRequest") String usSamlRequest,
-                                       @RequestParam(value = "RelayState", required = false) String usRelayState,
-                                       @RequestParam(value = "SigAlg", required = false) String usSigAlg,
-                                       @RequestParam(value = "Signature", required = false) String usSignature,
+                                       @RequestParam MultiValueMap<String, String> allParams,
                                        @CookieValue(required = false) String identioSession) throws ServerException, ValidationException, WebSecurityException {
 
         String signedInfo = null;
         String decodedSamlRequest;
         String decodedRelayState;
 
-        LOG.debug("Received request on /SAML2/SSO/Redirect");
-        LOG.debug("* SAMLRequest: {}", usSamlRequest);
-        LOG.debug("* RelayState: {}", usRelayState);
-        LOG.debug("* SigAlg: {}", usSigAlg);
-        LOG.debug("* Signature: {}", usSignature);
+        Result<String> samlRequest = HttpUtils.getUniqueParam(allParams, "SAMLRequest");
+        Result<String> relayState = HttpUtils.getUniqueParam(allParams, "RelayState");
+        Result<String> sigAlg = HttpUtils.getUniqueParam(allParams, "SigAlg");
+        Result<String> signature = HttpUtils.getUniqueParam(allParams, "Signature");
 
-        if (usSignature != null) {
+        if (!samlRequest.isSuccess() ||
+                !relayState.isSuccess() ||
+                !sigAlg.isSuccess() ||
+                !signature.isSuccess()
+                )
+            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+
+        if (samlRequest.get() == null) return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+
+        if (signature.get() != null) {
 
             // The signature is based on the URL-encoded values. As Spring does
             // the conversion automatically, we have to extract the values from
@@ -131,30 +148,29 @@ public class RequestConsumerController {
             } else {
                 signedInfo = encodedSamlRequest + "&" + encodedSigAlg;
             }
-
-            LOG.debug("Signed Info: {}", signedInfo);
         }
 
         // The SAML request is Base-64 encoded and deflated
-        try {
-            decodedSamlRequest = new String(DecodeUtils.decode(usSamlRequest, true));
-        } catch (IOException | DataFormatException e) {
-            throw new ServerException("Error when decoding SAML Request", e);
+        Result<byte[]> samlRequestDecodeResult = DecodeUtils.decode(samlRequest.get(), true);
+
+        if (samlRequestDecodeResult.isSuccess()) {
+            decodedSamlRequest = new String(samlRequestDecodeResult.get());
+        }
+        else {
+            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
         }
 
         // To prevent XSS attacks, we escape the RelayState value
-        decodedRelayState = HtmlUtils.htmlEscape(usRelayState);
+        decodedRelayState = HtmlUtils.htmlEscape(relayState.get());
 
         return processRequest(httpRequest, httpResponse, SamlConstants.BINDING_HTTP_REDIRECT, decodedSamlRequest,
-                decodedRelayState, usSigAlg, usSignature, signedInfo, identioSession);
+                decodedRelayState, sigAlg.get(), signature.get(), signedInfo, identioSession);
 
     }
 
     private String processRequest(HttpServletRequest httpRequest, HttpServletResponse httpResponse, String binding,
                                   String request, String relayState, String sigAlg, String signatureValue, String signedInfo,
                                   String sessionId) throws ServerException, ValidationException, WebSecurityException {
-
-        LOG.debug("Processing SAML authentication request.");
 
         SamlInboundRequest samlRequest = new SamlInboundRequest(binding, request, signatureValue, signedInfo, sigAlg,
                 relayState);

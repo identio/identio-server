@@ -42,7 +42,6 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.zip.DataFormatException;
 
 @Service
 @Scope("singleton")
@@ -120,7 +119,13 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
             RadiusPacket accessRequest = new PapAccessRequest(userId, password);
 
             if (challenge != null) {
-                accessRequest.setAttribute(deserializeAttribute(SecurityUtils.decrypt(challenge)));
+
+                Result<RadiusAttribute> attribute = deserializeAttribute(SecurityUtils.decrypt(challenge));
+
+                if (!attribute.isSuccess()) new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                        .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+
+                accessRequest.setAttribute(attribute.get());
             }
 
             // Send access request
@@ -138,7 +143,12 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                 String message = new String(
                         accessResponse.getAttribute(RadiusAttributeValues.REPLY_MESSAGE).getValue());
 
-                String radiusState = serializeAttribute(accessResponse.getAttribute(RadiusAttributeValues.STATE));
+                Result<String> attribute = serializeAttribute(accessResponse.getAttribute(RadiusAttributeValues.STATE));
+
+                if (!attribute.isSuccess()) new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
+                        .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+
+                String radiusState = attribute.get();
                 String challengeType = null;
 
                 LOG.debug("Received challenge: {}", message);
@@ -182,8 +192,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                 new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
                         .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
             }
-
-        } catch (InvalidParameterException | IOException | DataFormatException ex) {
+        } catch (InvalidParameterException ex) {
             LOG.error("Error when contacting RadiusServer server {}",
                     radiusAuthMethod.getRadiusHost().get(currentHostIndex));
         }
@@ -192,11 +201,14 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                 .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
     }
 
-    private RadiusAttribute deserializeAttribute(String data)
-            throws IOException, DataFormatException, InvalidParameterException {
+    private Result<RadiusAttribute> deserializeAttribute(String data) {
 
 
-        byte[] dataBytes = DecodeUtils.decode(data, false);
+        Result<byte[]> dataBytesResult = DecodeUtils.decode(data, false);
+
+        if (!dataBytesResult.isSuccess()) return Result.serverError();
+
+        byte[] dataBytes = dataBytesResult.get();
 
         int type = dataBytes[0];
 
@@ -204,10 +216,17 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
         byte[] valueBytes = new byte[valueLength];
         System.arraycopy(dataBytes, 2, valueBytes, 0, valueLength);
 
-        return new RadiusAttribute(type, valueBytes);
+        RadiusAttribute attribute;
+        try {
+            attribute = new RadiusAttribute(type, valueBytes);
+        } catch (InvalidParameterException e) {
+            return Result.serverError();
+        }
+
+        return Result.success(attribute);
     }
 
-    private String serializeAttribute(RadiusAttribute attribute) throws InvalidParameterException, IOException {
+    private Result<String> serializeAttribute(RadiusAttribute attribute) {
 
         int type = attribute.getType();
         byte[] value = attribute.getValue();
@@ -222,7 +241,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
             temp.flush();
             data = temp.toByteArray();
         } catch (IOException ex) {
-            throw new InvalidParameterException("Error constructing RadiusAttribute");
+            return Result.serverError();
         }
 
         return DecodeUtils.encode(data, false);

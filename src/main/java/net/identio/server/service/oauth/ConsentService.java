@@ -21,6 +21,7 @@
 
 package net.identio.server.service.oauth;
 
+import net.identio.server.model.Result;
 import net.identio.server.mvc.oauth.model.ConsentRequest;
 import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.authorization.AuthorizationService;
@@ -30,9 +31,9 @@ import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.orchestration.model.OrchestrationErrorStatus;
+import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.mvc.oauth.model.ConsentContext;
-import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.transaction.TransactionService;
 import net.identio.server.service.transaction.model.TransactionState;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,7 +69,7 @@ public class ConsentService {
                 .setAudience(transactionData.getRequestParsingInfo().getSourceApplication());
     }
 
-    public ConsentResponse validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException, ServerException {
+    public Result<ConsentResponse> validateConsent(ConsentRequest consentRequest, String transactionId, String sessionId) throws WebSecurityException {
 
         TransactionData transactionData = getTransactionData(transactionId, sessionId);
 
@@ -76,9 +77,12 @@ public class ConsentService {
 
         if (consentRequest == null || consentRequest.getApprovedScopes() == null || consentRequest.getApprovedScopes().size() == 0) {
 
-            response.setResponseData(
-                    oAuthResponseService.generateErrorResponse(transactionData.getRequestParsingInfo(), false)
-            );
+            Result<ResponseData> successResponse = oAuthResponseService.generateErrorResponse(transactionData.getRequestParsingInfo(), false);
+
+            if (!successResponse.isSuccess()) return Result.serverError();
+
+            response.setResponseData(successResponse.get());
+
         } else {
             // Check that each validated scope is in the requested scopes
             for (String scopeName : consentRequest.getApprovedScopes()) {
@@ -89,14 +93,14 @@ public class ConsentService {
             }
 
             try {
-                response.setResponseData(
-                        oAuthResponseService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
-                                transactionData.getUserSession(), authorizationService.deserializeScope(consentRequest.getApprovedScopes()))
-                );
+                Result<ResponseData> successResponse = oAuthResponseService.generateSuccessResponse(transactionData.getRequestParsingInfo(),
+                        transactionData.getUserSession(), authorizationService.deserializeScope(consentRequest.getApprovedScopes()));
+
+                if (!successResponse.isSuccess()) return Result.serverError();
+
+                response.setResponseData(successResponse.get());
             } catch (UnknownScopeException | NoScopeProvidedException e) {
                 throw new WebSecurityException(OrchestrationErrorStatus.INVALID_SCOPE);
-            } catch (OAuthException e) {
-                throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
             } finally {
                 transactionService.removeTransactionData(transactionData);
             }
@@ -105,7 +109,7 @@ public class ConsentService {
 
         transactionService.removeTransactionData(transactionData);
 
-        return response;
+        return Result.success(response);
     }
 
     private TransactionData getTransactionData(String transactionId, String sessionId) throws WebSecurityException {

@@ -21,16 +21,13 @@
 
 package net.identio.server.service.orchestration;
 
-import net.identio.server.exceptions.SamlException;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.oauth.OAuthResponseService;
-import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.model.*;
 import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
 import net.identio.server.service.oauth.OAuthRequestService;
-import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.saml.SamlService;
 import net.identio.server.service.transaction.model.TransactionData;
@@ -69,7 +66,7 @@ public class RequestOrchestrationService {
     private AuthenticationService authenticationService;
 
     public RequestValidationResult validateRequest(InboundRequest request, String sessionId)
-            throws ServerException, ValidationException {
+            throws ValidationException {
 
         RequestValidationResult validationResult = new RequestValidationResult();
 
@@ -79,16 +76,19 @@ public class RequestOrchestrationService {
         switch (parsingInfo.getStatus()) {
 
             case FATAL_ERROR:
-                throw new ValidationException(parsingInfo.getErrorStatus());
+                return validationResult.setValidationStatus(ValidationStatus.ERROR).setErrorStatus(parsingInfo.getErrorStatus());
 
             case RESPONSE_ERROR:
-                try {
-                    return validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                            .setResponseData(generateErrorResponse(parsingInfo));
-                } catch (SamlException e) {
-                    throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-                }
 
+                Result<ResponseData> errorResponse = generateErrorResponse(parsingInfo);
+
+                if (!errorResponse.isSuccess())
+                    return validationResult.setValidationStatus(ValidationStatus.ERROR).setErrorStatus(OrchestrationErrorStatus.SERVER_ERROR);
+
+                return validationResult.setValidationStatus(ValidationStatus.RESPONSE)
+                        .setResponseData(errorResponse.get());
+            default:
+                // Do nothing
         }
 
         TransactionData transactionData = transactionService.createTransaction();
@@ -118,14 +118,15 @@ public class RequestOrchestrationService {
                 transactionData.setState(TransactionState.CONSENT);
 
             } else {
-                try {
-                    validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                            .setResponseData(generateSuccessResponse(decision, parsingInfo, userSession));
-                } catch (SamlException | OAuthException e) {
-                    throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-                } finally {
-                    transactionService.removeTransactionData(transactionData);
-                }
+                Result<ResponseData> successResponse = generateSuccessResponse(decision, parsingInfo, userSession);
+
+                if (!successResponse.isSuccess()) return validationResult
+                        .setValidationStatus(ValidationStatus.ERROR).setErrorStatus(OrchestrationErrorStatus.SERVER_ERROR);
+
+                validationResult.setValidationStatus(ValidationStatus.RESPONSE)
+                        .setResponseData(successResponse.get());
+
+                transactionService.removeTransactionData(transactionData);
             }
         } else {
             transactionData.setState(TransactionState.AUTH);
@@ -144,7 +145,7 @@ public class RequestOrchestrationService {
         }
     }
 
-    private ResponseData generateErrorResponse(RequestParsingInfo parsingInfo) throws SamlException {
+    private Result<ResponseData> generateErrorResponse(RequestParsingInfo parsingInfo) {
 
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateErrorResponse(parsingInfo);
@@ -153,8 +154,8 @@ public class RequestOrchestrationService {
         }
     }
 
-    private ResponseData generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo parsingInfo,
-                                                 UserSession userSession) throws SamlException, OAuthException {
+    private Result<ResponseData> generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo parsingInfo,
+                                                         UserSession userSession) {
 
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateSuccessResponse(decision, parsingInfo, userSession);

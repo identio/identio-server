@@ -31,13 +31,14 @@ import net.identio.server.model.UserSession;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.oauth.infrastructure.TokenRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.AuthorizationCodeCreationException;
-import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.oauth.infrastructure.AuthorizationCodeRepository;
 import net.identio.server.service.oauth.infrastructure.exceptions.TokenCreationException;
 import net.identio.server.service.oauth.model.*;
 import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.utils.SecurityUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +56,8 @@ import java.util.*;
 
 @Service
 public class OAuthResponseService {
+
+    private static final Logger LOG = LoggerFactory.getLogger(OAuthResponseService.class);
 
     private static final int AT_DEFAULT_EXPIRATION_TIME = 3600;
     private static final int CODE_DEFAULT_EXPIRATION_TIME = 60;
@@ -109,13 +112,13 @@ public class OAuthResponseService {
     }
 
 
-    public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession) throws OAuthException {
+    public Result<ResponseData> generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession) {
 
         return generateSuccessResponse(requestParsingInfo, userSession, requestParsingInfo.getRequestedScopes());
     }
 
-    public ResponseData generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession,
-                                                LinkedHashMap<String, AuthorizationScope> approvedScopes) throws OAuthException {
+    public Result<ResponseData> generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession,
+                                                        LinkedHashMap<String, AuthorizationScope> approvedScopes) {
 
         ResponseData responseData = new ResponseData();
 
@@ -128,7 +131,8 @@ public class OAuthResponseService {
                     userSession.getUserId());
 
             if (!atResult.isSuccess()) {
-                throw new OAuthException("Error when generating JWT Access Token");
+                LOG.error("Error when generating JWT Access Token");
+                return Result.serverError();
             }
 
             OAuthToken at = atResult.get();
@@ -172,20 +176,20 @@ public class OAuthResponseService {
             try {
                 authorizationCodeRepository.save(code);
             } catch (AuthorizationCodeCreationException e) {
-                throw new OAuthException(e.getMessage(), e);
+                return Result.serverError();
             }
             responseData.setUrl(responseBuilder.toString());
         }
 
-        return responseData;
+        return Result.success(responseData);
     }
 
-    public ResponseData generateErrorResponse(RequestParsingInfo result) {
+    public Result<ResponseData> generateErrorResponse(RequestParsingInfo result) {
 
         return generateErrorResponse(result, true);
     }
 
-    public ResponseData generateErrorResponse(RequestParsingInfo result, boolean consentResult) {
+    public Result<ResponseData> generateErrorResponse(RequestParsingInfo result, boolean consentResult) {
 
         // Determine the type of error to send
         String errorStatus = consentResult ? result.getErrorStatus() : OAuthErrors.ACCESS_DENIED;
@@ -198,7 +202,7 @@ public class OAuthResponseService {
             responseBuilder.append("&state=").append(result.getRelayState());
         }
 
-        return new ResponseData().setUrl(responseBuilder.toString());
+        return Result.success(new ResponseData().setUrl(responseBuilder.toString()));
     }
 
     public Result<AccessTokenResponse> generateTokenResponse(Collection<AuthorizationScope> scopes, String sourceApplication,

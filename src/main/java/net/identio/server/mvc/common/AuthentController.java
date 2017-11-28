@@ -20,12 +20,12 @@
  */
 package net.identio.server.mvc.common;
 
-import net.identio.server.exceptions.SamlException;
+import net.identio.server.model.Result;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthMethod;
-import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
+import net.identio.server.service.orchestration.model.SamlAuthRequest;
 import net.identio.server.mvc.common.model.*;
 import net.identio.server.service.authentication.model.UserPasswordAuthentication;
 import net.identio.server.service.orchestration.AuthOrchestrationService;
@@ -108,18 +108,18 @@ public class AuthentController {
                                                                      @RequestBody AuthSubmitRequest authSubmitRequest, HttpServletResponse httpResponse,
                                                                      @RequestHeader(value = "X-Transaction-ID") String transactionId,
                                                                      @CookieValue("identioSession") String sessionId)
-            throws ValidationException, WebSecurityException, ServerException {
+            throws ValidationException, WebSecurityException {
 
         LOG.debug("* Received authentication request to IDP {}", authSubmitRequest.getMethod());
 
-        SamlAuthRequestGenerationResult result = proxyAuthOrchestrationService
+        Result<SamlAuthRequest> result = proxyAuthOrchestrationService
                 .initSamlRequest(transactionId, sessionId, authSubmitRequest.getMethod());
 
         if (result.isSuccess()) {
-            return new LaunchSamlAuthenticationResponse().setDestinationUrl(result.getTargetEndpoint().getLocation())
-                    .setBinding(result.getTargetEndpoint().getBinding()).setRelayState(result.getRelayState())
-                    .setSamlRequest(result.getSerializedRequest()).setSigAlg(result.getSignatureAlgorithm())
-                    .setSignature(result.getSignature());
+            return new LaunchSamlAuthenticationResponse().setDestinationUrl(result.get().getTargetEndpoint().getLocation())
+                    .setBinding(result.get().getTargetEndpoint().getBinding()).setRelayState(result.get().getRelayState())
+                    .setSamlRequest(result.get().getSerializedRequest()).setSigAlg(result.get().getSignatureAlgorithm())
+                    .setSignature(result.get().getSignature());
         }
 
         return new LaunchSamlAuthenticationResponse().setErrorStatus(result.getErrorStatus());
@@ -139,12 +139,6 @@ public class AuthentController {
         }
 
         return list;
-    }
-
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    @ExceptionHandler(ServerException.class)
-    public ApiErrorResponse handleServerException(SamlException e) {
-        return new ApiErrorResponse(e.getMessage());
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

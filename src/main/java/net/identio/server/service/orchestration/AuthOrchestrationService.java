@@ -30,7 +30,6 @@ import net.identio.server.service.authpolicy.AuthPolicyService;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecisionStatus;
 import net.identio.server.service.oauth.OAuthResponseService;
-import net.identio.server.service.oauth.exceptions.OAuthException;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
@@ -135,8 +134,8 @@ public class AuthOrchestrationService {
 
     }
 
-    private ResponseData generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo parsingInfo,
-                                                 UserSession userSession) throws SamlException, OAuthException {
+    private Result<ResponseData> generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo parsingInfo,
+                                                 UserSession userSession) {
 
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateSuccessResponse(decision, parsingInfo, userSession);
@@ -165,18 +164,18 @@ public class AuthOrchestrationService {
 
                     } else {
 
-                        try {
-                            validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                                    .setResponseData(generateSuccessResponse(
-                                            decision,
-                                            transactionData.getRequestParsingInfo(),
-                                            transactionData.getUserSession()));
+                        Result<ResponseData> successResponse = generateSuccessResponse(
+                                decision,
+                                transactionData.getRequestParsingInfo(),
+                                transactionData.getUserSession());
 
-                        } catch (SamlException | OAuthException e) {
-                            throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
-                        } finally {
-                            transactionService.removeTransactionData(transactionData);
-                        }
+                        transactionService.removeTransactionData(transactionData);
+
+                        if (!successResponse.isSuccess())
+                            return validationResult.setValidationStatus(ValidationStatus.ERROR).setErrorStatus(OrchestrationErrorStatus.SERVER_ERROR);
+
+                        validationResult.setValidationStatus(ValidationStatus.RESPONSE)
+                                    .setResponseData(successResponse.get());
                     }
 
                 }

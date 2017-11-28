@@ -18,17 +18,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package net.identio.server.exceptions;
 
-public class SamlException extends Exception {
+package net.identio.server.service.saml.model;
 
-    private static final long serialVersionUID = 1738019933957155628L;
+public class SamlErrors {
 
-    public SamlException(String s) {
-        super(s);
-    }
+    // Fatal errors (not sent to client)
+    public static final String INVALID_REQUEST = "invalid_request";
 
-    public SamlException(String s, Throwable e) {
-        super(s, e);
-    }
+    // Errors that are sent to the client
+
 }

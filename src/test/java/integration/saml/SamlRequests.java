@@ -28,7 +28,6 @@ import net.identio.server.mvc.common.model.AuthMethodResponse;
 import net.identio.server.mvc.common.model.AuthSubmitRequest;
 import net.identio.server.mvc.common.model.AuthSubmitResponse;
 import net.identio.server.utils.DecodeUtils;
-import net.identio.server.utils.SecurityUtils;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
@@ -38,7 +37,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -75,7 +73,7 @@ public class SamlRequests {
 
         this.requestId = ar.getId();
 
-        builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true));
+        builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true).get());
 
         // Build relayState
         this.relayState = UUID.randomUUID().toString();
@@ -91,7 +89,7 @@ public class SamlRequests {
             String signedInfo = builder.build().encode().toUri().getRawQuery();
 
             byte[] signature = signer.signExternal(signedInfo);
-            builder.queryParam("Signature", DecodeUtils.encode(signature, false));
+            builder.queryParam("Signature", DecodeUtils.encode(signature, false).get());
 
         }
 

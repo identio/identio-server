@@ -24,6 +24,7 @@ package net.identio.server.service.orchestration;
 import net.identio.server.exceptions.*;
 import net.identio.server.model.AuthMethod;
 import net.identio.server.model.ProtocolType;
+import net.identio.server.model.Result;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.ProxyAuthContext;
@@ -33,7 +34,7 @@ import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
-import net.identio.server.service.orchestration.model.SamlAuthRequestGenerationResult;
+import net.identio.server.service.orchestration.model.SamlAuthRequest;
 import net.identio.server.service.transaction.model.TransactionData;
 import net.identio.server.service.authentication.saml.SamlAuthenticationProvider;
 import net.identio.server.service.authpolicy.AuthPolicyService;
@@ -65,9 +66,9 @@ public class ProxyAuthOrchestrationService {
     @Autowired
     private AuthOrchestrationService authOrchestrationService;
 
-    public SamlAuthRequestGenerationResult initSamlRequest(String transactionId, String sessionId,
-                                                           String authMethodName)
-            throws ValidationException, WebSecurityException, ServerException {
+    public Result<SamlAuthRequest> initSamlRequest(String transactionId, String sessionId,
+                                                   String authMethodName)
+            throws ValidationException, WebSecurityException {
 
         LOG.debug("Start generation of a SAML request");
 
@@ -92,8 +93,6 @@ public class ProxyAuthOrchestrationService {
             throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_UNKNOWN);
         } catch (AuthMethodNotAllowedException e) {
             throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
-        } catch (SamlException e) {
-            throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
         } finally {
             transactionService.removeTransactionData(transactionData);
         }

@@ -40,7 +40,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.zip.DataFormatException;
 
 @Service
 public class FileOAuthActorsRepository implements OAuthActorsRepository {
@@ -95,19 +94,16 @@ public class FileOAuthActorsRepository implements OAuthActorsRepository {
 
         if (authorization != null && authorization.startsWith("Basic ")) {
 
-            UserPasswordAuthentication credentials;
-            try {
-                credentials = getCredentialsFromAuthorization(authorization);
-            } catch (IOException | DataFormatException e) {
-                return Result.fail();
-            }
+            Result<UserPasswordAuthentication> credentialsResult = getCredentialsFromAuthorization(authorization);
 
-            Client client = clients.get(credentials.getUserId());
+            if (!credentialsResult.isSuccess()) return Result.fail();
+
+            Client client = clients.get(credentialsResult.get().getUserId());
 
             if (client == null) return Result.fail();
 
             String refPassword = client.getClientSecret();
-            String password = credentials.getPassword();
+            String password = credentialsResult.get().getPassword();
 
             if (refPassword.startsWith("{plain}") && refPassword.substring(7).equals(password)
                     || refPassword.startsWith("{bcrypt}") && BCrypt.checkpw(password, refPassword.substring(8))) {
@@ -122,19 +118,16 @@ public class FileOAuthActorsRepository implements OAuthActorsRepository {
 
         if (authorization != null && authorization.startsWith("Basic ")) {
 
-            UserPasswordAuthentication credentials;
-            try {
-                credentials = getCredentialsFromAuthorization(authorization);
-            } catch (IOException | DataFormatException e) {
-                return Result.fail();
-            }
+            Result<UserPasswordAuthentication> credentialsResult = getCredentialsFromAuthorization(authorization);
 
-            ResourceServer rs = resourceServers.get(credentials.getUserId());
+            if (!credentialsResult.isSuccess()) return Result.fail();
+
+            ResourceServer rs = resourceServers.get(credentialsResult.get().getUserId());
 
             if (rs == null) return Result.fail();
 
             String refPassword = rs.getClientSecret();
-            String password = credentials.getPassword();
+            String password = credentialsResult.get().getPassword();
 
             if (refPassword.startsWith("{plain}") && refPassword.substring(7).equals(password)
                     || refPassword.startsWith("{bcrypt}") && BCrypt.checkpw(password, refPassword.substring(8))) {
@@ -145,12 +138,21 @@ public class FileOAuthActorsRepository implements OAuthActorsRepository {
         return Result.fail();
     }
 
-    private UserPasswordAuthentication getCredentialsFromAuthorization(String authorization) throws IOException, DataFormatException {
+    private Result<UserPasswordAuthentication> getCredentialsFromAuthorization(String authorization) {
 
-        String filteredAuthorization = new String(DecodeUtils.decode(authorization.substring(6), false));
+        String filteredAuthorization;
+
+        Result<byte[]> authorizationDecodingResult = DecodeUtils.decode(authorization.substring(6), false);
+
+        if (authorizationDecodingResult.isSuccess()) {
+            filteredAuthorization = new String(authorizationDecodingResult.get());
+        }
+        else {
+            return Result.fail();
+        }
 
         String[] credentials = filteredAuthorization.split(":");
 
-        return new UserPasswordAuthentication(credentials[0], credentials[1]);
+        return Result.success(new UserPasswordAuthentication(credentials[0], credentials[1]));
     }
 }
