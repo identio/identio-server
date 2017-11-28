@@ -21,7 +21,7 @@
 
 package integration.saml;
 
-import net.identio.saml.exceptions.TechnicalException;
+import net.identio.saml.exceptions.*;
 import net.identio.server.boot.IdentioServerApplication;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +34,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -52,7 +53,7 @@ public class SPInitiatedSuccessTest {
     private TestRestTemplate restTemplate;
 
     @Test
-    public void successfulUnsignedHttpRedirectCinematic() throws TechnicalException, IOException {
+    public void successfulUnsignedHttpRedirectCinematic() throws TechnicalException, IOException, InvalidAuthentResponseException, InvalidAssertionException, InvalidSignatureException, UntrustedSignerException, NoSuchAlgorithmException, UnsignedSAMLObjectException {
 
         SamlRequests requests = new SamlRequests(port, restTemplate);
 
@@ -62,10 +63,11 @@ public class SPInitiatedSuccessTest {
 
         requests.authenticateLocal();
 
+        requests.validateResponse();
     }
 
     @Test
-    public void successfulUnsignedHttpPostCinematic() throws TechnicalException, IOException {
+    public void successfulUnsignedHttpPostCinematic() throws TechnicalException, IOException, InvalidAuthentResponseException, InvalidAssertionException, InvalidSignatureException, UntrustedSignerException, NoSuchAlgorithmException, UnsignedSAMLObjectException {
 
         SamlRequests requests = new SamlRequests(port, restTemplate);
 
@@ -75,10 +77,11 @@ public class SPInitiatedSuccessTest {
 
         requests.authenticateLocal();
 
+        requests.validateResponse();
     }
 
     @Test
-    public void successfulSignedHttpRedirectCinematic() throws TechnicalException, IOException {
+    public void successfulSignedHttpRedirectCinematic() throws TechnicalException, IOException, InvalidAuthentResponseException, InvalidAssertionException, InvalidSignatureException, UntrustedSignerException, NoSuchAlgorithmException, UnsignedSAMLObjectException {
 
         SamlRequests requests = new SamlRequests(port, restTemplate);
 
@@ -88,10 +91,11 @@ public class SPInitiatedSuccessTest {
 
         requests.authenticateLocal();
 
+        requests.validateResponse();
     }
 
     @Test
-    public void successfulSignedHttpPostCinematic() throws TechnicalException, IOException {
+    public void successfulSignedHttpPostCinematic() throws TechnicalException, IOException, InvalidAuthentResponseException, InvalidAssertionException, InvalidSignatureException, UntrustedSignerException, NoSuchAlgorithmException, UnsignedSAMLObjectException {
 
         SamlRequests requests = new SamlRequests(port, restTemplate);
 
@@ -101,5 +105,6 @@ public class SPInitiatedSuccessTest {
 
         requests.authenticateLocal();
 
+        requests.validateResponse();
     }
 }

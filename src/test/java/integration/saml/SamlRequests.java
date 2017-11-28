@@ -21,25 +21,26 @@
 
 package integration.saml;
 
-import net.identio.saml.AuthentRequest;
-import net.identio.saml.AuthentRequestBuilder;
-import net.identio.saml.SamlConstants;
-import net.identio.saml.Signer;
-import net.identio.saml.exceptions.TechnicalException;
+import net.identio.saml.*;
+import net.identio.saml.exceptions.*;
 import net.identio.server.mvc.common.model.ApiResponseStatus;
 import net.identio.server.mvc.common.model.AuthMethodResponse;
 import net.identio.server.mvc.common.model.AuthSubmitRequest;
 import net.identio.server.mvc.common.model.AuthSubmitResponse;
 import net.identio.server.utils.DecodeUtils;
+import net.identio.server.utils.SecurityUtils;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
-import org.yaml.snakeyaml.util.UriEncoder;
 
+import java.io.File;
 import java.io.IOException;
-import java.net.URLEncoder;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.util.Base64;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 
@@ -51,6 +52,11 @@ public class SamlRequests {
     private TestRestTemplate restTemplate;
 
     private HttpHeaders headers;
+
+    private String requestId;
+    private AuthentResponse ar;
+    private String responseUrl;
+    private String relayState;
 
     public SamlRequests(int port, TestRestTemplate restTemplate) {
         this.port = port;
@@ -67,7 +73,13 @@ public class SamlRequests {
                 .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
                 .build();
 
+        this.requestId = ar.getId();
+
         builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true));
+
+        // Build relayState
+        this.relayState = UUID.randomUUID().toString();
+        builder.queryParam("RelayState", this.relayState);
 
         if (signedRequest) {
 
@@ -108,11 +120,18 @@ public class SamlRequests {
 
     public void httpPostSamlRequest(boolean signedRequest) throws TechnicalException {
 
-        this.headers = new HttpHeaders();
+        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
 
         AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/POST")
                 .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
                 .build();
+
+        this.requestId = ar.getId();
+        payload.add("SAMLRequest", ar.toBase64());
+
+        // Build relayState
+        this.relayState = UUID.randomUUID().toString();
+        payload.add("RelayState", this.relayState);
 
         if (signedRequest) {
             Signer signer = new Signer("src/test/resources/saml-sp-config/certificate.p12",
@@ -121,12 +140,8 @@ public class SamlRequests {
             signer.signEmbedded(ar);
         }
 
-        MultiValueMap<String, String> payload = new LinkedMultiValueMap<>();
-
-        payload.add("SAMLRequest", ar.toBase64());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        this.headers = new HttpHeaders();
+        this.headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
         ResponseEntity<String> request = this.restTemplate.exchange(
                 "/SAML2/SSO/POST",
@@ -167,7 +182,7 @@ public class SamlRequests {
 
     }
 
-    public void authenticateLocal() {
+    public void authenticateLocal() throws TechnicalException, InvalidAuthentResponseException {
 
         AuthSubmitRequest authenticationSubmit = new AuthSubmitRequest().setLogin("johndoe").setPassword("password")
                 .setMethod("Local");
@@ -183,8 +198,50 @@ public class SamlRequests {
 
         assertEquals(HttpStatus.OK, authSubmitResponseEntity.getStatusCode());
         assertEquals(ApiResponseStatus.RESPONSE, authSubmitResponse.getStatus());
+
+        // Parse SAML Response
+        String samlResponse = new String(Base64.getDecoder().decode(authSubmitResponse.getResponseData().getData()));
+        this.ar = AuthentResponseBuilder.getInstance().build(samlResponse);
+
+        // Parse RelayState
+        String responseRelayState = authSubmitResponse.getResponseData().getRelayState();
+        assertEquals(this.relayState, responseRelayState);
+
+        // Parse responseUrl
+        this.responseUrl = authSubmitResponse.getResponseData().getUrl();
+
     }
 
+    public void validateResponse() throws InvalidAssertionException, TechnicalException, UntrustedSignerException, InvalidSignatureException, NoSuchAlgorithmException, UnsignedSAMLObjectException {
+
+        // Check responseUrl
+        assertEquals("http://client.ident.io/SAML2/POST", responseUrl);
+
+        // Check response
+        assertEquals("https://localhost/SAML2", ar.getIssuer());
+        assertEquals(SamlConstants.STATUS_SUCCESS, ar.getStatusCode());
+        assertEquals(null, ar.getStatusMessage());
+        assertEquals("http://client.ident.io/SAML2/POST", ar.getDestination());
+        assertEquals(true, ar.isSigned());
+
+        // Check assertion
+        Assertion as = ar.getAssertion();
+
+        assertEquals("https://localhost/SAML2", as.getIssuer());
+        assertEquals("johndoe", as.getSubjectNameID());
+        assertEquals("urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified", as.getSubjectNameIDFormat());
+        assertEquals(this.requestId, as.getInResponseTo());
+        assertEquals("http://client.ident.io/SAML2/POST", as.getRecipient());
+        assertEquals("urn:identio:auth-level:medium", as.getAuthnContext());
+        assertEquals("http://client.ident.io/SAML2", as.getAudienceRestriction());
+
+        // Check Response signature
+        Metadata idpMetadata = MetadataBuilder.build(new File("src/test/resources/saml-sp-config/identio-idp-metadata.xml"));
+
+        Validator validator = new Validator(idpMetadata.getIdpSsoDescriptors().get(0).getSigningCertificates(), false);
+        validator.checkConditions(as);
+        validator.validate(ar);
+    }
 
     private String getUrlWithPort(String url) {
 

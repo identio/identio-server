@@ -56,8 +56,8 @@ public class TransparentAuthController {
         // We check if the user was authenticated with a X509 certificate
         Object clientAuthCerts = httpRequest.getAttribute("javax.servlet.request.X509Certificate");
 
-        String userCert = HttpUtils.getHttpHeader(httpRequest, "X-User-Cert");
-        String sharedSecret = HttpUtils.getHttpHeader(httpRequest, "X-Shared-Secret");
+        String userCert = httpRequest.getHeader("X-User-Cert");
+        String sharedSecret =  httpRequest.getHeader( "X-Shared-Secret");
 
         X509Authentication authentication;
 

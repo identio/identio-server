@@ -18,36 +18,40 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 package net.identio.server.utils;
 
 import net.identio.server.model.Result;
+import org.junit.Test;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-public class HttpUtils {
+import static org.junit.Assert.*;
 
-    public static void setSessionCookie(HttpServletResponse httpResponse, String sessionId,
-                                        boolean secure) {
+public class HttpUtilsTest {
 
-        Cookie sessionCookie = new Cookie("identioSession", sessionId);
-        sessionCookie.setHttpOnly(true);
-        sessionCookie.setMaxAge(-1); // Session cookie
-        sessionCookie.setPath("/");
-        sessionCookie.setSecure(secure);
-        httpResponse.addCookie(sessionCookie);
-    }
+    @Test
+    public void getUniqueParam() throws Exception {
 
-    public static Result<String> getUniqueParam(MultiValueMap<String, String> allParams, String param) {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
 
-        List<String> paramList = allParams.getOrDefault(param, new ArrayList<>());
+        params.put("key", Collections.singletonList("value"));
 
-        if (paramList.size() > 1) return Result.fail();
+        Result<String> result = HttpUtils.getUniqueParam(params, "key");
 
-        return paramList.size() == 1 ? Result.success(paramList.get(0)) : Result.success(null);
+        assertEquals(Result.ResultStatus.OK, result.getResultStatus());
+        assertEquals("value", result.get());
+
+
+        params = new LinkedMultiValueMap<>();
+
+        params.put("key", Arrays.asList("value1", "value2", "value3"));
+
+        result = HttpUtils.getUniqueParam(params, "key");
+
+        assertEquals(Result.ResultStatus.FAIL, result.getResultStatus());
     }
 }

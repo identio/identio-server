@@ -30,7 +30,6 @@ import java.util.UUID;
 
 import static org.junit.Assert.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 public class SecurityUtilsTest {
     @Test
     public void escapeDN() throws Exception {
@@ -59,8 +58,6 @@ public class SecurityUtilsTest {
 
     @Test
     public void encrypt() throws Exception {
-
-        Security.setProperty("crypto.policy", "unlimited");
 
         String plain = UUID.randomUUID().toString();
 
