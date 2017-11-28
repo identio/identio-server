@@ -41,5 +41,6 @@ public class MiscUtilsTest {
 
         assertEquals(null, MiscUtils.nullIfEmpty(""));
         assertEquals("test", MiscUtils.nullIfEmpty("test"));
+        assertEquals(null, MiscUtils.nullIfEmpty(null));
     }
 }
