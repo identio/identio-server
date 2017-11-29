@@ -70,22 +70,15 @@ public class HttpRedirectAuthentRequestErrorTests {
     private TestRestTemplate restTemplate;
 
     private MultiValueMap<String, String> payload;
-    private HttpHeaders headers;
 
     private static final String INVALID_REQUEST_ERROR_URL = "/#!/error/invalid_request";
 
     @Test
     public void missingSamlRequest() throws TechnicalException {
 
-        this.headers = new HttpHeaders();
-
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
 
-        ResponseEntity<String> request = this.restTemplate.exchange(
-                builder.build().encode().toUri(),
-                HttpMethod.GET,
-                null,
-                String.class);
+        ResponseEntity<String> request = sendAuthentRequest(builder);
 
         String redirectUrl = request.getHeaders().getFirst(HttpHeaders.LOCATION);
 
@@ -96,7 +89,18 @@ public class HttpRedirectAuthentRequestErrorTests {
     @Test
     public void invalidSamlRequest() {
 
+        /*
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
+        builder.queryParam("SAMLRequest", "invalid");
+        builder.queryParam("RelayState", UUID.randomUUID().toString());
 
+        ResponseEntity<String> request = sendAuthentRequest(builder);
+
+        String redirectUrl = request.getHeaders().getFirst(HttpHeaders.LOCATION);
+
+        assertEquals(HttpStatus.FOUND, request.getStatusCode());
+        assertEquals(getUrlWithPort(INVALID_REQUEST_ERROR_URL), redirectUrl);
+    */
     }
 
     @Test
@@ -127,6 +131,14 @@ public class HttpRedirectAuthentRequestErrorTests {
     public void untrustedRequestSigner() {
 
 
+    }
+
+    private ResponseEntity<String> sendAuthentRequest(UriComponentsBuilder builder) {
+        return this.restTemplate.exchange(
+                builder.build().encode().toUri(),
+                HttpMethod.GET,
+                null,
+                String.class);
     }
 
     private String getUrlWithPort(String url) {
