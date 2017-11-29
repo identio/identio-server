@@ -48,6 +48,8 @@ public class HttpUtils {
 
         if (paramList.size() > 1) return Result.fail();
 
-        return paramList.size() == 1 ? Result.success(paramList.get(0)) : Result.success(null);
+        return paramList.size() == 1 ?
+                Result.success(MiscUtils.nullIfEmpty(paramList.get(0)))
+                : Result.success(null);
     }
 }
