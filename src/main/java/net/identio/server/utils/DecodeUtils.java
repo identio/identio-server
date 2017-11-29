@@ -27,17 +27,13 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
-import java.util.zip.DataFormatException;
-import java.util.zip.Deflater;
-import java.util.zip.Inflater;
+import java.util.zip.*;
 
 public class DecodeUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(DecodeUtils.class);
 
     public static Result<byte[]> decode(String data, boolean inflate) {
-
-        LOG.debug("Decoding string {} with inflate = {}", data, inflate);
 
         // First, we decode the B64 string
         byte[] decodedBytes;
@@ -47,9 +43,9 @@ public class DecodeUtils {
 
             if (inflate) {
                 // try DEFLATE (rfc 1951) -- according to SAML spec
-                decodedBytes = inflate(decodedBytes, true);
+                decodedBytes = inflate(decodedBytes);
             }
-        } catch (IllegalArgumentException | IOException | DataFormatException ex) {
+        } catch (IllegalArgumentException | IOException ex) {
             return Result.fail();
         }
 
@@ -62,64 +58,37 @@ public class DecodeUtils {
 
         byte[] deflatedData;
         try {
-            deflatedData = deflate ? deflate(data, true) : data;
+            deflatedData = deflate ? deflate(data) : data;
         } catch (IOException e) {
             return Result.fail();
         }
 
-        // First, we decode the B64 string
-        encodedString = Base64.getEncoder().encodeToString(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
+                encodedString = Base64.getEncoder().encodeToString(deflatedData).replaceAll("\r", "").replaceAll("\n", "");
 
         return Result.success(encodedString);
     }
 
-    private static byte[] inflate(byte[] data, boolean nowrap) throws IOException, DataFormatException {
+    private static byte[] inflate(byte[] data) throws IOException {
 
-        LOG.debug("Inflating string with nowrap = {}...", nowrap);
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream();
+             InflaterOutputStream infOs = new InflaterOutputStream(os, new Inflater(true)) ) {
 
-        Inflater decompressor = new Inflater(nowrap);
-        decompressor.setInput(data);
+            infOs.write(data);
+            infOs.finish();
 
-        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-
-            byte[] buf = new byte[512];
-
-            while (!decompressor.finished()) {
-                int count = decompressor.inflate(buf);
-                out.write(buf, 0, count);
-            }
-
-            LOG.debug("String inflated successfully");
-
-            return out.toByteArray();
-
-        } finally {
-            decompressor.end();
+            return os.toByteArray();
         }
     }
 
-    private static byte[] deflate(byte[] data, boolean nowrap) throws IOException {
+    private static byte[] deflate(byte[] data) throws IOException {
 
-        LOG.debug("Deflating string with nowrap = {}...", nowrap);
+        try (ByteArrayOutputStream os = new ByteArrayOutputStream();
+             DeflaterOutputStream defOs = new DeflaterOutputStream(os, new Deflater(7,true))) {
 
-        Deflater deflater = new Deflater(7, nowrap);
-        deflater.setInput(data);
-        deflater.finish();
+            defOs.write(data);
+            defOs.finish();
 
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream(data.length)) {
-
-            byte[] buffer = new byte[1024];
-
-            while (!deflater.finished()) {
-                int count = deflater.deflate(buffer);
-                outputStream.write(buffer, 0, count);
-            }
-
-            outputStream.close();
-
-            return outputStream.toByteArray();
-        } finally {
-            deflater.end();
+            return os.toByteArray();
         }
     }
 }
