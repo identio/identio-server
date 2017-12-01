@@ -221,7 +221,7 @@ public class SamlService {
         String signedInfo = request.getSignedInfo();
         String sigAlg = request.getSignatureAlgorithm();
 
-        if (signature != null && signedInfo != null && sigAlg != null) {
+        if (signature != null && signedInfo != null) {
 
             LOG.debug("* Request is signed");
 

@@ -118,7 +118,7 @@ public class RequestConsumerController {
                 )
             return StandardPages.errorPage(SamlErrors.INVALID_REQUEST);
 
-        if (samlRequest.get() == null) return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+        if (samlRequest.get() == null) return StandardPages.errorPage(SamlErrors.INVALID_REQUEST);
 
         if (signature.get() != null) {
 
