@@ -89,7 +89,6 @@ public class HttpRedirectAuthentRequestErrorTests {
     @Test
     public void invalidSamlRequest() {
 
-        /*
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
         builder.queryParam("SAMLRequest", "invalid");
         builder.queryParam("RelayState", UUID.randomUUID().toString());
@@ -100,7 +99,6 @@ public class HttpRedirectAuthentRequestErrorTests {
 
         assertEquals(HttpStatus.FOUND, request.getStatusCode());
         assertEquals(getUrlWithPort(INVALID_REQUEST_ERROR_URL), redirectUrl);
-    */
     }
 
     @Test

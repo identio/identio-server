@@ -32,6 +32,7 @@ import net.identio.server.service.orchestration.model.RequestParsingInfo;
 import net.identio.server.service.orchestration.model.RequestParsingStatus;
 import net.identio.server.service.orchestration.model.ResponseData;
 import net.identio.server.service.orchestration.model.SamlAuthRequest;
+import net.identio.server.service.saml.model.SamlErrors;
 import net.identio.server.utils.DecodeUtils;
 import net.identio.server.utils.SecurityUtils;
 import org.slf4j.Logger;
@@ -107,7 +108,7 @@ public class SamlService {
         } catch (TechnicalException | InvalidRequestException e1) {
             LOG.error("Impossible to build AuthentRequest");
             return result.setStatus(RequestParsingStatus.FATAL_ERROR)
-                    .setErrorStatus(SamlConstants.STATUS_REQUEST_UNSUPPORTED);
+                    .setErrorStatus(SamlErrors.INVALID_REQUEST);
         }
 
         // Extract interesting values
