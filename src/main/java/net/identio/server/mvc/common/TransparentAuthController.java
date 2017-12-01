@@ -39,8 +39,6 @@ import java.security.cert.X509Certificate;
 @Controller
 public class TransparentAuthController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TransparentAuthController.class);
-
     @Autowired
     private AuthOrchestrationService authOrchestrationService;
     @Autowired
