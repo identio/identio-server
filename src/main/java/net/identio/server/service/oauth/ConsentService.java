@@ -27,7 +27,6 @@ import net.identio.server.mvc.oauth.model.ConsentResponse;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
 import net.identio.server.service.authorization.exceptions.UnknownScopeException;
-import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.model.AuthorizationScope;
 import net.identio.server.service.orchestration.model.OrchestrationErrorStatus;

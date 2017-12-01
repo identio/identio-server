@@ -24,7 +24,6 @@ import net.identio.server.model.Result;
 import org.springframework.util.MultiValueMap;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;

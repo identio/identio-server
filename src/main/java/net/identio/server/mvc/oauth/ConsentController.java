@@ -22,7 +22,6 @@ package net.identio.server.mvc.oauth;
 
 import net.identio.server.model.Result;
 import net.identio.server.mvc.common.model.ApiErrorResponse;
-import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.mvc.oauth.model.ConsentContext;
 import net.identio.server.mvc.oauth.model.ConsentRequest;

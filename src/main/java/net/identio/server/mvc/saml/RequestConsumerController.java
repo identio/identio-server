@@ -76,7 +76,7 @@ public class RequestConsumerController {
         if (!samlRequest.isSuccess() ||
                 !relayState.isSuccess()
                 )
-            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+            return StandardPages.errorPage(SamlErrors.INVALID_REQUEST);
 
         if (samlRequest.get() == null) return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
 
@@ -86,7 +86,7 @@ public class RequestConsumerController {
         if (samlRequestDecodeResult.isSuccess()) {
             decodedSamlRequest = new String(samlRequestDecodeResult.get());
         } else {
-            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+            return StandardPages.errorPage(SamlErrors.INVALID_REQUEST);
         }
 
         // To prevent XSS attacks, we escape the RelayState value
@@ -116,7 +116,7 @@ public class RequestConsumerController {
                 !sigAlg.isSuccess() ||
                 !signature.isSuccess()
                 )
-            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+            return StandardPages.errorPage(SamlErrors.INVALID_REQUEST);
 
         if (samlRequest.get() == null) return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
 
@@ -156,7 +156,7 @@ public class RequestConsumerController {
         if (samlRequestDecodeResult.isSuccess()) {
             decodedSamlRequest = new String(samlRequestDecodeResult.get());
         } else {
-            return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
+            return StandardPages.errorPage(SamlErrors.INVALID_REQUEST);
         }
 
         // To prevent XSS attacks, we escape the RelayState value
