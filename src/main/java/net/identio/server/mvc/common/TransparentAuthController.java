@@ -27,8 +27,6 @@ import net.identio.server.service.authentication.model.X509Authentication;
 import net.identio.server.mvc.saml.ResponderController;
 import net.identio.server.service.orchestration.AuthOrchestrationService;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
