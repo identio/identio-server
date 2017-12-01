@@ -76,8 +76,7 @@ public class AuthentController {
             case RESPONSE:
 
                 response.setStatus(ApiResponseStatus.RESPONSE)
-                        .setResponseData(result.getResponseData())
-                        .setProtocolType(result.getProtocolType());
+                        .setResponseData(result.getResponseData());
                 break;
 
             case CHALLENGE:

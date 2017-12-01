@@ -20,78 +20,82 @@
  */
 package net.identio.server.service.orchestration.model;
 
-import net.identio.server.model.ProtocolType;
-
 public class AuthenticationValidationResult {
+
+    public enum ValidationStatus {
+        RESPONSE, CONSENT, ERROR, CHALLENGE, AUTH
+    }
 
     private ValidationStatus validationStatus;
     private String transactionId;
     private String errorStatus;
     private ResponseData responseData;
-    private ProtocolType protocolType;
     private String challengeType;
     private String challengeValue;
 
-    public ValidationStatus getValidationStatus() {
-        return validationStatus;
+    public static AuthenticationValidationResult response(ResponseData responseData) {
+        AuthenticationValidationResult result = new AuthenticationValidationResult();
+        result.validationStatus = ValidationStatus.RESPONSE;
+        result.responseData = responseData;
+
+        return result;
     }
 
-    public AuthenticationValidationResult setValidationStatus(ValidationStatus state) {
-        this.validationStatus = state;
-        return this;
+    public static AuthenticationValidationResult consent(String transactionId) {
+        AuthenticationValidationResult result = new AuthenticationValidationResult();
+        result.validationStatus = ValidationStatus.CONSENT;
+        result.transactionId = transactionId;
+
+        return result;
+    }
+
+    public static AuthenticationValidationResult error(String errorStatus) {
+        AuthenticationValidationResult result = new AuthenticationValidationResult();
+        result.validationStatus = ValidationStatus.ERROR;
+        result.errorStatus = errorStatus;
+
+        return result;
+    }
+
+    public static AuthenticationValidationResult auth(String transactionId) {
+        AuthenticationValidationResult result = new AuthenticationValidationResult();
+        result.validationStatus = ValidationStatus.AUTH;
+        result.transactionId = transactionId;
+
+        return result;
+    }
+
+    public static AuthenticationValidationResult challenge(String transactionId, String challengeType, String challengeValue) {
+        AuthenticationValidationResult result = new AuthenticationValidationResult();
+        result.validationStatus = ValidationStatus.CHALLENGE;
+        result.transactionId = transactionId;
+        result.challengeType = challengeType;
+        result.challengeValue = challengeValue;
+
+        return result;
+    }
+
+    public ValidationStatus getValidationStatus() {
+        return validationStatus;
     }
 
     public String getTransactionId() {
         return transactionId;
     }
 
-    public AuthenticationValidationResult setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-        return this;
-    }
-
     public String getErrorStatus() {
         return errorStatus;
-    }
-
-    public AuthenticationValidationResult setErrorStatus(String errorStatus) {
-        this.errorStatus = errorStatus;
-        return this;
     }
 
     public ResponseData getResponseData() {
         return responseData;
     }
 
-    public AuthenticationValidationResult setResponseData(ResponseData responseData) {
-        this.responseData = responseData;
-        return this;
-    }
-
-    public ProtocolType getProtocolType() {
-        return protocolType;
-    }
-
-    public AuthenticationValidationResult setProtocolType(ProtocolType protocolType) {
-        this.protocolType = protocolType;
-        return this;
-    }
-
     public String getChallengeType() {
         return challengeType;
     }
 
-    public AuthenticationValidationResult setChallengeType(String challengeType) {
-        this.challengeType = challengeType;
-        return this;
-    }
-
     public String getChallengeValue() {
         return challengeValue;
-    }
-
-    public AuthenticationValidationResult setChallengeValue(String challengeValue) {
-        this.challengeValue = challengeValue;
-        return this;
     }
 }

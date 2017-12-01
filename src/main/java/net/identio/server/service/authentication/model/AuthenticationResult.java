@@ -25,6 +25,10 @@ import net.identio.server.model.AuthMethod;
 
 public class AuthenticationResult {
 
+    public enum AuthenticationResultStatus {
+        SUCCESS, FAIL, CHALLENGE
+    }
+
     private AuthenticationResultStatus status;
     private String errorStatus;
     private String challengeType;
@@ -33,13 +37,48 @@ public class AuthenticationResult {
     private AuthMethod authMethod;
     private AuthLevel authLevel;
 
-    public AuthenticationResultStatus getStatus() {
-        return status;
+    public static AuthenticationResult success() {
+
+        AuthenticationResult result = new AuthenticationResult();
+
+        result.status = AuthenticationResultStatus.SUCCESS;
+
+        return result;
     }
 
-    public AuthenticationResult setStatus(AuthenticationResultStatus status) {
-        this.status = status;
-        return this;
+    public static AuthenticationResult fail(String reason) {
+
+        AuthenticationResult result = new AuthenticationResult();
+
+        result.status = AuthenticationResultStatus.FAIL;
+        result.errorStatus = reason;
+
+        return result;
+    }
+
+    public static AuthenticationResult challenge() {
+
+        AuthenticationResult result = new AuthenticationResult();
+
+        result.status = AuthenticationResultStatus.CHALLENGE;
+
+        return result;
+    }
+
+    public boolean isFail() {
+        return status == AuthenticationResultStatus.FAIL;
+    }
+
+    public boolean isSuccess() {
+        return status == AuthenticationResultStatus.SUCCESS;
+    }
+
+    public boolean isChallenge() {
+        return status == AuthenticationResultStatus.CHALLENGE;
+    }
+
+    public AuthenticationResultStatus getStatus() {
+        return status;
     }
 
     public String getErrorStatus() {

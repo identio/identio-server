@@ -21,14 +21,15 @@
 package net.identio.server.mvc.saml;
 
 import net.identio.saml.SamlConstants;
+import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.model.Result;
 import net.identio.server.model.SamlInboundRequest;
+import net.identio.server.mvc.common.StandardPages;
 import net.identio.server.mvc.common.TransparentAuthController;
 import net.identio.server.service.orchestration.RequestOrchestrationService;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
-import net.identio.server.service.orchestration.model.ValidationStatus;
 import net.identio.server.service.orchestration.model.RequestValidationResult;
 import net.identio.server.service.saml.model.SamlErrors;
 import net.identio.server.utils.DecodeUtils;
@@ -46,8 +47,6 @@ import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.zip.DataFormatException;
 
 @Controller
 public class RequestConsumerController {
@@ -60,6 +59,8 @@ public class RequestConsumerController {
     private TransparentAuthController transparentAuthController;
     @Autowired
     private ResponderController responderController;
+    @Autowired
+    private GlobalConfiguration config;
 
     @RequestMapping(value = "/SAML2/SSO/POST", method = RequestMethod.POST)
     public String samlConsumerPost(HttpServletRequest httpRequest, HttpServletResponse httpResponse,
@@ -84,8 +85,7 @@ public class RequestConsumerController {
 
         if (samlRequestDecodeResult.isSuccess()) {
             decodedSamlRequest = new String(samlRequestDecodeResult.get());
-        }
-        else {
+        } else {
             return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
         }
 
@@ -155,8 +155,7 @@ public class RequestConsumerController {
 
         if (samlRequestDecodeResult.isSuccess()) {
             decodedSamlRequest = new String(samlRequestDecodeResult.get());
-        }
-        else {
+        } else {
             return "redirect:/#!/error/" + SamlErrors.INVALID_REQUEST;
         }
 
@@ -178,16 +177,19 @@ public class RequestConsumerController {
         // The request is forwarded to the orchestration service
         RequestValidationResult result = validationService.validateRequest(samlRequest, sessionId);
 
-        if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
+        switch (result.getValidationStatus()) {
 
-            return responderController.displayResponderPage(
-                    result.getResponseData().getUrl(), result.getResponseData().getData(),
-                    result.getResponseData().getRelayState(), result.getSessionId(), httpResponse);
-
-        } else {
-            return transparentAuthController.checkTransparentAuthentication(httpRequest, httpResponse,
-                    result.getSessionId(), result.getTransactionId());
+            case RESPONSE:
+                return responderController.displayResponderPage(
+                        result.getResponseData().getUrl(), result.getResponseData().getData(),
+                        result.getResponseData().getRelayState(), result.getSessionId(), httpResponse);
+            case CONSENT:
+                return StandardPages.consentPage(httpResponse, result.getSessionId(), result.getTransactionId(), config.isSecure());
+            case ERROR:
+                return StandardPages.errorPage(result.getErrorStatus());
+            default:
+                return transparentAuthController.checkTransparentAuthentication(httpRequest, httpResponse,
+                        result.getSessionId(), result.getTransactionId());
         }
-
     }
 }

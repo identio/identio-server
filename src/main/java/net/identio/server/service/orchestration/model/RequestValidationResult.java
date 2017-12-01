@@ -22,54 +22,67 @@ package net.identio.server.service.orchestration.model;
 
 public class RequestValidationResult {
 
+    public enum ValidationStatus {
+        RESPONSE, CONSENT, ERROR, AUTH
+    }
+
     private ValidationStatus validationStatus;
     private String errorStatus;
     private ResponseData responseData;
     private String transactionId;
     private String sessionId;
 
-    public ValidationStatus getValidationStatus() {
-        return validationStatus;
+    public static RequestValidationResult response(ResponseData responseData) {
+        RequestValidationResult result = new RequestValidationResult();
+        result.validationStatus = ValidationStatus.RESPONSE;
+        result.responseData = responseData;
+
+        return result;
     }
 
-    public RequestValidationResult setValidationStatus(ValidationStatus state) {
-        this.validationStatus = state;
-        return this;
+    public static RequestValidationResult consent(String transactionId, String sessionId) {
+        RequestValidationResult result = new RequestValidationResult();
+        result.validationStatus = ValidationStatus.CONSENT;
+        result.transactionId = transactionId;
+        result.sessionId = sessionId;
+
+        return result;
+    }
+
+    public static RequestValidationResult error(String errorStatus) {
+        RequestValidationResult result = new RequestValidationResult();
+        result.validationStatus = ValidationStatus.ERROR;
+        result.errorStatus = errorStatus;
+
+        return result;
+    }
+
+    public static RequestValidationResult auth(String transactionId, String sessionId) {
+        RequestValidationResult result = new RequestValidationResult();
+        result.validationStatus = ValidationStatus.AUTH;
+        result.transactionId = transactionId;
+        result.sessionId = sessionId;
+
+        return result;
+    }
+
+    public ValidationStatus getValidationStatus() {
+        return validationStatus;
     }
 
     public String getErrorStatus() {
         return errorStatus;
     }
 
-    public RequestValidationResult setErrorStatus(String errorStatus) {
-        this.errorStatus = errorStatus;
-        return this;
-    }
-
     public ResponseData getResponseData() {
         return responseData;
-    }
-
-    public RequestValidationResult setResponseData(ResponseData responseData) {
-        this.responseData = responseData;
-        return this;
     }
 
     public String getTransactionId() {
         return transactionId;
     }
 
-    public RequestValidationResult setTransactionId(String transactionId) {
-        this.transactionId = transactionId;
-        return this;
-    }
-
     public String getSessionId() {
         return sessionId;
-    }
-
-    public RequestValidationResult setSessionId(String sessionId) {
-        this.sessionId = sessionId;
-        return this;
     }
 }

@@ -94,9 +94,6 @@ public class AuthOrchestrationService {
             throw new WebSecurityException(OrchestrationErrorStatus.INVALID_TRANSACTION);
         }
 
-        AuthenticationValidationResult validationResult = new AuthenticationValidationResult();
-        validationResult.setProtocolType(transactionData.getProtocolType());
-
         // Try to map the auth method name to a known method
         AuthMethod authMethod;
 
@@ -147,7 +144,6 @@ public class AuthOrchestrationService {
     private AuthenticationValidationResult decideResponse(AuthenticationResult authResult, TransactionData transactionData) throws ServerException {
 
         AuthenticationValidationResult validationResult = new AuthenticationValidationResult();
-        validationResult.setProtocolType(transactionData.getProtocolType());
 
         switch (authResult.getStatus()) {
 
@@ -159,8 +155,9 @@ public class AuthOrchestrationService {
                 if (decision.getStatus() == AuthPolicyDecisionStatus.OK) {
 
                     if (transactionData.getRequestParsingInfo().isConsentNeeded()) {
-                        validationResult.setValidationStatus(ValidationStatus.CONSENT);
+
                         transactionData.setState(TransactionState.CONSENT);
+                        return AuthenticationValidationResult.consent(transactionData.getTransactionId());
 
                     } else {
 
@@ -172,26 +169,19 @@ public class AuthOrchestrationService {
                         transactionService.removeTransactionData(transactionData);
 
                         if (!successResponse.isSuccess())
-                            return validationResult.setValidationStatus(ValidationStatus.ERROR).setErrorStatus(OrchestrationErrorStatus.SERVER_ERROR);
+                            return AuthenticationValidationResult.error(OrchestrationErrorStatus.SERVER_ERROR);
 
-                        validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                                    .setResponseData(successResponse.get());
+                        return AuthenticationValidationResult.response(successResponse.get());
                     }
 
                 }
                 break;
 
             case FAIL:
-                validationResult.setValidationStatus(ValidationStatus.ERROR)
-                        .setErrorStatus(authResult.getErrorStatus());
-                validationResult.setErrorStatus(authResult.getErrorStatus());
-                break;
+                return AuthenticationValidationResult.error(authResult.getErrorStatus());
 
             case CHALLENGE:
-                validationResult.setValidationStatus(ValidationStatus.CHALLENGE);
-                validationResult.setChallengeType(authResult.getChallengeType());
-                validationResult.setChallengeValue(authResult.getChallengeValue());
-                break;
+                return AuthenticationValidationResult.challenge(transactionData.getTransactionId(),authResult.getChallengeType(), authResult.getChallengeValue());
         }
 
         return validationResult;

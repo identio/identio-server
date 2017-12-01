@@ -106,10 +106,10 @@
          	data.responseData.url = $sce
          						.trustAsResourceUrl(data.responseData.url);
 
-         	if (data.protocolType === 'SAML') {
+         	if (data.responseData.protocolType === 'SAML') {
          		$rootScope.$broadcast('saml.submit.response', data.responseData);
          	}
-         	if (data.protocolType === 'OAUTH') {
+         	if (data.responseData.protocolType === 'OAUTH') {
          		$rootScope.$broadcast('oauth.submit.response', data.responseData);
          	}
 

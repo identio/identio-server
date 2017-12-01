@@ -24,7 +24,7 @@ package net.identio.server.service.saml.model;
 public class SamlErrors {
 
     // Fatal errors (not sent to client)
-    public static final String INVALID_REQUEST = "invalid_request";
+    public static final String INVALID_REQUEST = "invalid.request";
 
     // Errors that are sent to the client
 

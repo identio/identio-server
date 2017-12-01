@@ -139,8 +139,8 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
         try {
             Result<byte[]> decodedSamlResponse = DecodeUtils.decode(samlAuthentication.getResponse(), false);
 
-            if (!decodedSamlResponse.isSuccess()) return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                    .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+            if (!decodedSamlResponse.isSuccess())
+                return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
 
             SamlAuthMethod samlAuthMethod = (SamlAuthMethod) authMethod;
 
@@ -155,30 +155,26 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 
             if (!SamlConstants.STATUS_SUCCESS.equals(responseStatusCode)) {
                 LOG.error("* Authentication rejected by proxy IDP");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_REJECTED);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_REJECTED);
             }
 
             // Verify the presence of a SAML Assertion
             if (assertion == null) {
                 LOG.error("* No assertion found in response");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             // Check inResponseTo attribute coherence
             if (!samlAuthentication.getRequestId().equals(assertion.getInResponseTo())) {
                 LOG.error("* InResponseTo ID doesn't match request ID");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             // Check that the recipient of the assertion is the IDP
             if (assertion.getAudienceRestriction() == null
                     || !assertion.getAudienceRestriction().equals(idpMetadata.getEntityID())) {
                 LOG.error("* Audience in assertion doesn't match IDP EntityID");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             // Check recipient and destination
@@ -188,15 +184,12 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 
             if (recipient == null) {
                 LOG.error("* No recipient specified in assertion");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
-
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             if (destination == null) {
                 LOG.error("* No destination specified in response");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             for (Endpoint endpoint : idpMetadata.getSpSsoDescriptors().get(0).getAssertionConsumerServices()) {
@@ -209,8 +202,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
 
             if (!validation) {
                 LOG.error("* Recipient or destination in response doesn't match an IDP endpoint");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             // Check assertion time conditions
@@ -218,8 +210,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
                 remoteValidator.checkConditions(assertion);
             } catch (InvalidAssertionException ex) {
                 LOG.error("* Conditions in the assertion are not valid: {}", ex.getMessage());
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             try {
@@ -231,8 +222,7 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
                 LOG.error("* Response is invalid: {}", ex.getMessage());
                 LOG.debug("* Detailed stacktrace:", ex);
 
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.AUTH_SAML_INVALID_RESPONSE);
             }
 
             // If the assertion is valid
@@ -241,15 +231,14 @@ public class SamlAuthenticationProvider implements AuthenticationProvider {
             // Mapping the authentication level
             AuthLevel authLevel = samlAuthMethod.getSamlAuthMap().getIn().get(assertion.getAuthnContext());
 
-            return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS)
+            return AuthenticationResult.success()
                     .setUserId(assertion.getSubjectNameID()).setAuthMethod(samlAuthMethod).setAuthLevel(authLevel);
 
         } catch (TechnicalException
                 | InvalidAuthentResponseException ex) {
             LOG.error("* Error when parsing SAML Response: {}", ex.getMessage());
         }
-        return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+        return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
     }
 
     private void register(List<SamlAuthMethod> authMethods, AuthenticationService authenticationService) {

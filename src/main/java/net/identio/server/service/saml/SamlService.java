@@ -344,7 +344,7 @@ public class SamlService {
 
             if (!data.isSuccess()) return Result.serverError();
 
-            return Result.success(new ResponseData().setUrl(requestParsingInfo.getResponseUrl())
+            return Result.success(new ResponseData().setProtocolType(ProtocolType.SAML).setUrl(requestParsingInfo.getResponseUrl())
                     .setData(data.get())
                     .setRelayState(requestParsingInfo.getRelayState()));
 
@@ -374,7 +374,7 @@ public class SamlService {
 
             if (!data.isSuccess()) return Result.serverError();
 
-            return Result.success(new ResponseData().setUrl(requestParsingInfo.getResponseUrl())
+            return Result.success(new ResponseData().setProtocolType(ProtocolType.SAML).setUrl(requestParsingInfo.getResponseUrl())
                     .setData(data.get())
                     .setRelayState(requestParsingInfo.getRelayState()));
 

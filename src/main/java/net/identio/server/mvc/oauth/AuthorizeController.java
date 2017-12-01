@@ -20,7 +20,9 @@
  */
 package net.identio.server.mvc.oauth;
 
+import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.model.Result;
+import net.identio.server.mvc.common.StandardPages;
 import net.identio.server.service.oauth.model.OAuthErrors;
 import net.identio.server.service.orchestration.exceptions.ServerException;
 import net.identio.server.service.orchestration.exceptions.ValidationException;
@@ -47,9 +49,10 @@ public class AuthorizeController {
 
     @Autowired
     private RequestOrchestrationService validationService;
-
     @Autowired
     private TransparentAuthController transparentAuthController;
+    @Autowired
+    private GlobalConfiguration config;
 
     @RequestMapping(value = "/oauth/authorize", method = RequestMethod.GET)
     public String authorizeRequest(
@@ -88,18 +91,16 @@ public class AuthorizeController {
         RequestValidationResult result = validationService.validateRequest(request, identioSession);
 
         switch (result.getValidationStatus()) {
+
             case RESPONSE:
                 return "redirect:" + result.getResponseData().getUrl();
-
             case CONSENT:
-                return "redirect:/#!/consent/" + result.getTransactionId();
-
+                return StandardPages.consentPage(httpResponse, result.getSessionId(), result.getTransactionId(), config.isSecure());
             case ERROR:
-                return "redirect:/#!/error/" + result.getErrorStatus();
-
+                return StandardPages.errorPage(result.getErrorStatus());
             default:
-                return transparentAuthController.checkTransparentAuthentication(
-                        httpRequest, httpResponse, result.getSessionId(), result.getTransactionId());
+                return transparentAuthController.checkTransparentAuthentication(httpRequest, httpResponse,
+                        result.getSessionId(), result.getTransactionId());
         }
     }
 }

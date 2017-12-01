@@ -104,16 +104,14 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
         if (userId == null || password == null) {
             LOG.error("UserId or password is empty");
-            return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                    .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+            return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
         }
 
         User user = globalUsersMap.get(fileAuthMethod).get(userId);
 
         if (user == null) {
             LOG.error("Unknown user: {}", userPwAuthentication.getUserId());
-            return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                    .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+            return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
         }
 
         String refPassword = user.getPassword();
@@ -125,14 +123,13 @@ public class LocalAuthenticationProvider implements AuthenticationProvider {
 
             LOG.info("User {} successfully authenticated with {} method", user.getUserId(), fileAuthMethod.getName());
 
-            return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS).setUserId(userId)
+            return AuthenticationResult.success().setUserId(userId)
                     .setAuthMethod(authMethod).setAuthLevel(authMethod.getAuthLevel());
         }
 
         LOG.info("Failed authentication for user {} with {} method", user.getUserId(), fileAuthMethod.getName());
 
-        return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+        return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
     }
 
     private void register(List<LocalAuthMethod> authMethods, AuthenticationService authenticationService) {

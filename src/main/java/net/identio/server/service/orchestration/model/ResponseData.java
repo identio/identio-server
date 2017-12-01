@@ -21,11 +21,14 @@
 
 package net.identio.server.service.orchestration.model;
 
+import net.identio.server.model.ProtocolType;
+
 public class ResponseData {
 
     private String url;
     private String data;
     private String relayState;
+    private ProtocolType protocolType;
 
     public String getUrl() {
         return url;
@@ -51,6 +54,15 @@ public class ResponseData {
 
     public ResponseData setRelayState(String relayState) {
         this.relayState = relayState;
+        return this;
+    }
+
+    public ProtocolType getProtocolType() {
+        return protocolType;
+    }
+
+    public ResponseData setProtocolType(ProtocolType protocolType) {
+        this.protocolType = protocolType;
         return this;
     }
 }

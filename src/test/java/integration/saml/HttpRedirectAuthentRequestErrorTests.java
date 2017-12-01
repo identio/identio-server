@@ -71,7 +71,7 @@ public class HttpRedirectAuthentRequestErrorTests {
 
     private MultiValueMap<String, String> payload;
 
-    private static final String INVALID_REQUEST_ERROR_URL = "/#!/error/invalid_request";
+    private static final String INVALID_REQUEST_ERROR_URL = "/#!/error/invalid.request";
 
     @Test
     public void missingSamlRequest() throws TechnicalException {

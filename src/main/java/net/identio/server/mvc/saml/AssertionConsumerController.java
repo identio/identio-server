@@ -28,7 +28,6 @@ import net.identio.server.service.orchestration.exceptions.ValidationException;
 import net.identio.server.service.orchestration.exceptions.WebSecurityException;
 import net.identio.server.service.authentication.saml.SamlAuthentication;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
-import net.identio.server.service.orchestration.model.ValidationStatus;
 import net.identio.server.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +74,7 @@ public class AssertionConsumerController {
         AuthenticationValidationResult result = proxyAuthOrchestrationService
                 .handleProxyAuthentication(identioSession, ProtocolType.SAML, authentication, relayState);
 
-        if (result.getValidationStatus() == ValidationStatus.RESPONSE) {
+        if (result.getValidationStatus() == AuthenticationValidationResult.ValidationStatus.RESPONSE) {
 
             return responderController.displayResponderPage(
                     result.getResponseData().getUrl(), result.getResponseData().getData(),

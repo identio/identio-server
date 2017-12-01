@@ -151,8 +151,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
                 LOG.error("User certificate rejected: Not emitted by the trusted issuer of method {}",
                         authMethod.getName());
 
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
             }
 
             // Check expressions
@@ -169,7 +168,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
                     LOG.info("User {} successfully authenticated with method {}", uid, authMethod.getName());
 
-                    return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS).setUserId(uid)
+                    return AuthenticationResult.success().setUserId(uid)
                             .setAuthMethod(authMethod).setAuthLevel(authMethod.getAuthLevel());
                 }
             }
@@ -181,8 +180,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
         LOG.info("Could not validate user certificate with method {}", authMethod.getName());
 
-        return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+        return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
     }
 
     private void register(List<X509AuthMethod> authMethods, AuthenticationService authenticationService) {

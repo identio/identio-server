@@ -22,7 +22,6 @@ package net.identio.server.mvc.common.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import net.identio.server.model.ProtocolType;
 import net.identio.server.service.orchestration.model.ResponseData;
 
 @JsonInclude(Include.NON_NULL)
@@ -31,7 +30,6 @@ public class AuthSubmitResponse {
     private ApiResponseStatus status;
     private String errorStatus;
     private ResponseData responseData;
-    private ProtocolType protocolType;
     private String challengeType;
     private String challengeValue;
 
@@ -59,15 +57,6 @@ public class AuthSubmitResponse {
 
     public AuthSubmitResponse setResponseData(ResponseData responseData) {
         this.responseData = responseData;
-        return this;
-    }
-
-    public ProtocolType getProtocolType() {
-        return protocolType;
-    }
-
-    public AuthSubmitResponse setProtocolType(ProtocolType protocolType) {
-        this.protocolType = protocolType;
         return this;
     }
 

@@ -28,7 +28,6 @@ import net.identio.server.model.Result;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationResult;
-import net.identio.server.service.authentication.model.AuthenticationResultStatus;
 import net.identio.server.service.authentication.model.UserPasswordAuthentication;
 import net.identio.server.service.authorization.AuthorizationService;
 import net.identio.server.service.authorization.exceptions.NoScopeProvidedException;
@@ -101,9 +100,7 @@ public class ResourceOwnerCredentialsService {
             return Result.serverError();
         }
 
-        if (result.getStatus() != AuthenticationResultStatus.SUCCESS) {
-            return Result.fail(OAuthErrors.INVALID_GRANT);
-        }
+        if (!result.isSuccess()) return Result.fail(OAuthErrors.INVALID_GRANT);
 
         // Everything's ok, generate response
         Result<AccessTokenResponse> accessTokenResponse = oAuthResponseService.generateTokenResponse(scopeResult.get().values(),

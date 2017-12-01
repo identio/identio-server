@@ -101,8 +101,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                 return authenticate(radiusAuthMethod, userId, password, challengeResponse);
             } catch (RadiusException ex) {
                 LOG.error("An error occurend when authenticating user");
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
             }
         }
     }
@@ -122,8 +121,9 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
                 Result<RadiusAttribute> attribute = deserializeAttribute(SecurityUtils.decrypt(challenge));
 
-                if (!attribute.isSuccess()) new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+                if (!attribute.isSuccess())
+                    return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
+
 
                 accessRequest.setAttribute(attribute.get());
             }
@@ -134,7 +134,7 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
             if (accessResponse.getPacketType() == RadiusPacket.ACCESS_ACCEPT) {
 
                 LOG.info("User {} successfully authenticated with {}", userId, radiusAuthMethod.getName());
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS).setUserId(userId)
+                return AuthenticationResult.success().setUserId(userId)
                         .setAuthMethod(radiusAuthMethod).setAuthLevel(radiusAuthMethod.getAuthLevel());
             }
 
@@ -145,8 +145,8 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
 
                 Result<String> attribute = serializeAttribute(accessResponse.getAttribute(RadiusAttributeValues.STATE));
 
-                if (!attribute.isSuccess()) new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+                if (!attribute.isSuccess())
+                    return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
 
                 String radiusState = attribute.get();
                 String challengeType = null;
@@ -174,8 +174,8 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                     challengeType = "RADIUS_NEW_PIN";
                 }
 
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.CHALLENGE)
-                        .setChallengeType(challengeType).setChallengeValue(SecurityUtils.encrypt(radiusState)).setUserId(userId);
+                return AuthenticationResult.challenge().setChallengeType(challengeType)
+                        .setChallengeValue(SecurityUtils.encrypt(radiusState)).setUserId(userId);
             }
 
             if (accessResponse.getPacketType() == RadiusPacket.ACCESS_REJECT) {
@@ -189,16 +189,14 @@ public class RadiusAuthenticationProvider implements AuthenticationProvider {
                 } else {
                     LOG.error("Authentication failed for user {} with {}", userId, radiusAuthMethod.getName());
                 }
-                new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
             }
         } catch (InvalidParameterException ex) {
             LOG.error("Error when contacting RadiusServer server {}",
                     radiusAuthMethod.getRadiusHost().get(currentHostIndex));
         }
 
-        return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+        return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
     }
 
     private Result<RadiusAttribute> deserializeAttribute(String data) {

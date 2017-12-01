@@ -25,7 +25,6 @@ import net.identio.server.model.*;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationErrorStatus;
 import net.identio.server.service.authentication.model.AuthenticationResult;
-import net.identio.server.service.authentication.model.AuthenticationResultStatus;
 import net.identio.server.service.authentication.saml.SamlAuthMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,7 +82,7 @@ public class AuthenticationService {
             if (provider.accepts(authentication)) {
                 result = provider.validate(authMethod, authentication);
 
-                if (result.getStatus() != AuthenticationResultStatus.FAIL) {
+                if (!result.isFail()) {
                     break;
                 }
 
@@ -97,13 +96,9 @@ public class AuthenticationService {
 
         AuthenticationProvider provider = explicitAuthenticationProviders.get(authMethod);
 
-        if (provider.accepts(authentication)) {
-            return provider.validate(authMethod, authentication);
-        }
-        else {
-            return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                    .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
-        }
+        return provider.accepts(authentication) ? provider.validate(authMethod, authentication)
+                :
+                AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
     }
 
     public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {

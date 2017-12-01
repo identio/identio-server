@@ -113,9 +113,6 @@ public class ProxyAuthOrchestrationService {
                 throw new ServerException(OrchestrationErrorStatus.SERVER_ERROR);
         }
 
-        AuthenticationValidationResult result = authOrchestrationService.handleExplicitAuthentication(context.getTransactionId(), sessionId, context.getAuthMethodName(), authentication);
-        result.setTransactionId(context.getTransactionId());
-
-        return result;
+        return authOrchestrationService.handleExplicitAuthentication(context.getTransactionId(), sessionId, context.getAuthMethodName(), authentication);
     }
 }

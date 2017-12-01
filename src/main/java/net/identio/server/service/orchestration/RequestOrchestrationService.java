@@ -68,25 +68,22 @@ public class RequestOrchestrationService {
     public RequestValidationResult validateRequest(InboundRequest request, String sessionId)
             throws ValidationException {
 
-        RequestValidationResult validationResult = new RequestValidationResult();
-
         // Validate the request
         RequestParsingInfo parsingInfo = parseRequest(request);
 
         switch (parsingInfo.getStatus()) {
 
             case FATAL_ERROR:
-                return validationResult.setValidationStatus(ValidationStatus.ERROR).setErrorStatus(parsingInfo.getErrorStatus());
+                return RequestValidationResult.error(parsingInfo.getErrorStatus());
 
             case RESPONSE_ERROR:
 
                 Result<ResponseData> errorResponse = generateErrorResponse(parsingInfo);
 
                 if (!errorResponse.isSuccess())
-                    return validationResult.setValidationStatus(ValidationStatus.ERROR).setErrorStatus(OrchestrationErrorStatus.SERVER_ERROR);
+                    return RequestValidationResult.error(OrchestrationErrorStatus.SERVER_ERROR);
 
-                return validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                        .setResponseData(errorResponse.get());
+                return RequestValidationResult.response(errorResponse.get());
             default:
                 // Do nothing
         }
@@ -96,10 +93,6 @@ public class RequestOrchestrationService {
         transactionData.setUserSession(userSession);
         transactionData.setProtocolType(parsingInfo.getProtocolType());
         transactionData.setRequestParsingInfo(parsingInfo);
-
-
-        validationResult.setTransactionId(transactionData.getTransactionId());
-        validationResult.setSessionId(userSession.getId());
 
         // Determine target auth levels and auth methods
         ArrayList<AuthLevel> targetAuthLevels = authPolicyService.determineTargetAuthLevel(parsingInfo);
@@ -114,26 +107,22 @@ public class RequestOrchestrationService {
         if (decision.getStatus() == AuthPolicyDecisionStatus.OK) {
 
             if (transactionData.getRequestParsingInfo().isConsentNeeded()) {
-                validationResult.setValidationStatus(ValidationStatus.CONSENT);
-                transactionData.setState(TransactionState.CONSENT);
-
+                return RequestValidationResult.consent(transactionData.getTransactionId(),userSession.getId());
             } else {
+
                 Result<ResponseData> successResponse = generateSuccessResponse(decision, parsingInfo, userSession);
 
-                if (!successResponse.isSuccess()) return validationResult
-                        .setValidationStatus(ValidationStatus.ERROR).setErrorStatus(OrchestrationErrorStatus.SERVER_ERROR);
-
-                validationResult.setValidationStatus(ValidationStatus.RESPONSE)
-                        .setResponseData(successResponse.get());
+                if (!successResponse.isSuccess())
+                    return RequestValidationResult.error(OrchestrationErrorStatus.SERVER_ERROR);
 
                 transactionService.removeTransactionData(transactionData);
+
+                return RequestValidationResult.response(successResponse.get());
             }
         } else {
             transactionData.setState(TransactionState.AUTH);
-            validationResult.setValidationStatus(ValidationStatus.AUTH);
+            return RequestValidationResult.auth(transactionData.getTransactionId(), userSession.getId());
         }
-
-        return validationResult;
     }
 
     private RequestParsingInfo parseRequest(InboundRequest request) {

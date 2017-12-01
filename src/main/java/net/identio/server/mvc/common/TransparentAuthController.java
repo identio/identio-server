@@ -27,7 +27,6 @@ import net.identio.server.service.authentication.model.X509Authentication;
 import net.identio.server.mvc.saml.ResponderController;
 import net.identio.server.service.orchestration.AuthOrchestrationService;
 import net.identio.server.service.orchestration.model.AuthenticationValidationResult;
-import net.identio.server.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,7 +63,7 @@ public class TransparentAuthController {
         if (clientAuthCerts != null || userCert != null && sharedSecret != null) {
             authentication = new X509Authentication((X509Certificate[]) clientAuthCerts, userCert, sharedSecret);
         } else {
-            return redirectToAuthenticationPage(httpResponse, sessionId, transactionId);
+            return StandardPages.authenticationPage(httpResponse, sessionId, transactionId, config.isSecure());
         }
 
         AuthenticationValidationResult result = authOrchestrationService.handleTransparentAuthentication(
@@ -81,31 +80,15 @@ public class TransparentAuthController {
             default:
             case ERROR:
 
-                return redirectToAuthenticationPage(httpResponse, sessionId, transactionId);
+                return StandardPages.authenticationPage(httpResponse, sessionId, transactionId, config.isSecure());
 
             case CONSENT:
 
-                return redirectToConsentPage(httpResponse, sessionId, transactionId);
+                return StandardPages.consentPage(httpResponse, sessionId, transactionId, config.isSecure());
 
         }
     }
 
-    private String redirectToAuthenticationPage(HttpServletResponse httpResponse, String sessionId,
-                                                String transactionId) {
-        LOG.debug("Displaying authentication page");
 
-        HttpUtils.setSessionCookie(httpResponse, sessionId, config.isSecure());
-
-        return "redirect:/#!/auth/" + transactionId;
-    }
-
-    private String redirectToConsentPage(HttpServletResponse httpResponse, String sessionId,
-                                                String transactionId) {
-        LOG.debug("Displaying consent page");
-
-        HttpUtils.setSessionCookie(httpResponse, sessionId, config.isSecure());
-
-        return "redirect:/#!/consent/" + transactionId;
-    }
 
 }

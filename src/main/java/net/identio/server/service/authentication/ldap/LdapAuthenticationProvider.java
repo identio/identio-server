@@ -108,13 +108,11 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
                 if (results.hasMoreElements()) {
                     LOG.error("User ID {} is not unique in LDAP {}", userId, authMethod.getName());
-                    return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                            .setErrorStatus(AuthenticationErrorStatus.USER_NOT_UNIQUE);
+                    return AuthenticationResult.fail(AuthenticationErrorStatus.USER_NOT_UNIQUE);
                 }
             } else {
                 LOG.error("User ID {} does not exist in LDAP {}", userId, authMethod.getName());
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
             }
 
             // Try to bind with the found user id
@@ -125,12 +123,11 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
 
             if (validation) {
                 LOG.info("User {} successfully authenticated with {}", userId, authMethod.getName());
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.SUCCESS).setUserId(userId)
+                return AuthenticationResult.success().setUserId(userId)
                         .setAuthMethod(authMethod).setAuthLevel(authMethod.getAuthLevel());
             } else {
                 LOG.error("Authentication failed for user {} with {}", userId, authMethod.getName());
-                return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                        .setErrorStatus(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+                return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
             }
 
         } catch (Exception ex) {
@@ -144,8 +141,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
                 LOG.error("An error occurend when authenticating user");
             }
 
-            return new AuthenticationResult().setStatus(AuthenticationResultStatus.FAIL)
-                    .setErrorStatus(AuthenticationErrorStatus.TECHNICAL_ERROR);
+            return AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
         }
 
     }

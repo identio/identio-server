@@ -26,6 +26,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import net.identio.server.boot.GlobalConfiguration;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.AuthorizationScope;
+import net.identio.server.model.ProtocolType;
 import net.identio.server.model.Result;
 import net.identio.server.model.UserSession;
 import net.identio.server.service.authorization.AuthorizationService;
@@ -120,7 +121,7 @@ public class OAuthResponseService {
     public Result<ResponseData> generateSuccessResponse(RequestParsingInfo requestParsingInfo, UserSession userSession,
                                                         LinkedHashMap<String, AuthorizationScope> approvedScopes) {
 
-        ResponseData responseData = new ResponseData();
+        ResponseData responseData = new ResponseData().setProtocolType(ProtocolType.OAUTH);
 
         StringBuilder responseBuilder = new StringBuilder();
         responseBuilder.append(requestParsingInfo.getResponseUrl());
@@ -202,7 +203,7 @@ public class OAuthResponseService {
             responseBuilder.append("&state=").append(result.getRelayState());
         }
 
-        return Result.success(new ResponseData().setUrl(responseBuilder.toString()));
+        return Result.success(new ResponseData().setProtocolType(ProtocolType.OAUTH).setUrl(responseBuilder.toString()));
     }
 
     public Result<AccessTokenResponse> generateTokenResponse(Collection<AuthorizationScope> scopes, String sourceApplication,
