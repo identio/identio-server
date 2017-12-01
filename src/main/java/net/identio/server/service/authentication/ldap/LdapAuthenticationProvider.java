@@ -188,7 +188,7 @@ public class LdapAuthenticationProvider implements AuthenticationProvider {
                 if (ldapAuthMethod.getTrustCert() != null) {
 
                     SecurityUtils.addCertificateToKeyStore(ks,
-                            SecurityUtils.parseCertificate(ldapAuthMethod.getTrustCert()), ldapAuthMethod.getName());
+                            SecurityUtils.parseCertificateFile(ldapAuthMethod.getTrustCert()), ldapAuthMethod.getName());
                 }
             }
 

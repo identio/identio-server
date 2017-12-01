@@ -21,7 +21,6 @@
 
 package net.identio.server.service.orchestration;
 
-import net.identio.server.exceptions.*;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationService;
 import net.identio.server.service.authentication.model.Authentication;
@@ -95,23 +94,18 @@ public class AuthOrchestrationService {
         }
 
         // Try to map the auth method name to a known method
-        AuthMethod authMethod;
+        Result<AuthMethod> authMethod = authenticationService.getAuthMethodByName(authMethodName);
 
-        try {
+        if (!authMethod.isSuccess())
+            return AuthenticationValidationResult.error(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
 
-            authMethod = authenticationService.getAuthMethodByName(authMethodName);
+        if (!authPolicyService.checkAllowedAuthMethods(transactionData.getTargetAuthMethods(), authMethod.get())) {
 
-            authPolicyService.checkAllowedAuthMethods(transactionData.getTargetAuthMethods(), authMethod);
-
-        } catch (UnknownAuthMethodException e) {
             transactionService.removeTransactionData(transactionData);
-            throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_UNKNOWN);
-        } catch (AuthMethodNotAllowedException e) {
-            transactionService.removeTransactionData(transactionData);
-            throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
+            return AuthenticationValidationResult.error(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
         }
 
-        AuthenticationResult authResult = authenticationService.validateExplicit(authMethod, authentication);
+        AuthenticationResult authResult = authenticationService.validateExplicit(authMethod.get(), authentication);
 
         return decideResponse(authResult, transactionData);
     }
@@ -132,7 +126,7 @@ public class AuthOrchestrationService {
     }
 
     private Result<ResponseData> generateSuccessResponse(AuthPolicyDecision decision, RequestParsingInfo parsingInfo,
-                                                 UserSession userSession) {
+                                                         UserSession userSession) {
 
         if (parsingInfo.getProtocolType() == ProtocolType.SAML) {
             return samlService.generateSuccessResponse(decision, parsingInfo, userSession);
@@ -181,7 +175,7 @@ public class AuthOrchestrationService {
                 return AuthenticationValidationResult.error(authResult.getErrorStatus());
 
             case CHALLENGE:
-                return AuthenticationValidationResult.challenge(transactionData.getTransactionId(),authResult.getChallengeType(), authResult.getChallengeValue());
+                return AuthenticationValidationResult.challenge(transactionData.getTransactionId(), authResult.getChallengeType(), authResult.getChallengeValue());
         }
 
         return validationResult;

@@ -20,7 +20,6 @@
  */
 package net.identio.server.service.authentication.x509;
 
-import net.identio.server.exceptions.ConfigurationException;
 import net.identio.server.exceptions.InitializationException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.AuthenticationProvider;
@@ -39,10 +38,8 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -113,7 +110,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
             if (authMethod.getClientCertTrust() != null) {
 
-                X509Certificate cert = SecurityUtils.parseCertificate(authMethod.getClientCertTrust());
+                X509Certificate cert = SecurityUtils.parseCertificateFile(authMethod.getClientCertTrust());
                 clientTrusts.put(authMethod, cert);
 
                 if (authMethod.getSecurity().equals("native")) {
@@ -123,7 +120,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
 
             if (authMethod.getProxyCertTrust() != null) {
 
-                X509Certificate cert = SecurityUtils.parseCertificate(authMethod.getProxyCertTrust());
+                X509Certificate cert = SecurityUtils.parseCertificateFile(authMethod.getProxyCertTrust());
                 proxyTrusts.put(authMethod, cert);
 
                 serverTrusts.add(cert);
@@ -139,44 +136,44 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
         X509AuthMethod x509AuthMethod = (X509AuthMethod) authMethod;
         X509Authentication x509Authentication = (X509Authentication) authentication;
 
-        X509Certificate userCertificate;
-        try {
-            userCertificate = getUserCertificate(x509AuthMethod, x509Authentication);
+        Result<X509Certificate> userCertificate = getUserCertificate(x509AuthMethod, x509Authentication);
 
-            LOG.debug("Checking X509 certificate user authentication");
+        if (!userCertificate.isSuccess()) {
+            LOG.error("Error when parsing user certificate");
 
-            // Check against client trust
-            if (!userCertificate.getIssuerX500Principal()
-                    .equals(clientTrusts.get(x509AuthMethod).getSubjectX500Principal())) {
-                LOG.error("User certificate rejected: Not emitted by the trusted issuer of method {}",
-                        authMethod.getName());
-
-                return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
-            }
-
-            // Check expressions
-            Expression uidExpression = uidExpressions.get(authMethod);
-            Expression conditionExpression = conditionExpressions.get(authMethod);
-
-            // Create evaluation context
-            StandardEvaluationContext certContext = new StandardEvaluationContext(userCertificate);
-
-            if (conditionExpression.getValue(certContext, Boolean.class)) {
-                String uid = uidExpression.getValue(certContext, String.class);
-
-                if (uid != null) {
-
-                    LOG.info("User {} successfully authenticated with method {}", uid, authMethod.getName());
-
-                    return AuthenticationResult.success().setUserId(uid)
-                            .setAuthMethod(authMethod).setAuthLevel(authMethod.getAuthLevel());
-                }
-            }
-
-        } catch (CertificateException | ConfigurationException ex) {
-            LOG.error("Error when parsing user certificate: {}", ex.getMessage());
-            LOG.debug("* Detailed Stacktrace: ", ex);
+            return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
         }
+
+        LOG.debug("Checking X509 certificate user authentication");
+
+        // Check against client trust
+        if (!userCertificate.get().getIssuerX500Principal()
+                .equals(clientTrusts.get(x509AuthMethod).getSubjectX500Principal())) {
+            LOG.error("User certificate rejected: Not emitted by the trusted issuer of method {}",
+                    authMethod.getName());
+
+            return AuthenticationResult.fail(AuthenticationErrorStatus.INVALID_CREDENTIALS);
+        }
+
+        // Check expressions
+        Expression uidExpression = uidExpressions.get(authMethod);
+        Expression conditionExpression = conditionExpressions.get(authMethod);
+
+        // Create evaluation context
+        StandardEvaluationContext certContext = new StandardEvaluationContext(userCertificate);
+
+        if (conditionExpression.getValue(certContext, Boolean.class)) {
+            String uid = uidExpression.getValue(certContext, String.class);
+
+            if (uid != null) {
+
+                LOG.info("User {} successfully authenticated with method {}", uid, authMethod.getName());
+
+                return AuthenticationResult.success().setUserId(uid)
+                        .setAuthMethod(authMethod).setAuthLevel(authMethod.getAuthLevel());
+            }
+        }
+
 
         LOG.info("Could not validate user certificate with method {}", authMethod.getName());
 
@@ -202,10 +199,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
         return serverTrusts;
     }
 
-    private X509Certificate getUserCertificate(X509AuthMethod authMethod, X509Authentication authentication)
-            throws CertificateException, ConfigurationException {
-
-        X509Certificate userCertificate = null;
+    private Result<X509Certificate> getUserCertificate(X509AuthMethod authMethod, X509Authentication authentication) {
 
         switch (authMethod.getSecurity()) {
 
@@ -213,8 +207,7 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
             // certificate
             case "native":
 
-                userCertificate = authentication.getClientAuthCert()[0];
-                break;
+                return Result.success(authentication.getClientAuthCert()[0]);
 
             // Shared secret between the SSL endpoint and the server. The
             // certificate is provided via a header
@@ -223,14 +216,15 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
             case "shared-secret":
 
                 if (!authMethod.getSharedSecret().equals(authentication.getSharedSecret())) {
-                    throw new ConfigurationException("Provided shared secret is invalid");
+                    LOG.error("Provided shared secret is invalid");
+                    return Result.fail();
                 }
 
                 if (authentication.getUserCert() != null) {
-
-                    userCertificate = parseUserCertificate(authentication.getUserCert(), authMethod.isApacheFix());
+                    return SecurityUtils.parseCertificate(authentication.getUserCert(), authMethod.isApacheFix());
                 }
-                break;
+
+                return Result.fail();
 
             // Certificate is protected by a 2-way SSL authentication between
             // endpoint and the server
@@ -244,30 +238,14 @@ public class X509AuthenticationProvider implements AuthenticationProvider {
                         && proxyTrusts.get(authMethod).getSubjectX500Principal()
                         .equals(clientAuthCert.getIssuerX500Principal())) {
 
-                    userCertificate = parseUserCertificate(authentication.getUserCert(), authMethod.isApacheFix());
+                    return SecurityUtils.parseCertificate(authentication.getUserCert(), authMethod.isApacheFix());
                 }
-                break;
+                return Result.fail();
 
             default:
-                throw new ConfigurationException("Unknown X509 authentication security " + authMethod.getSecurity());
+                LOG.error("Unknown X509 authentication security " + authMethod.getSecurity());
+                return Result.fail();
         }
-
-        return userCertificate;
     }
 
-    private X509Certificate parseUserCertificate(String userCert, boolean apacheFix) throws CertificateException {
-
-        String fixedUserCert = userCert;
-
-        // Fix for Apache that replaces newlines by spaces in headers
-        if (apacheFix) {
-
-            fixedUserCert = fixedUserCert.replaceAll("-----BEGIN CERTIFICATE----- ", "")
-                    .replaceAll(" -----END CERTIFICATE-----", "").replaceAll(" ", "\r\n");
-            fixedUserCert = "-----BEGIN CERTIFICATE-----\r\n" + fixedUserCert + "\r\n-----END CERTIFICATE-----";
-        }
-
-        return (X509Certificate) CertificateFactory.getInstance("X.509")
-                .generateCertificate(new ByteArrayInputStream(fixedUserCert.getBytes()));
-    }
 }

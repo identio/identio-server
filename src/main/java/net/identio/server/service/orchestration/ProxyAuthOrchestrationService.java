@@ -21,7 +21,6 @@
 
 package net.identio.server.service.orchestration;
 
-import net.identio.server.exceptions.*;
 import net.identio.server.model.AuthMethod;
 import net.identio.server.model.ProtocolType;
 import net.identio.server.model.Result;
@@ -81,21 +80,18 @@ public class ProxyAuthOrchestrationService {
             throw new WebSecurityException(OrchestrationErrorStatus.INVALID_TRANSACTION);
         }
 
-        try {
-            AuthMethod authMethod = authenticationService.getAuthMethodByName(authMethodName);
+        Result<AuthMethod> authMethod = authenticationService.getAuthMethodByName(authMethodName);
 
-            authPolicyService.checkAllowedAuthMethods(transactionData.getTargetAuthMethods(), authMethod);
-
-            return samlAuthenticationProvider.initRequest((SamlAuthMethod) authMethod,
-                    transactionData.getTargetAuthLevels(), transactionId);
-
-        } catch (UnknownAuthMethodException e) {
-            throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_UNKNOWN);
-        } catch (AuthMethodNotAllowedException e) {
-            throw new ValidationException(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
-        } finally {
+        if (authMethod.isSuccess()) {
             transactionService.removeTransactionData(transactionData);
+
+            return Result.fail(OrchestrationErrorStatus.AUTH_METHOD_NOT_ALLOWED);
         }
+
+        authPolicyService.checkAllowedAuthMethods(transactionData.getTargetAuthMethods(), authMethod.get());
+
+        return samlAuthenticationProvider.initRequest((SamlAuthMethod) authMethod.get(),
+                transactionData.getTargetAuthLevels(), transactionId);
     }
 
     public AuthenticationValidationResult handleProxyAuthentication(String sessionId, ProtocolType protocol, Authentication authentication, String relayState) throws WebSecurityException, ServerException, ValidationException {

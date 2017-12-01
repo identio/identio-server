@@ -21,9 +21,7 @@
 package net.identio.server.service.authpolicy;
 
 import net.identio.saml.SamlConstants;
-import net.identio.server.exceptions.AuthMethodNotAllowedException;
 import net.identio.server.exceptions.UnknownAuthLevelException;
-import net.identio.server.exceptions.UnknownAuthMethodException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.model.AuthenticationResult;
 import net.identio.server.service.authpolicy.model.AuthPolicyDecision;
@@ -148,17 +146,9 @@ public class AuthPolicyService {
         return new AuthPolicyDecision().setStatus(AuthPolicyDecisionStatus.AUTH);
     }
 
-    public void checkAllowedAuthMethods(HashSet<AuthMethod> targetAuthMethods, AuthMethod submittedAuthMethod)
-            throws UnknownAuthMethodException, AuthMethodNotAllowedException {
+    public boolean checkAllowedAuthMethods(HashSet<AuthMethod> targetAuthMethods, AuthMethod submittedAuthMethod) {
 
-        if (submittedAuthMethod == null) {
-            throw new UnknownAuthMethodException("Unknown authentication method");
-        }
-
-        if (!targetAuthMethods.contains(submittedAuthMethod)) {
-            throw new AuthMethodNotAllowedException("Authentication method " + submittedAuthMethod.getName()
-                    + " is not allowed for this transaction");
-        }
+        return submittedAuthMethod != null && targetAuthMethods.contains(submittedAuthMethod);
     }
 
     public AuthPolicyDecision checkAuthPolicyCompliance(UserSession userSession, AuthenticationResult result,

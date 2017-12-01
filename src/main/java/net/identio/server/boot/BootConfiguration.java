@@ -202,7 +202,7 @@ public class BootConfiguration {
             X509Certificate cert;
 
             try {
-                cert = SecurityUtils.parseCertificate(configOptions.get(VAULT_CONFIG_TRUST_PATH));
+                cert = SecurityUtils.parseCertificateFile(configOptions.get(VAULT_CONFIG_TRUST_PATH));
             } catch (IOException | CertificateException e) {
                 IdentioServerApplication.quitOnConfigurationError(LOG, "Impossible to import Vault trust certificate");
                 return;

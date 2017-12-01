@@ -20,7 +20,6 @@
  */
 package net.identio.server.service.authentication;
 
-import net.identio.server.exceptions.UnknownAuthMethodException;
 import net.identio.server.model.*;
 import net.identio.server.service.authentication.model.Authentication;
 import net.identio.server.service.authentication.model.AuthenticationErrorStatus;
@@ -101,15 +100,14 @@ public class AuthenticationService {
                 AuthenticationResult.fail(AuthenticationErrorStatus.TECHNICAL_ERROR);
     }
 
-    public AuthMethod getAuthMethodByName(String name) throws UnknownAuthMethodException {
+    public Result<AuthMethod> getAuthMethodByName(String name) {
 
         AuthMethod authMethod = authMethods.get(name);
 
-        if (authMethod == null) {
-            throw new UnknownAuthMethodException("Unknown authentication method requested: " + name);
-        }
+        if (authMethod == null)
+            return Result.fail();
 
-        return authMethod;
+        return Result.success(authMethod);
     }
 
 
@@ -143,10 +141,9 @@ public class AuthenticationService {
 
     public String getLogo(String authMethodName) {
 
-        try {
-            return getAuthMethodByName(authMethodName).getLogoFileName();
-        } catch (UnknownAuthMethodException e) {
-            return null;
-        }
+        Result<AuthMethod> authMethod = getAuthMethodByName(authMethodName);
+
+        if (authMethod.isSuccess()) return authMethod.get().getLogoFileName();
+        return null;
     }
 }

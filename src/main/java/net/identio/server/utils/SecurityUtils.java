@@ -20,14 +20,12 @@
  */
 package net.identio.server.utils;
 
+import net.identio.server.model.Result;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -155,7 +153,7 @@ public class SecurityUtils {
         }
     }
 
-    public static X509Certificate parseCertificate(String path)
+    public static X509Certificate parseCertificateFile(String path)
             throws IOException, CertificateException {
 
         try (FileInputStream fis = new FileInputStream(path); BufferedInputStream bis = new BufferedInputStream(fis)) {
@@ -163,6 +161,26 @@ public class SecurityUtils {
             CertificateFactory cf = CertificateFactory.getInstance("X.509");
 
             return (X509Certificate) cf.generateCertificate(bis);
+        }
+    }
+
+    public static Result<X509Certificate> parseCertificate(String userCert, boolean apacheFix) {
+
+        String fixedUserCert = userCert;
+
+        // Fix for Apache that replaces newlines by spaces in headers
+        if (apacheFix) {
+
+            fixedUserCert = fixedUserCert.replaceAll("-----BEGIN CERTIFICATE----- ", "")
+                    .replaceAll(" -----END CERTIFICATE-----", "").replaceAll(" ", "\r\n");
+            fixedUserCert = "-----BEGIN CERTIFICATE-----\r\n" + fixedUserCert + "\r\n-----END CERTIFICATE-----";
+        }
+
+        try (ByteArrayInputStream bai = new ByteArrayInputStream(fixedUserCert.getBytes())) {
+            return Result.success((X509Certificate) CertificateFactory.getInstance("X.509")
+                    .generateCertificate(bai));
+        } catch (IOException | CertificateException e) {
+            return Result.fail();
         }
     }
 
