@@ -21,17 +21,11 @@
 
 package integration.saml;
 
-import integration.oauth.OAuthRequests;
 import net.identio.saml.*;
 import net.identio.saml.exceptions.InvalidAuthentResponseException;
 import net.identio.saml.exceptions.TechnicalException;
 import net.identio.server.boot.IdentioServerApplication;
-import net.identio.server.mvc.oauth.model.OAuthApiErrorResponse;
-import net.identio.server.service.oauth.model.OAuthErrors;
-import net.identio.server.service.saml.model.SamlErrors;
 import net.identio.server.utils.DecodeUtils;
-import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +36,6 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -51,8 +44,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -104,15 +97,17 @@ public class HttpRedirectAuthentRequestErrorTests {
 
     @Test
     public void missingSigAlg() throws TechnicalException, InvalidAuthentResponseException {
-/*
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
+
+        String relayState = UUID.randomUUID().toString();
 
         AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/Redirect")
                 .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
                 .build();
 
         builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true).get());
-        builder.queryParam("RelayState", UUID.randomUUID().toString());
+        builder.queryParam("RelayState", relayState);
 
         Signer signer = new Signer("src/test/resources/saml-sp-config/certificate.p12",
                 "password", false, SamlConstants.SIGNATURE_ALG_RSA_SHA256);
@@ -128,21 +123,25 @@ public class HttpRedirectAuthentRequestErrorTests {
 
         assertTrue(request.getBody().contains("<title>Ident.io SAML Responder</title></head>"));
 
-        Pattern pattern = Pattern.compile("<input type=\"hidden\" name=\"SAMLResponse\" value=\"(.*)\">");
+        Pattern pattern = Pattern.compile("<input type=\"hidden\" name=\"SAMLResponse\" value=\"(.*)\"><input type=\"hidden\" name=\"RelayState\" value=\"(.*)\"></form>");
         Matcher matcher = pattern.matcher(request.getBody());
 
-        if (matcher.find()) {
+        if (!matcher.find()) fail("No SAML Response found");
 
-            String response = matcher.group(1);
+        String response = matcher.group(1);
+        String responseRelayState = matcher.group(2);
 
-            String decodedResponse = new String(DecodeUtils.decode(response, false).get());
+        String decodedResponse = new String(DecodeUtils.decode(response, false).get());
 
-            AuthentResponse authentResponse = AuthentResponseBuilder.getInstance().build(decodedResponse);
+        AuthentResponse authentResponse = AuthentResponseBuilder.getInstance().build(decodedResponse);
 
+        assertEquals(relayState, responseRelayState);
 
-        } else Assert.fail("No SAML Response found");
-
-*/
+        assertEquals("urn:oasis:names:tc:SAML:2.0:status:Responder", authentResponse.getStatusCode());
+        assertEquals(SamlConstants.STATUS_REQUEST_DENIED, authentResponse.getStatusMessage());
+        assertEquals("https://localhost/SAML2", authentResponse.getIssuer());
+        assertEquals("http://client.ident.io/SAML2/POST", authentResponse.getDestination());
+        assertEquals(false, authentResponse.isSigned());
     }
 
     @Test
