@@ -67,6 +67,7 @@ public class HttpRedirectAuthentRequestErrorTests {
 
     private static final String INVALID_REQUEST_ERROR_URL = "/#!/error/invalid.request";
 
+    // Omit the SAMLRequest parameter
     @Test
     public void missingSamlRequest() throws TechnicalException {
 
@@ -80,6 +81,7 @@ public class HttpRedirectAuthentRequestErrorTests {
         assertEquals(getUrlWithPort(INVALID_REQUEST_ERROR_URL), redirectUrl);
     }
 
+    // Push a random string in the SAMLRequest parameter
     @Test
     public void invalidSamlRequest() {
 
@@ -95,6 +97,7 @@ public class HttpRedirectAuthentRequestErrorTests {
         assertEquals(getUrlWithPort(INVALID_REQUEST_ERROR_URL), redirectUrl);
     }
 
+    // Don't send the SigAlg request parameter
     @Test
     public void missingSigAlg() throws TechnicalException, InvalidAuthentResponseException {
 
@@ -144,18 +147,21 @@ public class HttpRedirectAuthentRequestErrorTests {
         assertEquals(false, authentResponse.isSigned());
     }
 
+    // Push an invalid value in the SigAlg request parameter
     @Test
-    public void invalidSigAlg() throws TechnicalException {
-/*
+    public void invalidSigAlg() throws TechnicalException, InvalidAuthentResponseException {
+
         UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
+
+        String relayState = UUID.randomUUID().toString();
 
         AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/Redirect")
                 .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
                 .build();
 
         builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true).get());
-        builder.queryParam("RelayState", UUID.randomUUID().toString());
         builder.queryParam("SigAlg", "invalid");
+        builder.queryParam("RelayState", relayState);
 
         Signer signer = new Signer("src/test/resources/saml-sp-config/certificate.p12",
                 "password", false, SamlConstants.SIGNATURE_ALG_RSA_SHA256);
@@ -167,11 +173,80 @@ public class HttpRedirectAuthentRequestErrorTests {
 
         ResponseEntity<String> request = sendAuthentRequest(builder);
 
-        String redirectUrl = request.getHeaders().getFirst(HttpHeaders.LOCATION);
+        assertEquals(HttpStatus.OK, request.getStatusCode());
 
-        assertEquals(HttpStatus.FOUND, request.getStatusCode());
-        assertEquals(getUrlWithPort(INVALID_REQUEST_ERROR_URL), redirectUrl);
-*/
+        assertTrue(request.getBody().contains("<title>Ident.io SAML Responder</title></head>"));
+
+        Pattern pattern = Pattern.compile("<input type=\"hidden\" name=\"SAMLResponse\" value=\"(.*)\"><input type=\"hidden\" name=\"RelayState\" value=\"(.*)\"></form>");
+        Matcher matcher = pattern.matcher(request.getBody());
+
+        if (!matcher.find()) fail("No SAML Response found");
+
+        String response = matcher.group(1);
+        String responseRelayState = matcher.group(2);
+
+        String decodedResponse = new String(DecodeUtils.decode(response, false).get());
+
+        AuthentResponse authentResponse = AuthentResponseBuilder.getInstance().build(decodedResponse);
+
+        assertEquals(relayState, responseRelayState);
+
+        assertEquals("urn:oasis:names:tc:SAML:2.0:status:Responder", authentResponse.getStatusCode());
+        assertEquals(SamlConstants.STATUS_REQUEST_DENIED, authentResponse.getStatusMessage());
+        assertEquals("https://localhost/SAML2", authentResponse.getIssuer());
+        assertEquals("http://client.ident.io/SAML2/POST", authentResponse.getDestination());
+        assertEquals(false, authentResponse.isSigned());
+    }
+
+    // Send a valid signature algorithm in the SigAlg that doesn't match the one actually used
+    @Test
+    public void lyingSigAlg() throws TechnicalException, InvalidAuthentResponseException {
+
+        UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(getUrlWithPort("/SAML2/SSO/Redirect"));
+
+        String relayState = UUID.randomUUID().toString();
+
+        AuthentRequest ar = AuthentRequestBuilder.getInstance().setDestination("https://localhost/SAML2/SSO/Redirect")
+                .setForceAuthent(false).setIsPassive(false).setIssuer("http://client.ident.io/SAML2")
+                .build();
+
+        builder.queryParam("SAMLRequest", DecodeUtils.encode(ar.toString().getBytes(), true).get());
+        builder.queryParam("SigAlg", SamlConstants.SIGNATURE_ALG_RSA_SHA1);
+        builder.queryParam("RelayState", relayState);
+
+        Signer signer = new Signer("src/test/resources/saml-sp-config/certificate.p12",
+                "password", false, SamlConstants.SIGNATURE_ALG_RSA_SHA256);
+
+        String signedInfo = builder.build().encode().toUri().getRawQuery();
+
+        byte[] signature = signer.signExternal(signedInfo);
+        builder.queryParam("Signature", DecodeUtils.encode(signature, false).get());
+
+        ResponseEntity<String> request = sendAuthentRequest(builder);
+
+        assertEquals(HttpStatus.OK, request.getStatusCode());
+
+        assertTrue(request.getBody().contains("<title>Ident.io SAML Responder</title></head>"));
+
+        Pattern pattern = Pattern.compile("<input type=\"hidden\" name=\"SAMLResponse\" value=\"(.*)\"><input type=\"hidden\" name=\"RelayState\" value=\"(.*)\"></form>");
+        Matcher matcher = pattern.matcher(request.getBody());
+
+        if (!matcher.find()) fail("No SAML Response found");
+
+        String response = matcher.group(1);
+        String responseRelayState = matcher.group(2);
+
+        String decodedResponse = new String(DecodeUtils.decode(response, false).get());
+
+        AuthentResponse authentResponse = AuthentResponseBuilder.getInstance().build(decodedResponse);
+
+        assertEquals(relayState, responseRelayState);
+
+        assertEquals("urn:oasis:names:tc:SAML:2.0:status:Responder", authentResponse.getStatusCode());
+        assertEquals(SamlConstants.STATUS_REQUEST_DENIED, authentResponse.getStatusMessage());
+        assertEquals("https://localhost/SAML2", authentResponse.getIssuer());
+        assertEquals("http://client.ident.io/SAML2/POST", authentResponse.getDestination());
+        assertEquals(false, authentResponse.isSigned());
     }
 
     @Test
