@@ -1,0 +1,34 @@
+<!-- Title -->
+<div class="container">
+  <div class="row header">
+    <img src="/assets/images/logo.png" class="main-logo" />
+  </div>
+  <div class="row">
+    <p class="main-title">Sign-in to Ident.io</p>
+  </div>
+
+  <!-- Alert box -->
+  <div class="row justify-content-center">
+
+    <app-alert-box [errorMessage]="errorMessage"></app-alert-box>
+  </div>
+
+  <!-- Main form -->
+  <div class="row justify-content-center">
+    <div class="box">
+
+      <p class="form-label">Authentication method</p>
+      <select [(ngModel)]="selectedAuthenticationMethod" [ngModelOptions]="{standalone: true}" class="form-control full-length">
+        <option *ngFor="let authenticationMethod of authenticationMethods" [ngValue]="authenticationMethod">
+          {{authenticationMethod.name}}
+        </option>
+      </select>
+
+      <div [ngSwitch]="selectedAuthenticationMethod.type">
+        <app-login-password-form *ngSwitchCase="authenticationMethodTypes.LoginPassword"></app-login-password-form>
+        <app-u2f-form *ngSwitchCase="authenticationMethodTypes.U2F"></app-u2f-form>
+      </div>
+
+    </div>
+
+  </div>
