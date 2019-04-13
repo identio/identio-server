@@ -1,1 +1,12 @@
-{}
+{
+    "methods": [
+        {
+            "name": "LDAP",
+            "type": "login-password"
+        },
+        {
+            "name": "U3F Key",
+            "type": "u2f"
+        }
+    ]
+}

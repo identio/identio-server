@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { AuthenticationMethod } from '../model/authentication-method';
 import { AuthenticationMethodTypes } from '../model/authentication-method-types';
 
+import { AuthenticationService } from '../authentication.service';
+
 @Component({
   selector: 'app-authentication-page',
   templateUrl: './authentication-page.component.html',
@@ -15,24 +17,22 @@ export class AuthenticationPageComponent implements OnInit {
 
   errorMessage: string;
 
-  authenticationMethods = new Array<AuthenticationMethod>();
+  authenticationMethods: AuthenticationMethod[];
 
   selectedAuthenticationMethod: AuthenticationMethod;
 
-  constructor() { }
+  constructor(private authenticationService: AuthenticationService) { }
 
   ngOnInit() {
-    let test = new AuthenticationMethod();
-    test.name = "LDAP";
-    test.type = AuthenticationMethodTypes.LoginPassword;
-    this.authenticationMethods.push(test);
-    this.selectedAuthenticationMethod = test;
 
-    let test2 = new AuthenticationMethod();
-    test2.name = "U2F Key";
-    test2.type = AuthenticationMethodTypes.U2F;
-
-    this.authenticationMethods.push(test2);
+    // Init authentication methods list
+    this.authenticationService.getAuthenticationMethods()
+      .subscribe(
+        methods => {
+          this.authenticationMethods = methods;
+          this.selectedAuthenticationMethod = this.authenticationMethods[0];
+        }
+      );
   }
 
   submit() {

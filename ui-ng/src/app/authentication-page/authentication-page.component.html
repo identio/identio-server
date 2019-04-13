@@ -20,15 +20,14 @@
       <p class="form-label">Authentication method</p>
       <select [(ngModel)]="selectedAuthenticationMethod" [ngModelOptions]="{standalone: true}" class="form-control full-length">
         <option *ngFor="let authenticationMethod of authenticationMethods" [ngValue]="authenticationMethod">
-          {{authenticationMethod.name}}
+          {{ authenticationMethod.name }}
         </option>
       </select>
 
-      <div [ngSwitch]="selectedAuthenticationMethod.type">
+      <div [ngSwitch]="selectedAuthenticationMethod?.type">
         <app-login-password-form *ngSwitchCase="authenticationMethodTypes.LoginPassword"></app-login-password-form>
         <app-u2f-form *ngSwitchCase="authenticationMethodTypes.U2F"></app-u2f-form>
       </div>
-
     </div>
 
   </div>
