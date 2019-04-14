@@ -11,6 +11,8 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AlertBoxComponent } from './alert-box/alert-box.component';
 import { LoginPasswordFormComponent } from './login-password-form/login-password-form.component';
 import { U2fFormComponent } from './u2f-form/u2f-form.component';
+import { ErrorPageComponent } from './error-page/error-page.component';
+import { LogoutPageComponent } from './logout-page/logout-page.component';
 
 @NgModule({
   declarations: [
@@ -19,6 +21,8 @@ import { U2fFormComponent } from './u2f-form/u2f-form.component';
     AlertBoxComponent,
     LoginPasswordFormComponent,
     U2fFormComponent,
+    ErrorPageComponent,
+    LogoutPageComponent,
   ],
   imports: [
     BrowserModule,
