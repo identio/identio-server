@@ -3,6 +3,7 @@ import { AuthenticationMethod } from '../model/authentication-method';
 import { AuthenticationMethodTypes } from '../model/authentication-method-types';
 
 import { AuthenticationService } from '../authentication.service';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-authentication-page',
@@ -21,9 +22,18 @@ export class AuthenticationPageComponent implements OnInit {
 
   selectedAuthenticationMethod: AuthenticationMethod;
 
-  constructor(private authenticationService: AuthenticationService) { }
+  constructor(
+    private authenticationService: AuthenticationService,
+    private readonly route: ActivatedRoute,
+    private readonly router: Router
+  ) { }
 
   ngOnInit() {
+
+    // Fetch the transactionId from the request and update the authentication service
+    let transactionId = this.route.snapshot.paramMap.get("transactionId");
+
+    this.authenticationService.updateTransationId(transactionId);
 
     // Init authentication methods list
     this.authenticationService.getAuthenticationMethods()
@@ -31,7 +41,8 @@ export class AuthenticationPageComponent implements OnInit {
         methods => {
           this.authenticationMethods = methods;
           this.selectedAuthenticationMethod = this.authenticationMethods[0];
-        }
+        },
+        error => this.router.navigateByUrl('/error/connection.error')
       );
   }
 
