@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { AuthenticationPageComponent } from './authentication-page/authentication-page.component';
-import { ErrorPageComponent } from './error-page/error-page.component';
-import { LogoutPageComponent } from './logout-page/logout-page.component';
+import { AuthenticationPageComponent } from './components/authentication-page/authentication-page.component';
+import { ErrorPageComponent } from './components/error-page/error-page.component';
+import { LogoutPageComponent } from './components/logout-page/logout-page.component';
 
 const routes: Routes = [
   { path: 'auth', redirectTo: 'error/'},

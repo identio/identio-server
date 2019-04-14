@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthenticationMethod } from '../model/authentication-method';
-import { AuthenticationMethodTypes } from '../model/authentication-method-types';
+import { AuthenticationMethod } from '../../model/authentication-method';
+import { AuthenticationMethodTypes } from '../../model/authentication-method-types';
 
-import { AuthenticationService } from '../authentication.service';
+import { AuthenticationService } from '../../services/authentication.service';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
