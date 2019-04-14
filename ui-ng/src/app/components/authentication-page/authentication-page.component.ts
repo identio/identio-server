@@ -23,7 +23,7 @@ export class AuthenticationPageComponent implements OnInit {
   selectedAuthenticationMethod: AuthenticationMethod;
 
   constructor(
-    private authenticationService: AuthenticationService,
+    private readonly authenticationService: AuthenticationService,
     private readonly route: ActivatedRoute,
     private readonly router: Router
   ) { }

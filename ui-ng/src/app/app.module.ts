@@ -13,6 +13,7 @@ import { LoginPasswordFormComponent } from './components/login-password-form/log
 import { U2fFormComponent } from './components/u2f-form/u2f-form.component';
 import { ErrorPageComponent } from './components/error-page/error-page.component';
 import { LogoutPageComponent } from './components/logout-page/logout-page.component';
+import { ConsentPageComponent } from './components/consent-page/consent-page.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { LogoutPageComponent } from './components/logout-page/logout-page.compon
     U2fFormComponent,
     ErrorPageComponent,
     LogoutPageComponent,
+    ConsentPageComponent,
   ],
   imports: [
     BrowserModule,

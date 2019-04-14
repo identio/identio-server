@@ -27,3 +27,34 @@ p {
 	width: 100%;
 	
 }
+
+.form-label {
+	margin-top: 10px;
+	margin-bottom: 5px;
+}
+
+.full-length {
+	width: 100%;
+}
+
+.box {
+	box-sizing: border-box;
+	width: 350px;
+	margin: auto;
+	border: 1px solid #D9DFE4;
+	background-color: white;
+	margin-top: 5px;
+	padding: 20px;
+	padding-top: 10px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	font-weight: 600;
+}
+
+.btn {
+	margin-top: 10px;
+    width: 100%;
+    background-color: #0058D0AA !important;
+    border: none;
+}
