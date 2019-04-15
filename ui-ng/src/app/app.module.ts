@@ -9,7 +9,7 @@ import { AuthenticationPageComponent } from './components/authentication-page/au
 
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { AlertBoxComponent } from './components/alert-box/alert-box.component';
-import { LoginPasswordFormComponent } from './components/login-password-form/login-password-form.component';
+import { UsernamePasswordFormComponent } from './components/username-password-form/username-password-form.component';
 import { U2fFormComponent } from './components/u2f-form/u2f-form.component';
 import { ErrorPageComponent } from './components/error-page/error-page.component';
 import { LogoutPageComponent } from './components/logout-page/logout-page.component';
@@ -20,7 +20,7 @@ import { ConsentPageComponent } from './components/consent-page/consent-page.com
     AppComponent,
     AuthenticationPageComponent,
     AlertBoxComponent,
-    LoginPasswordFormComponent,
+    UsernamePasswordFormComponent,
     U2fFormComponent,
     ErrorPageComponent,
     LogoutPageComponent,

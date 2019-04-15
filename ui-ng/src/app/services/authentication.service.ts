@@ -9,9 +9,9 @@ import { environment } from '../../environments/environment';
 })
 export class AuthenticationService {
 
-  constructor(private http: HttpClient) { }
-
   httpOptions: { headers: HttpHeaders; };
+
+  constructor(private http: HttpClient) { }
 
   updateTransationId(transactionId: string) {
     
