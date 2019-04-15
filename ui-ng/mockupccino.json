@@ -1,0 +1,22 @@
+{
+    "global": {
+        "port": 3000
+    },
+    "endpoints": [
+        {
+            "url": "/api/auth/methods",
+            "httpMethod": "GET",
+            "loadSim": 30,
+            "response": [
+                {
+                    "name": "LDAP",
+                    "type": "username-password"
+                },
+                {
+                    "name": "U2F Key",
+                    "type": "u2f"
+                }
+            ]
+        }
+    ]
+}
