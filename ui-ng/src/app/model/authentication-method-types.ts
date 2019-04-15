@@ -1,4 +1,4 @@
 export enum AuthenticationMethodTypes {
-    LoginPassword = "login-password",
+    UsernamePassword = "username-password",
     U2F = "u2f"
   }

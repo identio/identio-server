@@ -25,7 +25,7 @@
       </select>
 
       <div [ngSwitch]="selectedAuthenticationMethod?.type">
-        <app-username-password-form [authMethod]="selectedAuthenticationMethod" *ngSwitchCase="authenticationMethodTypes.LoginPassword"></app-username-password-form>
+        <app-username-password-form [authMethod]="selectedAuthenticationMethod" *ngSwitchCase="authenticationMethodTypes.UsernamePassword"></app-username-password-form>
         <app-u2f-form *ngSwitchCase="authenticationMethodTypes.U2F"></app-u2f-form>
       </div>
     </div>
