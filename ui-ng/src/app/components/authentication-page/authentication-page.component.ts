@@ -51,7 +51,7 @@ export class AuthenticationPageComponent implements OnInit {
     this.authenticationService.getAuthenticationMethods()
       .subscribe(
         methods => this.updateAuthenticationMethods(methods),
-        () => this.router.navigateByUrl('/error/connection.error')
+        (error: ErrorResponse) => this.router.navigateByUrl('/error/' + (error.errorCode != null ? error.errorCode : ''))
       );
   }
 
@@ -64,7 +64,7 @@ export class AuthenticationPageComponent implements OnInit {
       authenticationData)
       .subscribe(
         (authenticationResponse: AuthenticationResponse) => this.handleSuccessResponse(authenticationResponse),
-        (error: ErrorResponse) => this.router.navigateByUrl('/error/' + error.errorCode)
+        (error: ErrorResponse) => this.router.navigateByUrl('/error/' + (error.errorCode != null ? error.errorCode : ''))
       );
   }
 
@@ -76,9 +76,8 @@ export class AuthenticationPageComponent implements OnInit {
     this.authenticationService.authenticate(authenticationMethod, null)
       .subscribe(
         (authenticationResponse: AuthenticationResponse) => this.samlService.sendSamlRequest(authenticationResponse.responseData),
-        (error: ErrorResponse) => this.router.navigateByUrl('/error/' + error.errorCode)
+        (error: ErrorResponse) => this.router.navigateByUrl('/error/' + (error.errorCode != null ? error.errorCode : ''))
       );
-
   }
 
   private updateAuthenticationMethods(methods: AuthenticationMethod[]) {
