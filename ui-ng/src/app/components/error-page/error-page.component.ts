@@ -17,7 +17,7 @@ export class ErrorPageComponent implements OnInit {
   ngOnInit() {
     let errorId = this.route.snapshot.paramMap.get("errorId");
 
-    if (errorId.length == 0) { this.errorMessage = "An unknown error occured"; }
+    if (errorId == null || errorId.length == 0) { this.errorMessage = "An unknown error occured"; }
     else {
     // TODO: translate errorId to an useful error message
 
