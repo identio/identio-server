@@ -8,6 +8,7 @@ import { AuthenticationData } from 'src/app/model/authentication-data';
 import { AuthenticationResponse, AuthenticationResponseStatus, ProtocolType } from 'src/app/model/authentication-response';
 import { ErrorResponse } from 'src/app/model/error-response';
 import { SamlService } from 'src/app/services/saml.service';
+import { OauthService } from 'src/app/services/oauth.service';
 
 @Component({
   selector: 'app-authentication-page',
@@ -33,6 +34,7 @@ export class AuthenticationPageComponent implements OnInit {
   constructor(
     private readonly authenticationService: AuthenticationService,
     private readonly samlService: SamlService,
+    private readonly oauthService: OauthService,
     private readonly route: ActivatedRoute,
     private readonly router: Router
   ) { }
@@ -76,6 +78,9 @@ export class AuthenticationPageComponent implements OnInit {
       case AuthenticationResponseStatus.Response:
         if (response.protocolType == ProtocolType.SAML) {
           this.samlService.sendSamlResponse(response.responseData);
+        }
+        if (response.protocolType == ProtocolType.OAuth) {
+          this.oauthService.sendOAuthResponse(response.responseData);
         }
         break;
 
