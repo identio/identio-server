@@ -25,6 +25,7 @@
             "statusCode": 500,
             "response": {
                 "status": "RESPONSE",
+                "protocolType": "OAUTH",
                 "responseData": {
                     "url": "http://test",
                     "relayState": "bla",

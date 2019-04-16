@@ -17,7 +17,7 @@ export class AuthenticationService {
   constructor(private http: HttpClient) { }
 
   updateTransationId(transactionId: string) {
-    
+
     this.httpOptions = {
       headers: new HttpHeaders({
         'Content-Type': 'application/json',
@@ -27,13 +27,14 @@ export class AuthenticationService {
   }
 
   getAuthenticationMethods(): Observable<AuthenticationMethod[]> {
-    
+
     const url = environment.apiUrl + '/auth/methods';
 
     return this.http.get<AuthenticationMethod[]>(url, this.httpOptions);
   }
 
-  authenticate(authenticationMethod: AuthenticationMethod, authenticationData: AuthenticationData): Observable<AuthenticationResponse | ErrorResponse> {
+  authenticate(authenticationMethod: AuthenticationMethod,
+               authenticationData: AuthenticationData): Observable<AuthenticationResponse | ErrorResponse> {
 
     const url = environment.apiUrl + '/auth/submit/' + authenticationMethod.type;
 

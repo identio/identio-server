@@ -1,13 +1,13 @@
 export enum AuthenticationResponseStatus {
-    Response = "RESPONSE",
-    Error = "ERROR",
-    Consent = "CONSENT",
-    Challenge = "CHALLENGE"
+    Response = 'RESPONSE',
+    Error = 'ERROR',
+    Consent = 'CONSENT',
+    Challenge = 'CHALLENGE'
 }
 
 export enum ProtocolType {
-    SAML = "SAML",
-    OAuth = "OAUTH"
+    SAML = 'SAML',
+    OAuth = 'OAUTH'
 }
 
 export class ResponseData {

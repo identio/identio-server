@@ -11,7 +11,7 @@ export class ConsentService {
   httpOptions: { headers: HttpHeaders; };
 
   updateTransationId(transactionId: string) {
-    
+
     this.httpOptions = {
       headers: new HttpHeaders({
         'Content-Type': 'application/json',

@@ -8,17 +8,18 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class ErrorPageComponent implements OnInit {
 
-  errorMessage = "An error occured...";
+  errorMessage = 'An error occured...';
 
   constructor(
     private readonly route: ActivatedRoute
   ) { }
 
   ngOnInit() {
-    let errorId = this.route.snapshot.paramMap.get("errorId");
+    const errorId = this.route.snapshot.paramMap.get('errorId');
 
-    if (errorId == null || errorId.length == 0) { this.errorMessage = "An unknown error occured"; }
-    else {
+    if (errorId == null || errorId.length === 0) {
+      this.errorMessage = 'An unknown error occured';
+    } else {
     // TODO: translate errorId to an useful error message
 
     }

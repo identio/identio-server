@@ -17,7 +17,7 @@ import { OauthService } from 'src/app/services/oauth.service';
 })
 export class AuthenticationPageComponent implements OnInit {
 
-  // Small hack necessary to make the authentication method types enum 
+  // Small hack necessary to make the authentication method types enum
   // readable by the template
   authenticationMethodTypes = AuthenticationMethodTypes;
 
@@ -42,7 +42,7 @@ export class AuthenticationPageComponent implements OnInit {
   ngOnInit() {
 
     // Fetch the transactionId from the request and update the authentication service
-    let transactionId = this.route.snapshot.paramMap.get("transactionId");
+    const transactionId = this.route.snapshot.paramMap.get('transactionId');
 
     this.authenticationService.updateTransationId(transactionId);
 
@@ -60,7 +60,7 @@ export class AuthenticationPageComponent implements OnInit {
   onAuthenticationSubmitted(authenticationData: AuthenticationData) {
 
     this.submitInProgress = true;
-    this.errorMessage = "";
+    this.errorMessage = '';
 
     this.authenticationService.authenticate(this.selectedAuthenticationMethod,
       authenticationData)
@@ -76,10 +76,10 @@ export class AuthenticationPageComponent implements OnInit {
     switch (response.status) {
 
       case AuthenticationResponseStatus.Response:
-        if (response.protocolType == ProtocolType.SAML) {
+        if (response.protocolType === ProtocolType.SAML) {
           this.samlService.sendSamlResponse(response.responseData);
         }
-        if (response.protocolType == ProtocolType.OAuth) {
+        if (response.protocolType === ProtocolType.OAuth) {
           this.oauthService.sendOAuthResponse(response.responseData);
         }
         break;

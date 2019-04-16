@@ -11,12 +11,12 @@ import { AuthenticationData } from 'src/app/model/authentication-data';
 export class UsernamePasswordFormComponent implements OnInit {
 
   @Input() authMethod: AuthenticationMethod;
-  @Input() disabled: boolean = false;
+  @Input() disabled = false;
 
   @Output() authenticationSubmitted = new EventEmitter<AuthenticationData>();
-  
-  username = "";
-  password = "";
+
+  username = '';
+  password = '';
 
   constructor() { }
 
@@ -25,9 +25,9 @@ export class UsernamePasswordFormComponent implements OnInit {
 
   submit() {
 
-    if (this.username != "" && this.password != "") {
+    if (this.username !== '' && this.password !== '') {
 
-      let authenticationData = new UsernamePasswordAuthenticationData(this.authMethod.name, this.username, this.password);
+      const authenticationData = new UsernamePasswordAuthenticationData(this.authMethod.name, this.username, this.password);
       this.authenticationSubmitted.emit(authenticationData);
     }
   }

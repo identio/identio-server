@@ -9,7 +9,7 @@ describe('ConsentService', () => {
       HttpClientModule
     ]
   }));
-  
+
   it('should be created', () => {
     const service: ConsentService = TestBed.get(ConsentService);
     expect(service).toBeTruthy();

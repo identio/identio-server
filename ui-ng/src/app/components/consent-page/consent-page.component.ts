@@ -13,7 +13,7 @@ export class ConsentPageComponent implements OnInit {
   scopes: OAuthScope[];
   audience: string;
   applicationName: string;
-  submitInProgress: boolean = false;
+  submitInProgress = false;
 
   constructor(
     private readonly consentService: ConsentService,
@@ -23,12 +23,12 @@ export class ConsentPageComponent implements OnInit {
   ngOnInit() {
 
     // Fetch the transactionId from the request and update the consent service
-    let transactionId = this.route.snapshot.paramMap.get("transactionId");
+    const transactionId = this.route.snapshot.paramMap.get('transactionId');
 
     this.consentService.updateTransationId(transactionId);
 
     this.scopes = [
-      { name: "toto", description: "une jolie description", selected: false }
+      { name: 'toto', description: 'une jolie description', selected: false }
     ];
 
   }
