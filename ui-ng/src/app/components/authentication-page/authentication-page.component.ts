@@ -5,7 +5,7 @@ import { AuthenticationMethodTypes } from '../../model/authentication-method-typ
 import { AuthenticationService } from '../../services/authentication.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthenticationData } from 'src/app/model/authentication-data';
-import { AuthenticationResponse, AuthenticationResponseStatus } from 'src/app/model/authentication-response';
+import { AuthenticationResponse, AuthenticationResponseStatus, ProtocolType } from 'src/app/model/authentication-response';
 import { ErrorResponse } from 'src/app/model/error-response';
 import { SamlService } from 'src/app/services/saml.service';
 
@@ -69,17 +69,19 @@ export class AuthenticationPageComponent implements OnInit {
   }
 
 
-  handleSuccessResponse(authenticationResponse: AuthenticationResponse) {
+  handleSuccessResponse(response: AuthenticationResponse) {
 
-    switch (authenticationResponse.status) {
+    switch (response.status) {
 
       case AuthenticationResponseStatus.Response:
-        this.samlService.sendSamlResponse(authenticationResponse.responseData);
+        if (response.protocolType == ProtocolType.SAML) {
+          this.samlService.sendSamlResponse(response.responseData);
+        }
         break;
 
       case AuthenticationResponseStatus.Error:
         this.submitInProgress = false;
-        this.errorMessage = authenticationResponse.errorStatus;
+        this.errorMessage = response.errorStatus;
         break;
 
       case AuthenticationResponseStatus.Consent:

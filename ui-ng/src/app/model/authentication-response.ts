@@ -5,6 +5,11 @@ export enum AuthenticationResponseStatus {
     Challenge = "CHALLENGE"
 }
 
+export enum ProtocolType {
+    SAML = "SAML",
+    OAuth = "OAUTH"
+}
+
 export class ResponseData {
     url: string;
     data: string;
@@ -15,7 +20,7 @@ export class AuthenticationResponse {
 
     status: AuthenticationResponseStatus;
     responseData: ResponseData;
-    protocolType: string;
+    protocolType: ProtocolType;
     errorStatus: string;
     challengeType: string;
     challengeValue: string;
