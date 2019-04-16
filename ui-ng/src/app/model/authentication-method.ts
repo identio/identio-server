@@ -1,4 +1,4 @@
 export class AuthenticationMethod {
-    name: string;
-    type: string;
-  }
+  name: string;
+  type: string;
+}

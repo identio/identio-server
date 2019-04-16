@@ -6,7 +6,7 @@
         {
             "url": "/api/auth/methods",
             "httpMethod": "GET",
-            "loadSim": 30,
+            "loadSim": 500,
             "response": [
                 {
                     "name": "LDAP",
@@ -17,6 +17,20 @@
                     "type": "u2f"
                 }
             ]
+        },
+        {
+            "url": "/api/auth/submit/username-password",
+            "httpMethod": "POST",
+            "loadSim": 500,
+            "statusCode": 500,
+            "response": {
+                "status": "RESPONSE",
+                "responseData": {
+                    "url": "http://test",
+                    "relayState": "bla",
+                    "data": "data"
+                }
+            }
         }
     ]
 }

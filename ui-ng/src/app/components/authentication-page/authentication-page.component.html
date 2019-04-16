@@ -18,16 +18,22 @@
     <div class="box">
 
       <p class="form-label">Authentication method</p>
-      <select [(ngModel)]="selectedAuthenticationMethod" [ngModelOptions]="{standalone: true}" class="form-control full-length">
+      <select [(ngModel)]="selectedAuthenticationMethod" [ngModelOptions]="{standalone: true}"
+        [disabled]="submitInProgress" class="form-control full-length">
         <option *ngFor="let authenticationMethod of authenticationMethods" [ngValue]="authenticationMethod">
           {{ authenticationMethod.name }}
         </option>
       </select>
 
       <div [ngSwitch]="selectedAuthenticationMethod?.type">
-        <app-username-password-form [authMethod]="selectedAuthenticationMethod" *ngSwitchCase="authenticationMethodTypes.UsernamePassword"></app-username-password-form>
+        <app-username-password-form [authMethod]="selectedAuthenticationMethod" [disabled]="submitInProgress"
+          (authenticationSubmitted)="onAuthenticationSubmitted($event)"
+          *ngSwitchCase="authenticationMethodTypes.UsernamePassword">
+        </app-username-password-form>
         <app-u2f-form *ngSwitchCase="authenticationMethodTypes.U2F"></app-u2f-form>
       </div>
     </div>
 
   </div>
+
+  <app-saml-responder [responseData]="responseData"></app-saml-responder>
