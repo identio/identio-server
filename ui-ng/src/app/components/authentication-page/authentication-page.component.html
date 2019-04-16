@@ -33,5 +33,23 @@
         <app-u2f-form *ngSwitchCase="authenticationMethodTypes.U2F"></app-u2f-form>
       </div>
     </div>
+  </div>
+
+  <!-- SAML authentication methods -->
+  <div class="row justify-content-center">
+
+    <div class="box" *ngIf="samlAuthenticationMethods?.length > 0">
+      <p>Alternatively you can login with:</p>
+
+      <div *ngFor="let method of samlAuthenticationMethods"class="text-center">
+
+          <!-- <img [src]="'/logo/' + method.name" [alt]="method.name" (click)="samlSpSubmit(method)" /> -->
+         <a [routerLink]="" (click)="samlSpSubmit(method)">
+          <img src="/assets/images/logo.png" [alt]="method.name" class="centered" />
+        </a>
+        </div>
+    </div>
 
   </div>
+
+</div>

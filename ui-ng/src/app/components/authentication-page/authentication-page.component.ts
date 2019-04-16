@@ -24,6 +24,7 @@ export class AuthenticationPageComponent implements OnInit {
   errorMessage: string;
 
   authenticationMethods: AuthenticationMethod[];
+  samlAuthenticationMethods: AuthenticationMethod[];
 
   selectedAuthenticationMethod: AuthenticationMethod;
 
@@ -49,11 +50,8 @@ export class AuthenticationPageComponent implements OnInit {
     // Init authentication methods list
     this.authenticationService.getAuthenticationMethods()
       .subscribe(
-        methods => {
-          this.authenticationMethods = methods;
-          this.selectedAuthenticationMethod = this.authenticationMethods[0];
-        },
-        error => this.router.navigateByUrl('/error/connection.error')
+        methods => this.updateAuthenticationMethods(methods),
+        () => this.router.navigateByUrl('/error/connection.error')
       );
   }
 
@@ -70,8 +68,39 @@ export class AuthenticationPageComponent implements OnInit {
       );
   }
 
+  samlSpSubmit(authenticationMethod: AuthenticationMethod) {
 
-  handleSuccessResponse(response: AuthenticationResponse) {
+    this.submitInProgress = true;
+    this.errorMessage = '';
+
+    this.authenticationService.authenticate(authenticationMethod, null)
+      .subscribe(
+        (authenticationResponse: AuthenticationResponse) => this.samlService.sendSamlRequest(authenticationResponse.responseData),
+        (error: ErrorResponse) => this.router.navigateByUrl('/error/' + error.errorCode)
+      );
+
+  }
+
+  private updateAuthenticationMethods(methods: AuthenticationMethod[]) {
+
+    const newMethods: AuthenticationMethod[] = [];
+    const newSamlMethods: AuthenticationMethod[] = [];
+
+    methods.forEach(method => {
+      if (method.type === 'saml') {
+        newSamlMethods.push(method);
+      } else {
+        newMethods.push(method);
+      }
+    });
+
+    this.authenticationMethods = newMethods;
+    this.samlAuthenticationMethods = newSamlMethods;
+    this.selectedAuthenticationMethod = this.authenticationMethods[0];
+
+  }
+
+  private handleSuccessResponse(response: AuthenticationResponse) {
 
     switch (response.status) {
 

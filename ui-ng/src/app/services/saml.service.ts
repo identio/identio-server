@@ -10,14 +10,22 @@ export class SamlService {
 
   sendSamlResponse(responseData: ResponseData) {
 
-    // Programmatically generate a form to be sent to the target
+    this.submitForm('SAMLResponse', responseData);
+  }
+
+  sendSamlRequest(responseData: ResponseData) {
+
+    this.submitForm('SAMLRequest', responseData);
+  }
+
+  private submitForm(type: string, responseData: ResponseData) {
     const form = window.document.createElement('form');
 
     form.setAttribute('method', 'post');
     form.setAttribute('action', responseData.url);
     form.setAttribute('target', '_self');
 
-    form.appendChild(this.createHiddenInputElement('SAMLResponse', responseData.data));
+    form.appendChild(this.createHiddenInputElement(type, responseData.data));
     form.appendChild(this.createHiddenInputElement('RelayState', responseData.relayState));
 
     // Append the form to the body tag and submit it

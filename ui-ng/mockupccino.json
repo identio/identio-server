@@ -15,6 +15,10 @@
                 {
                     "name": "U2F Key",
                     "type": "u2f"
+                },
+                {
+                    "name": "Test",
+                    "type": "saml"
                 }
             ]
         },
@@ -22,12 +26,25 @@
             "url": "/api/auth/submit/username-password",
             "httpMethod": "POST",
             "loadSim": 500,
-            "statusCode": 500,
             "response": {
                 "status": "RESPONSE",
                 "protocolType": "OAUTH",
                 "responseData": {
                     "url": "http://test",
+                    "relayState": "bla",
+                    "data": "data"
+                }
+            }
+        },
+        {
+            "url": "/api/auth/submit/saml",
+            "httpMethod": "POST",
+            "loadSim": 500,
+            "response": {
+                "status": "RESPONSE",
+                "protocolType": "SAML",
+                "responseData": {
+                    "url": "http://test-idp",
                     "relayState": "bla",
                     "data": "data"
                 }
