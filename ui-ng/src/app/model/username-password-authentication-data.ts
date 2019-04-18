@@ -1,9 +1,12 @@
 import { AuthenticationData } from './authentication-data';
 
 export class UsernamePasswordAuthenticationData implements AuthenticationData {
+
     method: string;
     username: string;
     password: string;
+    challengeType: string;
+    challengeValue: string;
 
     constructor(method: string, username: string, password: string) {
         this.method = method;

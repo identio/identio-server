@@ -5,7 +5,7 @@ import { AuthenticationMethodTypes } from '../../model/authentication-method-typ
 import { AuthenticationService } from '../../services/authentication.service';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthenticationData } from 'src/app/model/authentication-data';
-import { AuthenticationResponse, AuthenticationResponseStatus, ProtocolType } from 'src/app/model/authentication-response';
+import { AuthenticationResult, AuthenticationResultStatus, ProtocolType } from 'src/app/model/authentication-result';
 import { ErrorResponse } from 'src/app/model/error-response';
 import { SamlService } from 'src/app/services/saml.service';
 import { OauthService } from 'src/app/services/oauth.service';
@@ -63,7 +63,7 @@ export class AuthenticationPageComponent implements OnInit {
     this.authenticationService.authenticate(this.selectedAuthenticationMethod,
       authenticationData)
       .subscribe(
-        (authenticationResponse: AuthenticationResponse) => this.handleSuccessResponse(authenticationResponse),
+        (authenticationResponse: AuthenticationResult) => this.handleSuccessResponse(authenticationResponse),
         (error: ErrorResponse) => this.router.navigateByUrl('/error/' + (error.errorCode != null ? error.errorCode : ''))
       );
   }
@@ -75,7 +75,7 @@ export class AuthenticationPageComponent implements OnInit {
 
     this.authenticationService.authenticate(authenticationMethod, null)
       .subscribe(
-        (authenticationResponse: AuthenticationResponse) => this.samlService.sendSamlRequest(authenticationResponse.responseData),
+        (authenticationResponse: AuthenticationResult) => this.samlService.sendSamlRequest(authenticationResponse.responseData),
         (error: ErrorResponse) => this.router.navigateByUrl('/error/' + (error.errorCode != null ? error.errorCode : ''))
       );
   }
@@ -99,11 +99,11 @@ export class AuthenticationPageComponent implements OnInit {
 
   }
 
-  private handleSuccessResponse(response: AuthenticationResponse) {
+  private handleSuccessResponse(response: AuthenticationResult) {
 
     switch (response.status) {
 
-      case AuthenticationResponseStatus.Response:
+      case AuthenticationResultStatus.Response:
         if (response.protocolType === ProtocolType.SAML) {
           this.samlService.sendSamlResponse(response.responseData);
         }
@@ -112,17 +112,17 @@ export class AuthenticationPageComponent implements OnInit {
         }
         break;
 
-      case AuthenticationResponseStatus.Error:
+      case AuthenticationResultStatus.Error:
         this.submitInProgress = false;
         this.errorMessage = response.errorStatus;
         break;
 
-      case AuthenticationResponseStatus.Consent:
+      case AuthenticationResultStatus.Consent:
         this.submitInProgress = false;
         this.router.navigateByUrl('/consent/' + this.transactionId);
         break;
 
-      case AuthenticationResponseStatus.Challenge:
+      case AuthenticationResultStatus.AdditionalAuth:
         break;
 
     }

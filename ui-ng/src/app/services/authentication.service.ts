@@ -4,7 +4,7 @@ import { Observable } from 'rxjs';
 import { AuthenticationMethod } from '../model/authentication-method';
 import { environment } from '../../environments/environment';
 import { AuthenticationData } from '../model/authentication-data';
-import { AuthenticationResponse } from '../model/authentication-response';
+import { AuthenticationResult } from '../model/authentication-result';
 import { ErrorResponse } from '../model/error-response';
 
 @Injectable({
@@ -34,10 +34,10 @@ export class AuthenticationService {
   }
 
   authenticate(authenticationMethod: AuthenticationMethod,
-               authenticationData: AuthenticationData): Observable<AuthenticationResponse | ErrorResponse> {
+               authenticationData: AuthenticationData): Observable<AuthenticationResult | ErrorResponse> {
 
     const url = environment.apiUrl + '/auth/submit/' + authenticationMethod.type;
 
-    return this.http.post<AuthenticationResponse | ErrorResponse>(url, authenticationData, this.httpOptions);
+    return this.http.post<AuthenticationResult | ErrorResponse>(url, authenticationData, this.httpOptions);
   }
 }

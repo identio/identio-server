@@ -1,8 +1,8 @@
-export enum AuthenticationResponseStatus {
+export enum AuthenticationResultStatus {
     Response = 'RESPONSE',
     Error = 'ERROR',
     Consent = 'CONSENT',
-    Challenge = 'CHALLENGE'
+    AdditionalAuth = 'ADDITIONAL_AUTH'
 }
 
 export enum ProtocolType {
@@ -16,12 +16,10 @@ export class ResponseData {
     relayState?: string;
 }
 
-export class AuthenticationResponse {
+export class AuthenticationResult {
 
-    status: AuthenticationResponseStatus;
+    status: AuthenticationResultStatus;
     responseData: ResponseData;
     protocolType: ProtocolType;
     errorStatus: string;
-    challengeType: string;
-    challengeValue: string;
 }
