@@ -25,6 +25,8 @@
 					controller : 'AuthController as auth'
 				}).state('auth.ldap', {
 					templateUrl : 'views/ldap.html',
+				}).state('auth.local', {
+					templateUrl : 'views/local.html',
 				}).state('auth.radius', {
 					templateUrl : 'views/radius.html',
 				}).state('auth.challenge', {
