@@ -1,4 +1,4 @@
-FROM azul/zulu-openjdk-alpine:8
+FROM azul/zulu-openjdk-alpine:8u392-8.74.0.17-jre-x86
 
 # Add the sources to the application
 ADD . /tmp/identio-server-build
